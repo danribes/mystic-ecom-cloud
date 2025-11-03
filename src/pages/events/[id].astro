@@ -1,0 +1,597 @@
+---
+/**
+ * Event Detail Page (T081)
+ * 
+ * Displays complete event information with venue map integration.
+ * Supports URL slug or UUID for event identification.
+ * Shows event details, capacity status, venue information, and interactive map.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getEventById } from '@/lib/events';
+import { getLocalizedEventBySlug } from '@/lib/eventsI18n';
+import { NotFoundError } from '@/lib/errors';
+
+// Get event identifier from URL
+const { id } = Astro.params;
+
+// Get locale from middleware (T169)
+const locale = Astro.locals.locale || 'en';
+
+if (!id) {
+  return Astro.redirect('/events');
+}
+
+// Fetch localized event data (T169)
+let event;
+try {
+  // Try localized version first
+  event = await getLocalizedEventBySlug(id, locale);
+
+  // Fallback to non-localized if not found
+  if (!event) {
+    event = await getEventById(id);
+  }
+  
+  // Redirect to 404 if event is not published (unless admin - future enhancement)
+  if (!event.is_published) {
+    return Astro.redirect('/404');
+  }
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    return Astro.redirect('/404');
+  }
+  throw error;
+}
+
+// Format date and time
+const formatDate = (date: Date): string => {
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+const formatTime = (date: Date): string => {
+  return new Date(date).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
+
+const formatDateTime = (date: Date): string => {
+  return new Date(date).toISOString();
+};
+
+// Format price
+const formatPrice = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice === 0 ? 'Free' : `$${numPrice.toFixed(2)}`;
+};
+
+// Calculate capacity status
+const capacityPercentage = (event.available_spots / event.capacity) * 100;
+const isSoldOut = event.available_spots === 0;
+const isLimitedSpots = capacityPercentage <= 20 && !isSoldOut;
+
+// Duration display
+const durationText = event.duration_hours === 1 
+  ? '1 hour' 
+  : `${event.duration_hours} hours`;
+
+// Calculate end time
+const endTime = new Date(new Date(event.event_date).getTime() + (event.duration_hours * 60 * 60 * 1000));
+
+// Map coordinates
+const hasCoordinates = event.venue_lat && event.venue_lng;
+const mapCenter = hasCoordinates 
+  ? { lat: typeof event.venue_lat === 'string' ? parseFloat(event.venue_lat) : event.venue_lat,
+      lng: typeof event.venue_lng === 'string' ? parseFloat(event.venue_lng) : event.venue_lng }
+  : null;
+
+// Google Maps URL for directions
+const googleMapsUrl = hasCoordinates
+  ? `https://www.google.com/maps/search/?api=1&query=${mapCenter!.lat},${mapCenter!.lng}`
+  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue_address)}`;
+
+// SEO metadata
+const title = event.title;
+const description = event.description.length > 160 
+  ? event.description.substring(0, 157) + '...' 
+  : event.description;
+const keywords = `event, ${event.venue_city}, ${event.venue_country}, spiritual event, ${event.title}`;
+const ogImage = event.image_url || '/images/event-placeholder.jpg';
+---
+
+<BaseLayout 
+  title={title}
+  description={description}
+  keywords={keywords}
+  ogImage={ogImage}
+>
+  <div class="container mx-auto px-lg py-2xl">
+    <!-- Breadcrumb -->
+    <nav class="mb-lg text-sm" aria-label="Breadcrumb">
+      <ol class="flex items-center gap-xs text-text-light">
+        <li><a href="/" class="hover:text-primary transition-colors">Home</a></li>
+        <li>/</li>
+        <li><a href="/events" class="hover:text-primary transition-colors">Events</a></li>
+        <li>/</li>
+        <li class="text-text" aria-current="page">{event.title}</li>
+      </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 gap-2xl lg:grid-cols-3">
+      <!-- Main Content -->
+      <div class="lg:col-span-2">
+        <!-- Event Image -->
+        <div class="mb-xl aspect-video overflow-hidden rounded-xl">
+          <img
+            src={event.image_url || '/images/event-placeholder.jpg'}
+            alt={event.title}
+            class="h-full w-full object-cover"
+          />
+        </div>
+
+        <!-- Event Header -->
+        <header class="mb-xl">
+          <h1 class="mb-md text-4xl font-bold text-text">{event.title}</h1>
+          
+          <!-- Event Meta -->
+          <div class="flex flex-wrap items-center gap-lg text-text-light">
+            <!-- Date & Time -->
+            <div class="flex items-center gap-xs">
+              <span class="text-xl">📅</span>
+              <div>
+                <div class="font-semibold text-text">{formatDate(event.event_date)}</div>
+                <div class="text-sm">{formatTime(event.event_date)} - {formatTime(endTime)}</div>
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="flex items-center gap-xs">
+              <span class="text-xl">⏱️</span>
+              <div>
+                <div class="font-semibold text-text">{durationText}</div>
+                <div class="text-sm">Duration</div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="flex items-center gap-xs">
+              <span class="text-xl">📍</span>
+              <div>
+                <div class="font-semibold text-text">{event.venue_city}</div>
+                <div class="text-sm">{event.venue_country}</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Capacity Alert -->
+        {(isSoldOut || isLimitedSpots) && (
+          <div class:list={[
+            'mb-xl rounded-xl p-lg',
+            isSoldOut ? 'bg-error-light border-2 border-error' : 'bg-warning-light border-2 border-warning'
+          ]}>
+            <div class="flex items-center gap-md">
+              <span class="text-3xl">{isSoldOut ? '⚠️' : '🔥'}</span>
+              <div>
+                <div class:list={[
+                  'font-bold text-lg',
+                  isSoldOut ? 'text-error' : 'text-warning'
+                ]}>
+                  {isSoldOut ? 'This event is sold out' : 'Limited spots remaining'}
+                </div>
+                <div class="text-sm text-text-light">
+                  {isSoldOut 
+                    ? 'All spots have been filled. Check back for future events.'
+                    : `Only ${event.available_spots} of ${event.capacity} spots left!`
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <!-- Description -->
+        <section class="mb-xl">
+          <h2 class="mb-md text-2xl font-bold text-text">About This Event</h2>
+          <div class="prose prose-lg max-w-none text-text-light leading-relaxed">
+            {event.description.split('\n').map(paragraph => (
+              paragraph.trim() && <p class="mb-md">{paragraph}</p>
+            ))}
+          </div>
+        </section>
+
+        <!-- Venue Details -->
+        <section class="mb-xl">
+          <h2 class="mb-md text-2xl font-bold text-text">Venue</h2>
+          <div class="rounded-xl bg-surface p-lg">
+            <h3 class="mb-sm text-xl font-semibold text-text">{event.venue_name}</h3>
+            <div class="mb-md text-text-light">
+              <div>{event.venue_address}</div>
+              <div>{event.venue_city}, {event.venue_country}</div>
+            </div>
+            <a 
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-xs text-primary hover:text-primary-dark transition-colors font-semibold"
+            >
+              <span>Get Directions</span>
+              <span>→</span>
+            </a>
+          </div>
+        </section>
+
+        <!-- Map -->
+        {hasCoordinates && (
+          <section class="mb-xl">
+            <h2 class="mb-md text-2xl font-bold text-text">Location Map</h2>
+            <div class="aspect-video overflow-hidden rounded-xl border-2 border-border">
+              <iframe
+                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${mapCenter!.lat},${mapCenter!.lng}&zoom=15`}
+                width="100%"
+                height="100%"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title={`Map showing location of ${event.venue_name}`}
+              />
+            </div>
+            <p class="mt-sm text-sm text-text-light text-center">
+              📍 {event.venue_name}, {event.venue_city}
+            </p>
+          </section>
+        )}
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="lg:col-span-1">
+        <div class="sticky top-lg">
+          <!-- Booking Card -->
+          <div class="mb-lg rounded-xl bg-surface p-lg shadow-lg">
+            <!-- Price -->
+            <div class="mb-lg border-b border-border pb-lg">
+              {typeof event.price === 'number' && event.price === 0 || event.price === '0' ? (
+                <div class="text-4xl font-bold text-success">Free Event</div>
+              ) : (
+                <div>
+                  <div class="text-4xl font-bold text-primary">{formatPrice(event.price)}</div>
+                  <div class="text-sm text-text-light">per person</div>
+                </div>
+              )}
+            </div>
+
+            <!-- Capacity Info -->
+            <div class="mb-lg">
+              <div class="mb-sm flex items-center justify-between text-sm">
+                <span class="text-text-light">Capacity</span>
+                <span class="font-semibold text-text">
+                  {event.capacity - event.available_spots} / {event.capacity}
+                </span>
+              </div>
+              
+              <!-- Capacity Bar -->
+              <div class="mb-xs h-2 overflow-hidden rounded-full bg-background">
+                <div 
+                  class:list={[
+                    'h-full transition-all duration-base',
+                    isSoldOut ? 'bg-error' :
+                    isLimitedSpots ? 'bg-warning' :
+                    'bg-success'
+                  ]}
+                  style={`width: ${100 - capacityPercentage}%`}
+                />
+              </div>
+              
+              <div class:list={[
+                'text-sm font-semibold',
+                isSoldOut ? 'text-error' :
+                isLimitedSpots ? 'text-warning' :
+                'text-success'
+              ]}>
+                {isSoldOut 
+                  ? 'Sold Out' 
+                  : `${event.available_spots} spots available`
+                }
+              </div>
+            </div>
+
+            <!-- Book Now Button (T082) -->
+            {isSoldOut ? (
+              <button 
+                disabled
+                class="w-full rounded-lg bg-surface py-lg text-lg font-bold text-text-light opacity-50 cursor-not-allowed"
+              >
+                Sold Out
+              </button>
+            ) : (
+              <button
+                id="book-now-btn"
+                data-event-id={event.id}
+                data-event-slug={event.slug}
+                data-event-title={event.title}
+                data-available-spots={event.available_spots}
+                data-capacity={event.capacity}
+                data-price={event.price}
+                class="w-full rounded-lg bg-primary py-lg text-lg font-bold text-white transition-all duration-fast hover:-translate-y-1 hover:bg-primary-dark hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Book Now
+              </button>
+            )}
+
+            {!isSoldOut && isLimitedSpots && (
+              <p class="mt-md text-center text-xs font-semibold text-warning">
+                ⚠️ Only {event.available_spots} spots left!
+              </p>
+            )}
+
+            {!isSoldOut && !isLimitedSpots && (
+              <p class="mt-md text-center text-xs text-text-light">
+                Secure your spot today. Limited availability.
+              </p>
+            )}
+          </div>
+
+          <!-- Event Info Card -->
+          <div class="rounded-xl bg-surface p-lg">
+            <h3 class="mb-md font-bold text-text">Event Information</h3>
+            
+            <dl class="space-y-md text-sm">
+              <div>
+                <dt class="mb-xs font-semibold text-text">Date & Time</dt>
+                <dd class="text-text-light">
+                  <time datetime={formatDateTime(event.event_date)}>
+                    {formatDate(event.event_date)}<br />
+                    {formatTime(event.event_date)} - {formatTime(endTime)}
+                  </time>
+                </dd>
+              </div>
+
+              <div>
+                <dt class="mb-xs font-semibold text-text">Duration</dt>
+                <dd class="text-text-light">{durationText}</dd>
+              </div>
+
+              <div>
+                <dt class="mb-xs font-semibold text-text">Location</dt>
+                <dd class="text-text-light">
+                  {event.venue_name}<br />
+                  {event.venue_city}, {event.venue_country}
+                </dd>
+              </div>
+
+              <div>
+                <dt class="mb-xs font-semibold text-text">Capacity</dt>
+                <dd class="text-text-light">
+                  {event.capacity} attendees maximum
+                </dd>
+              </div>
+
+              <div>
+                <dt class="mb-xs font-semibold text-text">Event ID</dt>
+                <dd class="font-mono text-xs text-text-light">{event.id}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Back to Events -->
+    <div class="mt-2xl text-center">
+      <a 
+        href="/events"
+        class="inline-flex items-center gap-xs text-primary hover:text-primary-dark transition-colors font-semibold"
+      >
+        <span>←</span>
+        <span>Back to All Events</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Schema.org structured data for SEO -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": event.title,
+    "description": event.description,
+    "startDate": formatDateTime(event.event_date),
+    "endDate": formatDateTime(endTime),
+    "eventStatus": "https://schema.org/EventScheduled",
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "location": {
+      "@type": "Place",
+      "name": event.venue_name,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": event.venue_address,
+        "addressLocality": event.venue_city,
+        "addressCountry": event.venue_country
+      },
+      ...(hasCoordinates && {
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": mapCenter!.lat,
+          "longitude": mapCenter!.lng
+        }
+      })
+    },
+    "image": event.image_url || '/images/event-placeholder.jpg',
+    "organizer": {
+      "@type": "Organization",
+      "name": "Spirituality Platform"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": typeof event.price === 'string' ? parseFloat(event.price) : event.price,
+      "priceCurrency": "USD",
+      "availability": isSoldOut 
+        ? "https://schema.org/SoldOut" 
+        : "https://schema.org/InStock",
+      "url": `${Astro.site}/events/${event.slug}`,
+      "validFrom": new Date().toISOString()
+    }
+  })} />
+
+  <!-- Book Now Button JavaScript (T082) -->
+  <script>
+    /**
+     * Book Now Button Handler
+     * Handles capacity validation, loading states, and booking initiation
+     */
+    
+    interface BookingData {
+      eventId: string;
+      eventSlug: string;
+      eventTitle: string;
+      availableSpots: number;
+      capacity: number;
+      price: string | number;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bookBtn = document.getElementById('book-now-btn') as HTMLButtonElement;
+      
+      if (!bookBtn) return; // Button only exists when event is not sold out
+      
+      bookBtn.addEventListener('click', handleBookNow);
+    });
+
+    async function handleBookNow(event: Event) {
+      event.preventDefault();
+      
+      const button = event.currentTarget as HTMLButtonElement;
+      const bookingData: BookingData = {
+        eventId: button.dataset.eventId!,
+        eventSlug: button.dataset.eventSlug!,
+        eventTitle: button.dataset.eventTitle!,
+        availableSpots: parseInt(button.dataset.availableSpots || '0'),
+        capacity: parseInt(button.dataset.capacity || '0'),
+        price: button.dataset.price!
+      };
+
+      // Validate capacity before proceeding
+      if (!validateCapacity(bookingData.availableSpots)) {
+        showError('This event is now sold out. Please try another event.');
+        button.disabled = true;
+        button.textContent = 'Sold Out';
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      // Show loading state
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.innerHTML = `
+        <span class="inline-flex items-center gap-2">
+          <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Processing...</span>
+        </span>
+      `;
+
+      try {
+        // Check real-time capacity (future: API call)
+        // For now, redirect to booking page
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+        
+        // Redirect to booking page
+        window.location.href = `/events/${bookingData.eventSlug}/book`;
+      } catch (error) {
+        console.error('Booking error:', error);
+        showError('Unable to proceed with booking. Please try again.');
+        button.disabled = false;
+        button.textContent = originalText || 'Book Now';
+      }
+    }
+
+    function validateCapacity(availableSpots: number): boolean {
+      return availableSpots > 0;
+    }
+
+    function showError(message: string) {
+      // Create error alert
+      const alert = document.createElement('div');
+      alert.className = 'fixed top-4 right-4 z-50 max-w-md rounded-lg bg-error p-4 text-white shadow-xl animate-fade-in';
+      alert.innerHTML = `
+        <div class="flex items-start gap-3">
+          <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="flex-1">
+            <p class="font-semibold">Booking Error</p>
+            <p class="text-sm opacity-90">${message}</p>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(alert);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  /* Prose styling for description */
+  .prose {
+    color: var(--color-text-light);
+  }
+
+  .prose h1, .prose h2, .prose h3 {
+    color: var(--color-text);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .prose p {
+    margin-bottom: 1em;
+  }
+
+  .prose ul, .prose ol {
+    margin-left: 1.5em;
+    margin-bottom: 1em;
+  }
+
+  /* Loading spinner animation */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  /* Fade in animation for alerts */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+</style>

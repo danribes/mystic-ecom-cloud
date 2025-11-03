@@ -1,0 +1,467 @@
+---
+/**
+ * T068: Admin Course Edit Page
+ * 
+ * Edit existing course form with pre-populated data:
+ * - Fetches course by ID from database
+ * - Pre-fills all form fields
+ * - Updates course via PUT /api/courses/:id
+ * - Validates required fields client-side
+ * - Admin authentication required
+ */
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import FileUpload from '@/components/FileUpload.astro';
+import type { CourseLevel } from '@/types';
+import { getSessionFromRequest } from '@/lib/auth/session';
+import { getCourseById } from '@/services/course.service';
+
+export const prerender = false; // Enable SSR for authentication
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  const currentPath = encodeURIComponent(Astro.url.pathname);
+  return Astro.redirect(`/login?redirect=${currentPath}`);
+}
+
+// Get course ID from URL params
+const { id } = Astro.params;
+if (!id) {
+  return Astro.redirect('/admin/courses');
+}
+
+// Fetch course data
+let course;
+try {
+  course = await getCourseById(id);
+} catch (error) {
+  console.error('Error fetching course:', error);
+  return Astro.redirect('/admin/courses?error=course_not_found');
+}
+
+// Course level options
+const courseLevels: CourseLevel[] = ['beginner', 'intermediate', 'advanced'];
+---
+
+<AdminLayout title={`Edit Course: ${course.title}`}>
+  <div class="p-6 bg-white rounded-lg shadow">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold">Edit Course</h1>
+      <a 
+        href="/admin/courses" 
+        class="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+      >
+        Back to Courses
+      </a>
+    </div>
+    
+    <form id="courseForm" class="space-y-6" data-course-id={course.id}>
+      {/* Basic Information */}
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold">Basic Information</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label for="title" class="block font-medium">
+              Title <span class="text-red-600">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="title"
+              name="title"
+              required
+              value={course.title}
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter course title"
+            />
+          </div>
+          
+          <div class="space-y-2">
+            <label for="slug" class="block font-medium">
+              Slug <span class="text-red-600">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="slug"
+              name="slug"
+              required
+              value={course.slug}
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="course-url-slug"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="description" class="block font-medium mb-2">
+            Short Description <span class="text-red-600">*</span>
+          </label>
+          <textarea 
+            id="description"
+            name="description"
+            required
+            rows="3"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Brief description of the course"
+          >{course.description}</textarea>
+        </div>
+
+        <div>
+          <label for="longDescription" class="block font-medium mb-2">
+            Long Description
+          </label>
+          <textarea 
+            id="longDescription"
+            name="longDescription"
+            rows="6"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Detailed description of the course"
+          >{course.longDescription || ''}</textarea>
+        </div>
+      </div>
+
+      {/* Course Details */}
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold">Course Details</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-2">
+            <label for="price" class="block font-medium">
+              Price (in cents) <span class="text-red-600">*</span>
+            </label>
+            <input 
+              type="number" 
+              id="price"
+              name="price"
+              required
+              min="0"
+              value={course.price}
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="e.g. 9900 for $99.00"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="duration" class="block font-medium">
+              Duration (in seconds) <span class="text-red-600">*</span>
+            </label>
+            <input 
+              type="number" 
+              id="duration"
+              name="duration"
+              required
+              min="0"
+              value={course.duration}
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Total duration in seconds"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="level" class="block font-medium">
+              Level <span class="text-red-600">*</span>
+            </label>
+            <select 
+              id="level"
+              name="level"
+              required
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select Level</option>
+              {courseLevels.map(level => (
+                <option value={level} selected={course.level === level}>
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label for="category" class="block font-medium">
+              Category <span class="text-red-600">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="category"
+              name="category"
+              required
+              value={course.category}
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Course category"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="tags" class="block font-medium">
+              Tags (comma-separated)
+            </label>
+            <input 
+              type="text" 
+              id="tags"
+              name="tags"
+              value={course.tags ? course.tags.join(', ') : ''}
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="meditation, mindfulness, etc."
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Media */}
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold">Media</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FileUpload 
+            name="imageUrl"
+            label="Main Image"
+            accept="image/*"
+            maxSize={10485760}
+            currentValue={course.imageUrl}
+            helpText="Upload the main course image (max 10MB)"
+          />
+
+          <FileUpload 
+            name="thumbnailUrl"
+            label="Thumbnail"
+            accept="image/*"
+            maxSize={10485760}
+            currentValue={course.thumbnailUrl}
+            helpText="Upload a thumbnail image (max 10MB)"
+          />
+
+          <FileUpload 
+            name="previewVideoUrl"
+            label="Preview Video"
+            accept="video/*"
+            maxSize={52428800}
+            currentValue={course.previewVideoUrl}
+            helpText="Upload a preview video (max 50MB)"
+          />
+        </div>
+      </div>
+
+      {/* Learning Content */}
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold">Learning Content</h2>
+        
+        <div class="space-y-2">
+          <label for="learningOutcomes" class="block font-medium">
+            Learning Outcomes (one per line)
+          </label>
+          <textarea 
+            id="learningOutcomes"
+            name="learningOutcomes"
+            rows="4"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="What students will learn&#10;Each line will be a separate outcome"
+          >{course.learningOutcomes ? course.learningOutcomes.join('\n') : ''}</textarea>
+        </div>
+
+        <div class="space-y-2">
+          <label for="prerequisites" class="block font-medium">
+            Prerequisites (one per line)
+          </label>
+          <textarea 
+            id="prerequisites"
+            name="prerequisites"
+            rows="4"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Required prerequisites&#10;Each line will be a separate item"
+          >{course.prerequisites ? course.prerequisites.join('\n') : ''}</textarea>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block font-medium">Course Status</label>
+          <div class="flex gap-4">
+            <label class="inline-flex items-center">
+              <input 
+                type="checkbox" 
+                name="isPublished"
+                checked={course.isPublished}
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span class="ml-2">Published</span>
+            </label>
+            
+            <label class="inline-flex items-center">
+              <input 
+                type="checkbox" 
+                name="isFeatured"
+                checked={course.isFeatured}
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span class="ml-2">Featured course</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Submit */}
+      <div class="flex gap-4 justify-end pt-4">
+        <a 
+          href="/admin/courses" 
+          class="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+        >
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Update Course
+        </button>
+      </div>
+    </form>
+  </div>
+</AdminLayout>
+
+<!-- Inline script for slug generation (no imports needed) -->
+<script is:inline>
+document.addEventListener('DOMContentLoaded', () => {
+  const titleInput = document.getElementById('title');
+  const slugInput = document.getElementById('slug');
+
+  function generateSlug(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  if (titleInput && slugInput) {
+    // Initialize previousValue with the current title on page load
+    titleInput.dataset.previousValue = titleInput.value;
+    
+    const updateSlug = () => {
+      slugInput.value = generateSlug(titleInput.value);
+    };
+    
+    // Only auto-generate slug if it's currently empty or matches the auto-generated pattern
+    titleInput.addEventListener('input', () => {
+      const currentSlug = slugInput.value;
+      const autoSlug = generateSlug(titleInput.value);
+      
+      // Update slug if it's empty or if it looks auto-generated from the previous title
+      if (!currentSlug || currentSlug === generateSlug(titleInput.dataset.previousValue || '')) {
+        slugInput.value = autoSlug;
+      }
+      
+      titleInput.dataset.previousValue = titleInput.value;
+    });
+  }
+});
+</script>
+
+<script>
+import { useToast } from '@/lib/toast';
+import type { CourseLevel } from '@/types';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('courseForm') as HTMLFormElement;
+  const toast = useToast();
+  
+  if (!form) {
+    console.error('Course form not found!');
+    return;
+  }
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+  
+    // Manual validation for required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+    let firstInvalidField: HTMLElement | null = null;
+  
+    requiredFields.forEach((field) => {
+      const input = field as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      if (!input.value.trim()) {
+        input.setAttribute('aria-invalid', 'true');
+        input.classList.add('border-red-500');
+        isValid = false;
+        if (!firstInvalidField) {
+          firstInvalidField = input;
+        }
+      } else {
+        input.removeAttribute('aria-invalid');
+        input.classList.remove('border-red-500');
+      }
+    });
+  
+    if (!isValid && firstInvalidField) {
+      firstInvalidField.focus();
+      toast.error('Please fill in all required fields');
+      return;
+    }
+  
+    try {
+      const formData = new FormData(form);
+      
+      // Get course ID from form data attribute
+      const courseId = form.dataset.courseId;
+      
+      if (!courseId) {
+        throw new Error('Course ID not found');
+      }
+
+      // Parse form data into API payload
+      const data = {
+        title: formData.get('title') as string,
+        slug: formData.get('slug') as string,
+        description: formData.get('description') as string,
+        longDescription: formData.get('longDescription') as string,
+        price: parseInt(formData.get('price') as string, 10),
+        duration: parseInt(formData.get('duration') as string, 10),
+        level: formData.get('level') as CourseLevel,
+        category: formData.get('category') as string,
+        imageUrl: formData.get('imageUrl') as string || undefined,
+        thumbnailUrl: formData.get('thumbnailUrl') as string || undefined,
+        previewVideoUrl: formData.get('previewVideoUrl') as string || undefined,
+        tags: (formData.get('tags') as string)?.split(',').map(tag => tag.trim()).filter(Boolean) || [],
+        learningOutcomes: (formData.get('learningOutcomes') as string)
+          ?.split('\n')
+          .map(outcome => outcome.trim())
+          .filter(Boolean) || [],
+        prerequisites: (formData.get('prerequisites') as string)
+          ?.split('\n')
+          .map(prereq => prereq.trim())
+          .filter(Boolean) || [],
+        isPublished: formData.get('isPublished') === 'on',
+        isFeatured: formData.get('isFeatured') === 'on'
+      };
+
+      // Update course via API
+      const response = await fetch(`/api/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer session', // Session-based auth, handled by cookies
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update course');
+      }
+      
+      const result = await response.json();
+      
+      // Show success message
+      toast.success('Course updated successfully');
+      
+      // Redirect to course list after a brief delay
+      setTimeout(() => {
+        window.location.href = '/admin/courses';
+      }, 1000);
+    } catch (error: any) {
+      // Show error message
+      toast.error(error.message || 'Failed to update course');
+    }
+  });
+});
+</script>

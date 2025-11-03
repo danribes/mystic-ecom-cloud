@@ -1,0 +1,396 @@
+---
+/**
+ * T051: User Dashboard Index Page
+ * 
+ * Dashboard homepage displaying:
+ * - Welcome message
+ * - Quick stats (enrolled courses, orders, downloads)
+ * - Recently accessed courses
+ * - Recent orders
+ * - Quick action buttons
+ */
+
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { getPool } from '@/lib/db';
+import { getSessionFromRequest } from '@/lib/auth/session';
+import ProgressBar from '@/components/progress/ProgressBar.astro';
+
+export const prerender = false; // Enable SSR for authentication
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/login?redirect=/dashboard');
+}
+
+// Get user ID from session
+const userId = session.userId;
+
+// Fetch user's enrolled courses
+const pool = getPool();
+let enrolledCourses = [];
+let recentOrders = [];
+let stats = {
+  totalCourses: 0,
+  totalOrders: 0,
+  totalSpent: 0,
+  activeBookings: 0,
+};
+
+try {
+  // Get enrolled courses
+  const coursesResult = await pool.query(
+    `SELECT c.id, c.title, c.slug, c.description, c.price, c.thumbnail_url,
+            ce.enrolled_at, ce.progress, ce.completed
+     FROM course_enrollments ce
+     JOIN courses c ON ce.course_id = c.id
+     WHERE ce.user_id = $1
+     ORDER BY ce.enrolled_at DESC
+     LIMIT 6`,
+    [userId]
+  );
+  enrolledCourses = coursesResult.rows;
+
+  // Get recent orders
+  const ordersResult = await pool.query(
+    `SELECT o.id, o.total_amount, o.status, o.created_at,
+            COUNT(oi.id) as item_count
+     FROM orders o
+     LEFT JOIN order_items oi ON o.id = oi.order_id
+     WHERE o.user_id = $1
+     GROUP BY o.id
+     ORDER BY o.created_at DESC
+     LIMIT 5`,
+    [userId]
+  );
+  recentOrders = ordersResult.rows;
+
+  // Get stats
+  const statsResult = await pool.query(
+    `SELECT 
+       (SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1) as total_courses,
+       (SELECT COUNT(*) FROM orders WHERE user_id = $1 AND status = 'completed') as total_orders,
+       (SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE user_id = $1 AND status = 'completed') as total_spent,
+       (SELECT COUNT(*) 
+        FROM bookings b 
+        JOIN events e ON b.event_id = e.id 
+        WHERE b.user_id = $1 AND b.status = 'confirmed' AND e.event_date > CURRENT_DATE) as active_bookings`,
+    [userId]
+  );
+  
+  if (statsResult.rows.length > 0) {
+    stats = {
+      totalCourses: parseInt(statsResult.rows[0].total_courses || 0),
+      totalOrders: parseInt(statsResult.rows[0].total_orders || 0),
+      totalSpent: parseFloat(statsResult.rows[0].total_spent || 0),
+      activeBookings: parseInt(statsResult.rows[0].active_bookings || 0),
+    };
+  }
+} catch (error) {
+  console.error('[DASHBOARD] Error fetching data:', error);
+  // Continue with empty data - don't break the page
+}
+
+// Helper function to format date
+function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+// Helper function to get status badge color
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'completed':
+      return 'bg-green-100 text-green-800';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'payment_failed':
+      return 'bg-red-100 text-red-800';
+    case 'refunded':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+---
+
+<DashboardLayout
+  title="Dashboard"
+  description="Welcome to your spiritual learning journey"
+>
+  <!-- Welcome banner -->
+  <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-6 mb-8 text-white">
+    <h2 class="text-2xl font-bold mb-2">Welcome back! 🙏</h2>
+    <p class="text-purple-100">
+      Continue your journey towards inner peace and spiritual growth
+    </p>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Enrolled courses stat -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Enrolled Courses</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">{stats.totalCourses}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+          <span class="text-2xl">📚</span>
+        </div>
+      </div>
+      <a href="/dashboard/courses" class="text-sm text-purple-600 hover:text-purple-700 mt-4 inline-block">
+        View all →
+      </a>
+    </div>
+
+    <!-- Total orders stat -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Orders</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">{stats.totalOrders}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+          <span class="text-2xl">🧾</span>
+        </div>
+      </div>
+      <a href="/dashboard/orders" class="text-sm text-blue-600 hover:text-blue-700 mt-4 inline-block">
+        View history →
+      </a>
+    </div>
+
+    <!-- Total spent stat -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Invested</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">
+            ${stats.totalSpent.toFixed(2)}
+          </p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+          <span class="text-2xl">💰</span>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 mt-4">In your spiritual growth</p>
+    </div>
+
+    <!-- Active bookings stat -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Active Bookings</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">{stats.activeBookings}</p>
+        </div>
+        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+          <span class="text-2xl">📅</span>
+        </div>
+      </div>
+      <a href="/dashboard/bookings" class="text-sm text-orange-600 hover:text-orange-700 mt-4 inline-block">
+        View bookings →
+      </a>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a
+        href="/courses"
+        class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all"
+      >
+        <span class="text-2xl mr-3">🔍</span>
+        <div>
+          <p class="font-medium text-gray-900">Browse Courses</p>
+          <p class="text-sm text-gray-500">Discover new learning</p>
+        </div>
+      </a>
+
+      <a
+        href="/events"
+        class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+      >
+        <span class="text-2xl mr-3">🎟️</span>
+        <div>
+          <p class="font-medium text-gray-900">Find Events</p>
+          <p class="text-sm text-gray-500">Join our community</p>
+        </div>
+      </a>
+
+      <a
+        href="/shop"
+        class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all"
+      >
+        <span class="text-2xl mr-3">🛍️</span>
+        <div>
+          <p class="font-medium text-gray-900">Digital Shop</p>
+          <p class="text-sm text-gray-500">Browse products</p>
+        </div>
+      </a>
+
+      <a
+        href="/support"
+        class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all"
+      >
+        <span class="text-2xl mr-3">💬</span>
+        <div>
+          <p class="font-medium text-gray-900">Get Support</p>
+          <p class="text-sm text-gray-500">We're here to help</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Recently accessed courses -->
+  {enrolledCourses.length > 0 && (
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">My Courses</h3>
+        <a href="/dashboard/courses" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+          View all →
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {enrolledCourses.map((course) => (
+          <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
+            {course.thumbnail_url ? (
+              <img
+                src={course.thumbnail_url}
+                alt={course.title}
+                class="w-full h-48 object-cover"
+              />
+            ) : (
+              <div class="w-full h-48 bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+                <span class="text-6xl">🧘</span>
+              </div>
+            )}
+            <div class="p-6">
+              <h4 class="font-semibold text-gray-900 mb-2 line-clamp-2">{course.title}</h4>
+              
+              {/* Progress bar - T123 Enhanced */}
+              {course.progress !== null && (
+                <div class="mb-4">
+                  <ProgressBar 
+                    percentage={course.progress || 0} 
+                    label="Progress"
+                    color="purple"
+                    size="md"
+                  />
+                </div>
+              )}
+
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-gray-500">
+                  Enrolled {formatDate(course.enrolled_at)}
+                </p>
+                <a
+                  href={`/courses/${course.slug}/learn`}
+                  class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                >
+                  Continue
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Empty state for courses -->
+  {enrolledCourses.length === 0 && (
+    <div class="bg-white rounded-lg shadow p-12 mb-8 text-center">
+      <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-4xl">📚</span>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No Courses Yet</h3>
+      <p class="text-gray-600 mb-6">
+        Start your spiritual journey by enrolling in a course
+      </p>
+      <a
+        href="/courses"
+        class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+      >
+        Browse Courses
+      </a>
+    </div>
+  )}
+
+  <!-- Recent orders -->
+  {recentOrders.length > 0 && (
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Recent Orders</h3>
+        <a href="/dashboard/orders" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+          View all →
+        </a>
+      </div>
+
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order ID
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Items
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {recentOrders.map((order) => (
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #{order.id.slice(0, 8)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(order.created_at)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.item_count} {order.item_count === 1 ? 'item' : 'items'}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${order.total_amount.toFixed(2)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a
+                      href={`/dashboard/orders/${order.id}`}
+                      class="text-purple-600 hover:text-purple-900"
+                    >
+                      View
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )}
+</DashboardLayout>

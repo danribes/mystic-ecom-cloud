@@ -1,0 +1,356 @@
+---
+/**
+ * Digital Products Catalog Page
+ * Displays all available digital products with advanced filtering
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProductCard from '@/components/ProductCard.astro';
+import ProductFilters from '@/components/ProductFilters.astro';
+import { getProducts } from '@/lib/products';
+
+// Get query parameters for filtering
+const url = new URL(Astro.request.url);
+const searchParams = url.searchParams;
+
+const type = searchParams.get('type') || 'all';
+const search = searchParams.get('search') || '';
+const minPrice = searchParams.get('minPrice') || '';
+const maxPrice = searchParams.get('maxPrice') || '';
+const minSize = searchParams.get('minSize') || '';
+const maxSize = searchParams.get('maxSize') || '';
+const sortBy = searchParams.get('sort') || 'newest';
+const page = parseInt(searchParams.get('page') || '1');
+
+// Pagination settings
+const limit = 12;
+const offset = (page - 1) * limit;
+
+// Build filters object
+const filters: any = {
+  type: type !== 'all' ? (type as 'pdf' | 'audio' | 'video' | 'ebook') : undefined,
+  search: search || undefined,
+  minPrice: minPrice ? parseFloat(minPrice) : undefined,
+  maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+  minSize: minSize ? parseFloat(minSize) : undefined,
+  maxSize: maxSize ? parseFloat(maxSize) : undefined,
+  sortBy: sortBy as any,
+  limit: limit + 1, // Fetch one extra to check if there are more pages
+  offset,
+};
+
+// Fetch products with filters
+let products: any[] = [];
+let error = '';
+
+try {
+  const allProducts = await getProducts(filters);
+  const hasMore = allProducts.length > limit;
+  products = hasMore ? allProducts.slice(0, limit) : allProducts;
+} catch (e) {
+  error = 'Failed to load products. Please try again later.';
+  products = [];
+}
+
+// Calculate pagination
+const totalPages = Math.ceil((products.length === limit ? (page * limit) + 1 : page * limit) / limit);
+const hasPrevPage = page > 1;
+const hasNextPage = products.length === limit;
+
+// Helper function to build page URLs with preserved filters
+function buildPageUrl(pageNum: number): string {
+  const params = new URLSearchParams();
+  params.set('page', pageNum.toString());
+  
+  if (type !== 'all') params.set('type', type);
+  if (search) params.set('search', search);
+  if (minPrice) params.set('minPrice', minPrice);
+  if (maxPrice) params.set('maxPrice', maxPrice);
+  if (minSize) params.set('minSize', minSize);
+  if (maxSize) params.set('maxSize', maxSize);
+  if (sortBy !== 'newest') params.set('sort', sortBy);
+  
+  return `/products?${params.toString()}`;
+}
+
+// Helper function to build URL for clearing specific filter
+function buildClearFilterUrl(filterName: string): string {
+  const params = new URLSearchParams();
+  params.set('page', '1'); // Reset to first page
+  
+  if (filterName !== 'type' && type !== 'all') params.set('type', type);
+  if (filterName !== 'search' && search) params.set('search', search);
+  if (filterName !== 'minPrice' && minPrice) params.set('minPrice', minPrice);
+  if (filterName !== 'maxPrice' && maxPrice) params.set('maxPrice', maxPrice);
+  if (filterName !== 'minSize' && minSize) params.set('minSize', minSize);
+  if (filterName !== 'maxSize' && maxSize) params.set('maxSize', maxSize);
+  if (sortBy !== 'newest') params.set('sort', sortBy);
+  
+  return `/products?${params.toString()}`;
+}
+
+// Check for active filters
+const activeFilterCount = [
+  type !== 'all',
+  search !== '',
+  minPrice !== '',
+  maxPrice !== '',
+  minSize !== '',
+  maxSize !== '',
+].filter(Boolean).length;
+
+const hasActiveFilters = activeFilterCount > 0;
+---
+
+<BaseLayout 
+  title="Digital Products - Spiritual Resources"
+  description="Explore our collection of spiritual guides, meditation audio, and transformative video content"
+  keywords="digital products, spiritual guides, meditation audio, video content, PDF, ebooks"
+>
+  <main class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          Digital Products
+        </h1>
+        <p class="text-lg text-gray-600">
+          Explore our collection of spiritual guides, meditation audio, and transformative content
+          {activeFilterCount > 0 && (
+            <span class="text-gray-500">
+              {' '}({activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} applied)
+            </span>
+          )}
+        </p>
+      </div>
+
+      <!-- Error Message -->
+      {error && (
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-800">{error}</p>
+        </div>
+      )}
+
+      <!-- Search Bar (Top of Page) -->
+      {!error && (
+        <div class="mb-6">
+          <form method="GET" action="/products" class="max-w-2xl">
+            <div class="relative">
+              <input
+                type="text"
+                name="search"
+                value={search}
+                placeholder="Search products by title or description..."
+                class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Search
+              </button>
+            </div>
+            <!-- Preserve other filters -->
+            {type !== 'all' && <input type="hidden" name="type" value={type} />}
+            {minPrice && <input type="hidden" name="minPrice" value={minPrice} />}
+            {maxPrice && <input type="hidden" name="maxPrice" value={maxPrice} />}
+            {minSize && <input type="hidden" name="minSize" value={minSize} />}
+            {maxSize && <input type="hidden" name="maxSize" value={maxSize} />}
+            {sortBy !== 'newest' && <input type="hidden" name="sort" value={sortBy} />}
+          </form>
+        </div>
+      )}
+
+      <!-- Active Filter Pills -->
+      {hasActiveFilters && !error && (
+        <div class="mb-6 flex flex-wrap gap-2">
+          {type !== 'all' && (
+            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span>Type: {type}</span>
+              <a
+                href={buildClearFilterUrl('type')}
+                class="hover:text-blue-900"
+                aria-label="Clear type filter"
+              >
+                ×
+              </a>
+            </span>
+          )}
+          
+          {search && (
+            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span>Search: "{search}"</span>
+              <a
+                href={buildClearFilterUrl('search')}
+                class="hover:text-blue-900"
+                aria-label="Clear search"
+              >
+                ×
+              </a>
+            </span>
+          )}
+          
+          {minPrice && (
+            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span>Min: ${minPrice}</span>
+              <a
+                href={buildClearFilterUrl('minPrice')}
+                class="hover:text-blue-900"
+                aria-label="Clear min price"
+              >
+                ×
+              </a>
+            </span>
+          )}
+          
+          {maxPrice && (
+            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span>Max: ${maxPrice}</span>
+              <a
+                href={buildClearFilterUrl('maxPrice')}
+                class="hover:text-blue-900"
+                aria-label="Clear max price"
+              >
+                ×
+              </a>
+            </span>
+          )}
+          
+          {minSize && (
+            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span>Min Size: {minSize} MB</span>
+              <a
+                href={buildClearFilterUrl('minSize')}
+                class="hover:text-blue-900"
+                aria-label="Clear min size"
+              >
+                ×
+              </a>
+            </span>
+          )}
+          
+          {maxSize && (
+            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span>Max Size: {maxSize} MB</span>
+              <a
+                href={buildClearFilterUrl('maxSize')}
+                class="hover:text-blue-900"
+                aria-label="Clear max size"
+              >
+                ×
+              </a>
+            </span>
+          )}
+          
+          <a
+            href="/products"
+            class="inline-flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+          >
+            Clear all filters
+          </a>
+        </div>
+      )}
+
+      <!-- Main Content: Filters Sidebar + Products Grid -->
+      <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Filters Sidebar -->
+        {!error && (
+          <ProductFilters
+            currentType={type}
+            currentMinPrice={minPrice}
+            currentMaxPrice={maxPrice}
+            currentMinSize={minSize}
+            currentMaxSize={maxSize}
+            currentSort={sortBy}
+          />
+        )}
+
+        <!-- Products Section -->
+        <div class="flex-1">
+          <!-- Results Count -->
+          <div class="mb-6">
+            <p class="text-gray-600">
+              {products.length === 0 ? (
+                <span>No products found</span>
+              ) : (
+                <span>
+                  Showing <strong>{products.length}</strong> {products.length === 1 ? 'product' : 'products'}
+                </span>
+              )}
+            </p>
+          </div>
+
+          <!-- Products Grid -->
+          {products.length > 0 ? (
+            <>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {products.map(product => (
+                  <ProductCard product={product} />
+                ))}
+              </div>
+
+              <!-- Pagination -->
+              {(hasPrevPage || hasNextPage) && (
+                <nav aria-label="Pagination" class="flex justify-center items-center gap-2">
+                  {hasPrevPage ? (
+                    <a
+                      href={buildPageUrl(page - 1)}
+                      class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                      aria-label="Previous page"
+                    >
+                      ← Previous
+                    </a>
+                  ) : (
+                    <span class="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-400" aria-disabled="true">
+                      ← Previous
+                    </span>
+                  )}
+
+                  <span class="px-4 py-2 text-gray-700">
+                    Page {page}
+                  </span>
+
+                  {hasNextPage ? (
+                    <a
+                      href={buildPageUrl(page + 1)}
+                      class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                      aria-label="Next page"
+                    >
+                      Next →
+                    </a>
+                  ) : (
+                    <span class="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-400" aria-disabled="true">
+                      Next →
+                    </span>
+                  )}
+                </nav>
+              )}
+            </>
+          ) : (
+            <div class="text-center py-16">
+              <div class="text-6xl mb-4">
+                {hasActiveFilters ? '🔍' : '📦'}
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                {hasActiveFilters ? 'No Products Found' : 'No Products Available'}
+              </h3>
+              <p class="text-gray-600 mb-6">
+                {hasActiveFilters
+                  ? 'Try adjusting your filters to see more results'
+                  : 'Check back later for new products'}
+              </p>
+              {hasActiveFilters && (
+                <a
+                  href="/products"
+                  class="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Clear Filters
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

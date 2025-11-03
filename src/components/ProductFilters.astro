@@ -1,0 +1,316 @@
+---
+/**
+ * ProductFilters Component
+ * 
+ * Advanced filter sidebar for digital products catalog.
+ * Supports product type (format), price range, file size, and sorting.
+ * Uses instant filtering for better UX on type and sort changes.
+ */
+
+interface Props {
+  currentType?: string;
+  currentMinPrice?: string;
+  currentMaxPrice?: string;
+  currentMinSize?: string;
+  currentMaxSize?: string;
+  currentSort?: string;
+}
+
+const {
+  currentType = 'all',
+  currentMinPrice = '',
+  currentMaxPrice = '',
+  currentMinSize = '',
+  currentMaxSize = '',
+  currentSort = 'newest',
+} = Astro.props;
+
+// Check if any filters are active
+const hasActiveFilters =
+  currentType !== 'all' ||
+  currentMinPrice !== '' ||
+  currentMaxPrice !== '' ||
+  currentMinSize !== '' ||
+  currentMaxSize !== '';
+
+// Product type options with icons
+const productTypes = [
+  { value: 'pdf', label: 'PDF Documents', icon: '📄' },
+  { value: 'audio', label: 'Audio Files', icon: '🎵' },
+  { value: 'video', label: 'Video Content', icon: '🎥' },
+  { value: 'ebook', label: 'E-Books', icon: '📚' },
+];
+---
+
+<aside class="bg-white rounded-lg shadow-md p-6 sticky top-4 w-full lg:w-64">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-semibold text-gray-900">Filters</h2>
+    {hasActiveFilters && (
+      <a
+        href="/products"
+        class="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+      >
+        Clear all
+      </a>
+    )}
+  </div>
+
+  <form id="product-filters" action="/products" method="GET" class="space-y-6">
+    
+    <!-- Product Type (Format) Filter -->
+    <div>
+      <h3 class="text-sm font-medium text-gray-900 mb-3">Product Type</h3>
+      <div class="space-y-2">
+        <label class="flex items-center cursor-pointer group">
+          <input
+            type="radio"
+            name="type"
+            value="all"
+            checked={currentType === 'all'}
+            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+          />
+          <span class="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
+            All Products
+          </span>
+        </label>
+
+        {productTypes.map(({ value, label, icon }) => (
+          <label class="flex items-center cursor-pointer group">
+            <input
+              type="radio"
+              name="type"
+              value={value}
+              checked={currentType === value}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
+              {icon} {label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <!-- Price Range Filter -->
+    <div class="pt-6 border-t border-gray-200">
+      <h3 class="text-sm font-medium text-gray-900 mb-3">Price Range</h3>
+      
+      <div class="space-y-3">
+        <div>
+          <label for="minPrice" class="block text-xs text-gray-600 mb-1">
+            Min Price
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <input
+              type="number"
+              id="minPrice"
+              name="minPrice"
+              value={currentMinPrice}
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="maxPrice" class="block text-xs text-gray-600 mb-1">
+            Max Price
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <input
+              type="number"
+              id="maxPrice"
+              name="maxPrice"
+              value={currentMaxPrice}
+              min="0"
+              step="0.01"
+              placeholder="Any"
+              class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Size Range Filter -->
+    <div class="pt-6 border-t border-gray-200">
+      <h3 class="text-sm font-medium text-gray-900 mb-3">File Size (MB)</h3>
+      
+      <div class="space-y-3">
+        <div>
+          <label for="minSize" class="block text-xs text-gray-600 mb-1">
+            Min Size
+          </label>
+          <input
+            type="number"
+            id="minSize"
+            name="minSize"
+            value={currentMinSize}
+            min="0"
+            step="1"
+            placeholder="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label for="maxSize" class="block text-xs text-gray-600 mb-1">
+            Max Size
+          </label>
+          <input
+            type="number"
+            id="maxSize"
+            name="maxSize"
+            value={currentMaxSize}
+            min="0"
+            step="1"
+            placeholder="Any"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Sort By -->
+    <div class="pt-6 border-t border-gray-200">
+      <h3 class="text-sm font-medium text-gray-900 mb-3">Sort By</h3>
+      <select
+        id="sort"
+        name="sort"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      >
+        <option value="newest" selected={currentSort === 'newest'}>
+          Newest First
+        </option>
+        <option value="price-asc" selected={currentSort === 'price-asc'}>
+          Price: Low to High
+        </option>
+        <option value="price-desc" selected={currentSort === 'price-desc'}>
+          Price: High to Low
+        </option>
+        <option value="title-asc" selected={currentSort === 'title-asc'}>
+          Title: A-Z
+        </option>
+        <option value="title-desc" selected={currentSort === 'title-desc'}>
+          Title: Z-A
+        </option>
+        <option value="size-asc" selected={currentSort === 'size-asc'}>
+          Size: Smallest First
+        </option>
+        <option value="size-desc" selected={currentSort === 'size-desc'}>
+          Size: Largest First
+        </option>
+      </select>
+    </div>
+
+    <!-- Apply Filters Button -->
+    <div class="pt-6 border-t border-gray-200">
+      <button
+        type="submit"
+        class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        Apply Filters
+      </button>
+    </div>
+  </form>
+</aside>
+
+<script>
+  // Get form and inputs
+  const form = document.getElementById('product-filters') as HTMLFormElement;
+  const typeRadios = form?.querySelectorAll('input[name="type"]');
+  const sortSelect = form?.querySelector('#sort') as HTMLSelectElement;
+  const priceInputs = form?.querySelectorAll('#minPrice, #maxPrice');
+  const sizeInputs = form?.querySelectorAll('#minSize, #maxSize');
+
+  // Auto-submit on type change (radio buttons)
+  typeRadios?.forEach((radio) => {
+    radio.addEventListener('change', () => {
+      form?.submit();
+    });
+  });
+
+  // Auto-submit on sort change
+  sortSelect?.addEventListener('change', () => {
+    form?.submit();
+  });
+
+  // Prevent negative values in price inputs
+  priceInputs?.forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (parseFloat(target.value) < 0) {
+        target.value = '0';
+      }
+    });
+  });
+
+  // Prevent negative values in size inputs
+  sizeInputs?.forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (parseFloat(target.value) < 0) {
+        target.value = '0';
+      }
+    });
+  });
+
+  // Validate price range (max >= min)
+  const validatePriceRange = () => {
+    const minPriceInput = form?.querySelector('#minPrice') as HTMLInputElement;
+    const maxPriceInput = form?.querySelector('#maxPrice') as HTMLInputElement;
+    
+    if (minPriceInput && maxPriceInput) {
+      const minPrice = parseFloat(minPriceInput.value);
+      const maxPrice = parseFloat(maxPriceInput.value);
+      
+      if (minPrice && maxPrice && maxPrice < minPrice) {
+        maxPriceInput.setCustomValidity('Max price must be greater than min price');
+      } else {
+        maxPriceInput.setCustomValidity('');
+      }
+    }
+  };
+
+  // Validate size range (max >= min)
+  const validateSizeRange = () => {
+    const minSizeInput = form?.querySelector('#minSize') as HTMLInputElement;
+    const maxSizeInput = form?.querySelector('#maxSize') as HTMLInputElement;
+    
+    if (minSizeInput && maxSizeInput) {
+      const minSize = parseFloat(minSizeInput.value);
+      const maxSize = parseFloat(maxSizeInput.value);
+      
+      if (minSize && maxSize && maxSize < minSize) {
+        maxSizeInput.setCustomValidity('Max size must be greater than min size');
+      } else {
+        maxSizeInput.setCustomValidity('');
+      }
+    }
+  };
+
+  // Add validation listeners
+  priceInputs?.forEach((input) => {
+    input.addEventListener('change', validatePriceRange);
+  });
+
+  sizeInputs?.forEach((input) => {
+    input.addEventListener('change', validateSizeRange);
+  });
+
+  // Validate on form submit
+  form?.addEventListener('submit', (e) => {
+    validatePriceRange();
+    validateSizeRange();
+    
+    // If validation fails, prevent submit
+    if (!form.checkValidity()) {
+      e.preventDefault();
+      form.reportValidity();
+    }
+  });
+</script>

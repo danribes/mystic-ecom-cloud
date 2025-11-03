@@ -1,0 +1,442 @@
+---
+/**
+ * Events Catalog Page with Advanced Filters (T110)
+ * 
+ * Enhanced events page with advanced filtering capabilities including:
+ * - Location filters (country, city)
+ * - Time frame presets (upcoming, this week, this month, custom range)
+ * - Price range filtering
+ * - Availability filtering (available spots, limited spots)
+ * - Instant filtering on radio/select changes
+ * - Pagination with limit/offset
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import EventCard from '@/components/EventCard.astro';
+import EventFilters from '@/components/EventFilters.astro';
+import { getEvents } from '@/lib/events';
+import { getLocalizedEvents } from '@/lib/eventsI18n';
+import type { EventFilters as EventFiltersType } from '@/lib/events';
+
+// Get locale from middleware (T169)
+const locale = Astro.locals.locale || 'en';
+
+// Extract URL parameters
+const url = new URL(Astro.request.url);
+const city = url.searchParams.get('city') || '';
+const country = url.searchParams.get('country') || '';
+const timeFrame = url.searchParams.get('timeFrame') || 'all';
+const startDate = url.searchParams.get('startDate') || '';
+const endDate = url.searchParams.get('endDate') || '';
+const minPrice = url.searchParams.get('minPrice') || '';
+const maxPrice = url.searchParams.get('maxPrice') || '';
+const availability = url.searchParams.get('availability') || 'all';
+const page = parseInt(url.searchParams.get('page') || '1');
+const limit = 12;
+
+// Build filters object
+const filters: EventFiltersType = {
+  isPublished: true,
+  city: city || undefined,
+  country: country || undefined,
+  timeFrame: (timeFrame as any) || 'all',
+  startDate: startDate ? new Date(startDate) : undefined,
+  endDate: endDate ? new Date(endDate) : undefined,
+  minPrice: minPrice ? parseFloat(minPrice) : undefined,
+  maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+  availability: (availability as any) || 'all',
+  limit: limit + 1, // Fetch one extra to check for more results
+  offset: (page - 1) * limit,
+};
+
+// Fetch localized events with filters (T169)
+let events, error, totalEvents = 0;
+try {
+  // Try localized version first
+  const result = await getLocalizedEvents({
+    city: city || undefined,
+    country: country || undefined,
+    startDate: startDate ? new Date(startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : undefined,
+    minPrice: minPrice ? parseFloat(minPrice) : undefined,
+    maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+    locale,
+    limit,
+    offset: (page - 1) * limit,
+  });
+
+  events = result.items;
+  totalEvents = result.total;
+} catch (e) {
+  console.error('[T169] Error fetching localized events, falling back:', e);
+  // Fallback to non-localized version
+  try {
+    const allEvents = await getEvents(filters);
+
+    // Check if there are more results
+    const hasMore = allEvents.length > limit;
+    events = hasMore ? allEvents.slice(0, limit) : allEvents;
+
+    // Get total count for pagination (without limit/offset)
+    const countFilters: EventFiltersType = {
+      ...filters,
+      limit: undefined,
+      offset: undefined,
+    };
+    const totalEventsResult = await getEvents(countFilters);
+    totalEvents = totalEventsResult.length;
+  } catch (fallbackE) {
+    error = 'Failed to load events. Please try again later.';
+    events = [];
+  }
+}
+
+// Get all events for filter dropdowns (cities and countries)
+const allEventsForDropdowns = await getEvents({ isPublished: true });
+const cities = [...new Set(allEventsForDropdowns.map(e => e.venue_city))].sort();
+const countries = [...new Set(allEventsForDropdowns.map(e => e.venue_country))].sort();
+
+// Pagination calculations
+const totalPages = Math.ceil(totalEvents / limit);
+const hasNextPage = events.length > 0 && page < totalPages;
+const hasPrevPage = page > 1;
+
+// Helper: Build page URL preserving filters
+function buildPageUrl(pageNum: number): string {
+  const params = new URLSearchParams();
+  params.set('page', pageNum.toString());
+  
+  if (city) params.set('city', city);
+  if (country) params.set('country', country);
+  if (timeFrame !== 'all') params.set('timeFrame', timeFrame);
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+  if (minPrice) params.set('minPrice', minPrice);
+  if (maxPrice) params.set('maxPrice', maxPrice);
+  if (availability !== 'all') params.set('availability', availability);
+  
+  return `/events?${params.toString()}`;
+}
+
+// Count active filters
+const activeFilterCount = [
+  city !== '',
+  country !== '',
+  timeFrame !== 'all',
+  startDate !== '',
+  endDate !== '',
+  minPrice !== '',
+  maxPrice !== '',
+  availability !== 'all',
+].filter(Boolean).length;
+
+// Compute page numbers for pagination (done in frontmatter to avoid JSX issues with < >)
+const computeEventPageNumbers = (): Array<{ pageNum: number; showPage: boolean; showEllipsis: boolean }> => {
+  const pages = [];
+
+  for (let i = 0; i < totalPages; i++) {
+    const pageNum = i + 1;
+
+    // Smart truncation: Show first, last, current ±2
+    const showPage =
+      pageNum === 1 ||
+      pageNum === totalPages ||
+      Math.abs(pageNum - page) <= 2;
+
+    // Show ellipsis once per gap
+    const showEllipsis = !showPage && (pageNum === 2 || pageNum === totalPages - 1);
+
+    pages.push({ pageNum, showPage, showEllipsis });
+  }
+
+  return pages;
+};
+
+const eventPageNumbers = computeEventPageNumbers();
+
+// Format date for display
+const formatDate = (dateStr: string): string => {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+// SEO metadata
+const title = 'Upcoming Events';
+const description = 'Discover and book transformative spiritual events, workshops, and gatherings. Filter by location, date, price, and availability to find the perfect event for you.';
+const keywords = 'spiritual events, meditation workshops, mindfulness retreats, spiritual gatherings, transformative events, personal growth workshops';
+---
+
+<BaseLayout 
+  title={title}
+  description={description}
+  keywords={keywords}
+>
+  <div class="container mx-auto px-lg">
+    
+    <!-- Header -->
+    <header class="mb-2xl text-center">
+      <h1 class="mb-md text-5xl font-bold text-text">Browse Events</h1>
+      <p class="mx-auto max-w-3xl text-lg text-text-light">
+        Discover transformative spiritual events, workshops, and gatherings. 
+        Use our advanced filters to find the perfect event for you.
+      </p>
+      {activeFilterCount > 0 && (
+        <p class="mt-sm text-text-light">
+          {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
+        </p>
+      )}
+    </header>
+
+    <div class="flex flex-col lg:flex-row gap-xl">
+      
+      <!-- Filter Sidebar -->
+      <EventFilters
+        currentCity={city}
+        currentCountry={country}
+        currentTimeFrame={timeFrame}
+        currentStartDate={startDate}
+        currentEndDate={endDate}
+        currentMinPrice={minPrice}
+        currentMaxPrice={maxPrice}
+        currentAvailability={availability}
+        cities={cities}
+        countries={countries}
+      />
+
+      <!-- Main Content -->
+      <main class="flex-1">
+        
+        <!-- Error State -->
+        {error && (
+          <div class="bg-red-50 border border-red-200 text-red-700 px-lg py-md rounded-md mb-xl">
+            {error}
+          </div>
+        )}
+
+        <!-- Results Count -->
+        {!error && events.length > 0 && (
+          <p class="text-text-light mb-lg">
+            Showing {(page - 1) * limit + 1}-{Math.min(page * limit, totalEvents)} of {totalEvents} events
+          </p>
+        )}
+
+        <!-- Active Filters Display -->
+        {activeFilterCount > 0 && (
+          <div class="mb-lg flex flex-wrap items-center gap-md">
+            <span class="text-sm font-semibold text-text">Active Filters:</span>
+            
+            {country && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                Country: {country}
+                <a 
+                  href={buildPageUrl(1).replace(`country=${country}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {city && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                City: {city}
+                <a 
+                  href={buildPageUrl(1).replace(`city=${city}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {timeFrame !== 'all' && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                Time: {timeFrame.replace('-', ' ')}
+                <a 
+                  href={buildPageUrl(1).replace(`timeFrame=${timeFrame}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {startDate && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                From: {formatDate(startDate)}
+                <a 
+                  href={buildPageUrl(1).replace(`startDate=${startDate}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {endDate && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                To: {formatDate(endDate)}
+                <a 
+                  href={buildPageUrl(1).replace(`endDate=${endDate}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {minPrice && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                Min: ${minPrice}
+                <a 
+                  href={buildPageUrl(1).replace(`minPrice=${minPrice}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {maxPrice && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                Max: ${maxPrice}
+                <a 
+                  href={buildPageUrl(1).replace(`maxPrice=${maxPrice}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+
+            {availability !== 'all' && (
+              <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
+                Availability: {availability}
+                <a 
+                  href={buildPageUrl(1).replace(`availability=${availability}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
+                  class="hover:text-primary-dark"
+                >
+                  ×
+                </a>
+              </span>
+            )}
+          </div>
+        )}
+
+        <!-- Empty State -->
+        {!error && events.length === 0 && (
+          <div class="text-center py-2xl bg-surface rounded-xl">
+            <div class="text-6xl mb-md">📅</div>
+            <h2 class="text-2xl font-bold mb-md text-text">No Events Found</h2>
+            <p class="text-text-light mb-lg">
+              {activeFilterCount > 0
+                ? 'No events match your current filters. Try adjusting your search criteria.'
+                : 'There are no upcoming events scheduled at this time. Check back soon!'}
+            </p>
+            {activeFilterCount > 0 && (
+              <a 
+                href="/events" 
+                class="inline-block rounded-md bg-primary px-xl py-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
+              >
+                Clear Filters
+              </a>
+            )}
+          </div>
+        )}
+
+        <!-- Events Grid -->
+        {!error && events.length > 0 && (
+          <>
+            <div class="mb-2xl grid grid-cols-1 gap-xl md:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => (
+                <EventCard event={event} />
+              ))}
+            </div>
+
+            <!-- Pagination -->
+            {totalPages > 1 && (
+              <nav aria-label="Pagination" class="flex justify-center items-center gap-md">
+                
+                <!-- Previous Button -->
+                {hasPrevPage ? (
+                  <a
+                    href={buildPageUrl(page - 1)}
+                    class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-text transition-all duration-fast hover:bg-surface hover:text-primary"
+                    aria-label="Previous page"
+                  >
+                    ←
+                  </a>
+                ) : (
+                  <span
+                    class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-text-light opacity-50"
+                    aria-disabled="true"
+                  >
+                    ←
+                  </span>
+                )}
+
+                <!-- Page Numbers (Desktop) -->
+                <div class="hidden md:flex gap-xs">
+                  {eventPageNumbers.map((pageData) => {
+                    if (!pageData.showPage) {
+                      if (pageData.showEllipsis) {
+                        return <span class="flex h-10 w-10 items-center justify-center text-text-light">...</span>;
+                      }
+                      return null;
+                    }
+
+                    if (pageData.pageNum === page) {
+                      return (
+                        <span
+                          class="flex h-10 w-10 items-center justify-center rounded-md bg-primary font-semibold text-white"
+                          aria-current="page"
+                        >
+                          {pageData.pageNum}
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <a
+                        href={buildPageUrl(pageData.pageNum)}
+                        class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-text transition-all duration-fast hover:bg-surface hover:text-primary"
+                      >
+                        {pageData.pageNum}
+                      </a>
+                    );
+                  })}
+                </div>
+
+                <!-- Mobile Indicator -->
+                <span class="flex md:hidden text-text-light text-sm">
+                  Page {page} of {totalPages}
+                </span>
+
+                <!-- Next Button -->
+                {hasNextPage ? (
+                  <a
+                    href={buildPageUrl(page + 1)}
+                    class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-text transition-all duration-fast hover:bg-surface hover:text-primary"
+                    aria-label="Next page"
+                  >
+                    →
+                  </a>
+                ) : (
+                  <span
+                    class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-text-light opacity-50"
+                    aria-disabled="true"
+                  >
+                    →
+                  </span>
+                )}
+              </nav>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  </div>
+</BaseLayout>

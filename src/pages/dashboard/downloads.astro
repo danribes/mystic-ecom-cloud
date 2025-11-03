@@ -1,0 +1,278 @@
+---
+/**
+ * My Downloads Page
+ * Displays user's purchased digital products with re-download links
+ */
+
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { getUserPurchasedProducts, generateDownloadLink } from '@/lib/products';
+import { getSession } from '@/lib/auth/session';
+
+// Check authentication
+const sessionId = Astro.cookies.get('session')?.value;
+const session = sessionId ? await getSession(sessionId) : null;
+
+if (!session || !session.user) {
+  return Astro.redirect('/login?redirect=/dashboard/downloads');
+}
+
+// Get user's purchased products
+const purchasedProducts = await getUserPurchasedProducts(session.user.id);
+
+// Generate download links for each product
+const productsWithLinks = purchasedProducts.map(product => ({
+  ...product,
+  downloadLink: generateDownloadLink(product.id, product.order_id, session.user.id),
+}));
+
+// Product type icons
+const typeIcons = {
+  pdf: '📄',
+  audio: '🎵',
+  video: '🎬',
+  ebook: '📚',
+};
+
+// Format file size
+const formatFileSize = (sizeMB: number): string => {
+  const size = Number(sizeMB);
+  if (size < 1) {
+    return `${(size * 1024).toFixed(0)} KB`;
+  } else if (size >= 1000) {
+    return `${(size / 1024).toFixed(1)} GB`;
+  } else {
+    return `${size.toFixed(1)} MB`;
+  }
+};
+
+// Format date
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(date));
+};
+---
+
+<DashboardLayout title="My Downloads">
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900" data-testid="page-title">
+          My Downloads
+        </h1>
+        <p class="mt-2 text-gray-600">
+          Access and re-download your purchased digital products
+        </p>
+      </div>
+
+      <a
+        href="/products"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Browse Products
+      </a>
+    </div>
+
+    <!-- Products List -->
+    {productsWithLinks.length === 0 ? (
+      <!-- Empty State -->
+      <div class="bg-white rounded-lg shadow-md p-12 text-center">
+        <div class="text-6xl mb-4">📦</div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+          No Downloads Yet
+        </h3>
+        <p class="text-gray-600 mb-6">
+          You haven't purchased any digital products yet.
+        </p>
+        <a
+          href="/products"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Explore Digital Products
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+          </svg>
+        </a>
+      </div>
+    ) : (
+      <!-- Products Grid -->
+      <div class="grid grid-cols-1 gap-6">
+        {productsWithLinks.map(product => {
+          const downloadsRemaining = product.download_limit - product.download_count;
+          const canDownload = downloadsRemaining > 0;
+
+          return (
+            <article
+              class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              data-testid="download-item"
+              data-product-id={product.id}
+            >
+              <div class="flex flex-col md:flex-row">
+                <!-- Product Image -->
+                <div class="md:w-64 flex-shrink-0">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.title}
+                      class="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div class="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center aspect-video md:aspect-square">
+                      <span class="text-6xl" aria-hidden="true">
+                        {typeIcons[product.product_type] || '📦'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <!-- Product Details -->
+                <div class="flex-1 p-6">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                      <!-- Title -->
+                      <h3 class="text-xl font-semibold text-gray-900 mb-2" data-testid="product-title">
+                        {product.title}
+                      </h3>
+
+                      <!-- Type Badge -->
+                      <span
+                        class={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 ${
+                          product.product_type === 'pdf' ? 'bg-red-100 text-red-800' :
+                          product.product_type === 'audio' ? 'bg-purple-100 text-purple-800' :
+                          product.product_type === 'video' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-100 text-green-800'
+                        }`}
+                      >
+                        <span aria-hidden="true">{typeIcons[product.product_type] || '📦'}</span>
+                        <span class="uppercase">{product.product_type}</span>
+                      </span>
+
+                      <!-- Description -->
+                      <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                        {product.description}
+                      </p>
+
+                      <!-- Product Info -->
+                      <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                          </svg>
+                          <span>Purchased {formatDate(product.purchase_date)}</span>
+                        </div>
+
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                          </svg>
+                          <span>{formatFileSize(product.file_size_mb)}</span>
+                        </div>
+
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                          </svg>
+                          <span data-testid="download-count">
+                            Downloaded {product.download_count} of {product.download_limit} times
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Download Status & Action -->
+                  <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    {canDownload ? (
+                      <div class="flex items-center gap-2 text-sm text-green-700">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span data-testid="downloads-remaining">
+                          {downloadsRemaining} {downloadsRemaining === 1 ? 'download' : 'downloads'} remaining
+                        </span>
+                      </div>
+                    ) : (
+                      <div class="flex items-center gap-2 text-sm text-red-700">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Download limit reached</span>
+                      </div>
+                    )}
+
+                    <div class="flex items-center gap-2">
+                      <a
+                        href={`/products/${product.slug}`}
+                        class="px-4 py-2 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
+                        data-testid="view-product-btn"
+                      >
+                        View Details
+                      </a>
+
+                      {canDownload ? (
+                        <a
+                          href={product.downloadLink.url}
+                          class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                          data-testid="download-btn"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                          </svg>
+                          Download
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          class="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 font-medium rounded-lg cursor-not-allowed"
+                          data-testid="download-btn-disabled"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                          </svg>
+                          Download
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+
+    <!-- Help Text -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div class="flex items-start gap-3">
+        <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div class="flex-1">
+          <h4 class="font-semibold text-blue-900 mb-2">Download Guidelines</h4>
+          <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+            <li>Download links expire after 15 minutes for security</li>
+            <li>Each product has a limited number of downloads</li>
+            <li>Contact support if you need additional downloads</li>
+            <li>Downloaded files are for personal use only</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

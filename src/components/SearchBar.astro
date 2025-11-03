@@ -1,0 +1,448 @@
+---
+/**
+ * SearchBar Component
+ *
+ * Global search bar with autocomplete functionality.
+ * Searches across courses, products, and events.
+ */
+
+import { getTranslations } from '../i18n';
+
+interface Props {
+  placeholder?: string;
+  className?: string;
+}
+
+const locale = Astro.locals.locale || 'en';
+const t = getTranslations(locale);
+
+const {
+  placeholder = t.search.searchPlaceholder,
+  className = ""
+} = Astro.props;
+---
+
+<div class:list={["relative w-full max-w-xl", className]}>
+  <div class="relative">
+    <!-- Search Icon -->
+    <div class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-light">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4.35-4.35"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+
+    <!-- Search Input -->
+    <input
+      type="text"
+      id="global-search"
+      placeholder={placeholder}
+      autocomplete="off"
+      class="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-10 text-text placeholder-text-light transition-colors duration-fast focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      aria-label={t.common.search}
+      aria-controls="search-results"
+      aria-expanded="false"
+      data-locale={locale}
+      data-t-no-results={t.search.noResultsMessage}
+      data-t-search-failed={t.search.searchFailed}
+      data-t-view-all={t.search.viewAllResults}
+      data-t-by={t.search.by}
+    />
+
+    <!-- Clear Button (hidden by default) -->
+    <button
+      id="clear-search"
+      type="button"
+      class="absolute right-3 top-1/2 hidden -translate-y-1/2 cursor-pointer rounded-full border-none bg-transparent p-1 text-text-light transition-colors duration-fast hover:bg-surface hover:text-text"
+      aria-label={t.search.clearSearch}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 4L4 12M4 4l8 8"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+
+    <!-- Loading Spinner (hidden by default) -->
+    <div
+      id="search-loading"
+      class="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2"
+      aria-hidden="true"
+    >
+      <svg
+        class="animate-spin"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle
+          class="opacity-25"
+          cx="10"
+          cy="10"
+          r="8"
+          stroke="currentColor"
+          stroke-width="2"
+        />
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M10 2a8 8 0 0 1 8 8h-2a6 6 0 0 0-6-6V2z"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <!-- Autocomplete Results Dropdown -->
+  <div
+    id="search-results"
+    class="absolute top-full z-50 mt-2 hidden w-full rounded-lg border border-border bg-background shadow-lg"
+    role="listbox"
+    aria-label={t.search.searchResults}
+  >
+    <!-- Results will be inserted here by JavaScript -->
+  </div>
+</div>
+
+<script>
+  // Debounce utility
+  function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: Parameters<T>) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }
+
+  // Initialize search functionality
+  function initializeSearch() {
+    const searchInput = document.getElementById('global-search') as HTMLInputElement;
+    const clearButton = document.getElementById('clear-search') as HTMLButtonElement;
+    const loadingSpinner = document.getElementById('search-loading') as HTMLDivElement;
+    const resultsContainer = document.getElementById('search-results') as HTMLDivElement;
+
+    if (!searchInput || !clearButton || !loadingSpinner || !resultsContainer) {
+      return;
+    }
+
+    let currentRequest: AbortController | null = null;
+
+    // Show/hide clear button based on input
+    function updateClearButton() {
+      if (searchInput.value.trim()) {
+        clearButton.classList.remove('hidden');
+      } else {
+        clearButton.classList.add('hidden');
+      }
+    }
+
+    // Clear search
+    clearButton.addEventListener('click', () => {
+      searchInput.value = '';
+      updateClearButton();
+      hideResults();
+      searchInput.focus();
+    });
+
+    // Update clear button on input
+    searchInput.addEventListener('input', () => {
+      updateClearButton();
+    });
+
+    // Hide results
+    function hideResults() {
+      resultsContainer.classList.add('hidden');
+      searchInput.setAttribute('aria-expanded', 'false');
+    }
+
+    // Show results
+    function showResults() {
+      resultsContainer.classList.remove('hidden');
+      searchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    // Format price
+    function formatPrice(price: number): string {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(price);
+    }
+
+    // Get type badge color
+    function getTypeBadgeClass(type: string): string {
+      const colors: Record<string, string> = {
+        course: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        product: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        event: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      };
+      return colors[type] || 'bg-gray-100 text-gray-800';
+    }
+
+    // Get item URL
+    function getItemUrl(item: any): string {
+      const urls: Record<string, string> = {
+        course: `/courses/${item.id}`,
+        product: `/products/${item.id}`,
+        event: `/events/${item.id}`,
+      };
+      return urls[item.type] || '#';
+    }
+
+    // Get translations from data attributes
+    const tNoResults = searchInput.dataset.tNoResults || 'No results found. Try different keywords.';
+    const tSearchFailed = searchInput.dataset.tSearchFailed || 'Search failed. Please try again.';
+    const tViewAll = searchInput.dataset.tViewAll || 'View all results';
+    const tBy = searchInput.dataset.tBy || 'By';
+
+    // Render results
+    function renderResults(results: any[]) {
+      if (results.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="p-4 text-center text-text-light">
+            ${tNoResults}
+          </div>
+        `;
+        return;
+      }
+
+      const html = `
+        <div class="max-h-96 overflow-y-auto">
+          <ul class="divide-y divide-border">
+            ${results
+              .map(
+                (item, index) => `
+              <li>
+                <a
+                  href="${getItemUrl(item)}"
+                  class="block p-4 transition-colors duration-fast hover:bg-surface"
+                  role="option"
+                  aria-selected="false"
+                  data-index="${index}"
+                >
+                  <div class="flex items-start gap-3">
+                    ${
+                      item.image_url
+                        ? `
+                    <img
+                      src="${item.image_url}"
+                      alt="${item.title}"
+                      class="h-12 w-12 flex-shrink-0 rounded-md object-cover"
+                    />
+                    `
+                        : ''
+                    }
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTypeBadgeClass(
+                          item.type
+                        )}">
+                          ${item.type}
+                        </span>
+                        ${
+                          item.price
+                            ? `<span class="text-sm font-semibold text-primary">${formatPrice(
+                                item.price
+                              )}</span>`
+                            : ''
+                        }
+                      </div>
+                      <h4 class="font-medium text-text truncate">${item.title}</h4>
+                      ${
+                        item.description
+                          ? `<p class="mt-1 text-sm text-text-light line-clamp-2">${item.description}</p>`
+                          : ''
+                      }
+                      ${
+                        item.instructor
+                          ? `<p class="mt-1 text-xs text-text-light">${tBy} ${item.instructor}</p>`
+                          : ''
+                      }
+                      ${
+                        item.date
+                          ? `<p class="mt-1 text-xs text-text-light">${new Date(
+                              item.date
+                            ).toLocaleDateString()}</p>`
+                          : ''
+                      }
+                    </div>
+                  </div>
+                </a>
+              </li>
+            `
+              )
+              .join('')}
+          </ul>
+          <div class="border-t border-border p-3 text-center">
+            <a
+              href="/search?q=${encodeURIComponent(searchInput.value)}"
+              class="text-sm font-medium text-primary hover:underline"
+            >
+              ${tViewAll} →
+            </a>
+          </div>
+        </div>
+      `;
+
+      resultsContainer.innerHTML = html;
+    }
+
+    // Perform search
+    async function performSearch(query: string) {
+      if (!query.trim()) {
+        hideResults();
+        return;
+      }
+
+      // Cancel previous request
+      if (currentRequest) {
+        currentRequest.abort();
+      }
+
+      // Create new abort controller
+      currentRequest = new AbortController();
+
+      // Show loading
+      loadingSpinner.classList.remove('hidden');
+      clearButton.classList.add('hidden');
+
+      try {
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(query)}&limit=5`,
+          { signal: currentRequest.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error('Search failed');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.data?.items) {
+          renderResults(data.data.items);
+          showResults();
+        } else {
+          renderResults([]);
+          showResults();
+        }
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Search error:', error);
+          resultsContainer.innerHTML = `
+            <div class="p-4 text-center text-red-600">
+              ${tSearchFailed}
+            </div>
+          `;
+          showResults();
+        }
+      } finally {
+        loadingSpinner.classList.add('hidden');
+        updateClearButton();
+        currentRequest = null;
+      }
+    }
+
+    // Debounced search
+    const debouncedSearch = debounce(performSearch, 300);
+
+    // Input event listener
+    searchInput.addEventListener('input', (e) => {
+      const query = (e.target as HTMLInputElement).value;
+      debouncedSearch(query);
+    });
+
+    // Keyboard navigation
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideResults();
+        searchInput.blur();
+      } else if (e.key === 'Enter') {
+        const query = searchInput.value.trim();
+        if (query) {
+          window.location.href = `/search?q=${encodeURIComponent(query)}`;
+        }
+      }
+    });
+
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+      if (
+        !searchInput.contains(e.target as Node) &&
+        !resultsContainer.contains(e.target as Node)
+      ) {
+        hideResults();
+      }
+    });
+
+    // Focus shows results if they exist
+    searchInput.addEventListener('focus', () => {
+      if (resultsContainer.innerHTML && searchInput.value.trim()) {
+        showResults();
+      }
+    });
+  }
+
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSearch);
+  } else {
+    initializeSearch();
+  }
+
+  // Re-initialize on view transitions (if using Astro View Transitions)
+  document.addEventListener('astro:page-load', initializeSearch);
+</script>
+
+<style>
+  /* Line clamp utility for truncating text */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Smooth scrolling for results */
+  #search-results {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) transparent;
+  }
+
+  #search-results::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #search-results::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #search-results::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary);
+    border-radius: 3px;
+  }
+</style>

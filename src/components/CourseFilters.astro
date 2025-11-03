@@ -1,0 +1,267 @@
+---
+/**
+ * CourseFilters Component
+ * Advanced filtering sidebar for course catalog
+ * Supports category, price range, level, and rating filters
+ */
+
+interface Props {
+  currentCategory: string;
+  currentLevel: string;
+  currentMinPrice: string;
+  currentMaxPrice: string;
+  currentMinRating: string;
+  categories: string[];
+}
+
+const {
+  currentCategory,
+  currentLevel,
+  currentMinPrice,
+  currentMaxPrice,
+  currentMinRating,
+  categories,
+} = Astro.props;
+
+// Check if any filters are active
+const hasActiveFilters =
+  currentCategory !== 'all' ||
+  currentLevel !== 'all' ||
+  currentMinPrice !== '' ||
+  currentMaxPrice !== '' ||
+  currentMinRating !== '';
+---
+
+<aside class="w-full lg:w-64 flex-shrink-0">
+  <div class="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-lg font-semibold text-gray-900">Filters</h2>
+      {hasActiveFilters && (
+        <a
+          href="/courses"
+          class="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+        >
+          Clear all
+        </a>
+      )}
+    </div>
+
+    <form id="course-filters" action="/courses" method="GET" class="space-y-6">
+      <!-- Category Filter -->
+      <div>
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Category</h3>
+        <div class="space-y-2">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              name="category"
+              value="all"
+              checked={currentCategory === 'all'}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">All Categories</span>
+          </label>
+
+          {categories.map((category) => (
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="category"
+                value={category}
+                checked={currentCategory === category}
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <span class="ml-2 text-sm text-gray-700 capitalize">{category}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <!-- Level Filter -->
+      <div class="pt-6 border-t border-gray-200">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Level</h3>
+        <div class="space-y-2">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              name="level"
+              value="all"
+              checked={currentLevel === 'all'}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">All Levels</span>
+          </label>
+
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              name="level"
+              value="beginner"
+              checked={currentLevel === 'beginner'}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">Beginner</span>
+          </label>
+
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              name="level"
+              value="intermediate"
+              checked={currentLevel === 'intermediate'}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">Intermediate</span>
+          </label>
+
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              name="level"
+              value="advanced"
+              checked={currentLevel === 'advanced'}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">Advanced</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Price Range Filter -->
+      <div class="pt-6 border-t border-gray-200">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Price Range</h3>
+        <div class="space-y-3">
+          <div>
+            <label for="minPrice" class="block text-xs text-gray-600 mb-1">
+              Minimum Price
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                $
+              </span>
+              <input
+                type="number"
+                id="minPrice"
+                name="minPrice"
+                value={currentMinPrice}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="maxPrice" class="block text-xs text-gray-600 mb-1">
+              Maximum Price
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                $
+              </span>
+              <input
+                type="number"
+                id="maxPrice"
+                name="maxPrice"
+                value={currentMaxPrice}
+                min="0"
+                step="0.01"
+                placeholder="No max"
+                class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating Filter -->
+      <div class="pt-6 border-t border-gray-200">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Minimum Rating</h3>
+        <div class="space-y-2">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              name="minRating"
+              value=""
+              checked={currentMinRating === ''}
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">All Ratings</span>
+          </label>
+
+          {[4, 3, 2, 1].map((rating) => (
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="minRating"
+                value={rating.toString()}
+                checked={currentMinRating === rating.toString()}
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <span class="ml-2 flex items-center text-sm text-gray-700">
+                <span class="flex text-yellow-400">
+                  {Array.from({ length: rating }).map(() => (
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                    </svg>
+                  ))}
+                  {Array.from({ length: 5 - rating }).map(() => (
+                    <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20">
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                    </svg>
+                  ))}
+                </span>
+                <span class="ml-1">& up</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <!-- Apply Filters Button -->
+      <div class="pt-6">
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm font-medium"
+        >
+          Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+</aside>
+
+<script>
+  // Auto-submit form when radio buttons change (instant filtering)
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('course-filters') as HTMLFormElement;
+    if (!form) return;
+
+    const radioInputs = form.querySelectorAll('input[type="radio"]');
+    
+    radioInputs.forEach((radio) => {
+      radio.addEventListener('change', () => {
+        form.submit();
+      });
+    });
+
+    // Validate price inputs
+    const minPriceInput = form.querySelector('#minPrice') as HTMLInputElement;
+    const maxPriceInput = form.querySelector('#maxPrice') as HTMLInputElement;
+
+    if (minPriceInput && maxPriceInput) {
+      minPriceInput.addEventListener('input', () => {
+        if (minPriceInput.value && parseFloat(minPriceInput.value) < 0) {
+          minPriceInput.value = '0';
+        }
+      });
+
+      maxPriceInput.addEventListener('input', () => {
+        if (maxPriceInput.value && parseFloat(maxPriceInput.value) < 0) {
+          maxPriceInput.value = '0';
+        }
+      });
+    }
+  });
+</script>

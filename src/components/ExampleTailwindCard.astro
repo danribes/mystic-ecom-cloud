@@ -1,0 +1,68 @@
+---
+/**
+ * Example Tailwind Component
+ * 
+ * This demonstrates using Tailwind CSS with your design system.
+ * Compare this to the existing CourseCard.astro to see the difference.
+ */
+
+interface Props {
+  title: string;
+  description: string;
+  price?: number;
+  image?: string;
+}
+
+const { title, description, price, image } = Astro.props;
+
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(2)}`;
+};
+---
+
+<div class="group relative overflow-hidden rounded-lg border border-border bg-white shadow-md transition-all duration-base hover:shadow-lg">
+  <!-- Image -->
+  {image && (
+    <div class="relative h-48 w-full overflow-hidden bg-surface">
+      <img 
+        src={image} 
+        alt={title}
+        class="h-full w-full object-cover transition-transform duration-slow group-hover:scale-105"
+      />
+    </div>
+  )}
+  
+  <!-- Content -->
+  <div class="p-lg">
+    <h3 class="mb-sm text-xl font-semibold text-text transition-colors group-hover:text-primary">
+      {title}
+    </h3>
+    
+    <p class="mb-md text-sm leading-relaxed text-text-light line-clamp-2">
+      {description}
+    </p>
+    
+    <!-- Footer -->
+    <div class="flex items-center justify-between">
+      {price !== undefined && (
+        <span class="text-2xl font-bold text-primary">
+          {formatPrice(price)}
+        </span>
+      )}
+      
+      <button class="rounded-md bg-primary px-lg py-sm font-medium text-white transition-all duration-fast hover:bg-primary-dark hover:shadow-md active:scale-95">
+        Learn More
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Optional: Add any custom styles that Tailwind doesn't cover */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

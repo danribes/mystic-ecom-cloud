@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FileUpload from '../../components/FileUpload.astro';
+
+// Simple test page for file upload component testing
+---
+
+<BaseLayout title="File Upload Test">
+  <main class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-8">File Upload Component Test</h1>
+
+    <form class="space-y-8">
+      <!-- Image Upload Test -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Image Upload</h2>
+        <FileUpload
+          name="imageUrl"
+          label="Upload Image"
+          accept="image/*"
+          maxSize={10485760}
+          helpText="Upload an image file (max 10MB)"
+        />
+      </div>
+
+      <!-- Video Upload Test -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Video Upload</h2>
+        <FileUpload
+          name="videoUrl"
+          label="Upload Video"
+          accept="video/*"
+          maxSize={52428800}
+          helpText="Upload a video file (max 50MB)"
+        />
+      </div>
+
+      <!-- Document Upload Test -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Document Upload</h2>
+        <FileUpload
+          name="documentUrl"
+          label="Upload Document"
+          accept=".pdf,.doc,.docx,.txt"
+          maxSize={10485760}
+          helpText="Upload a document (max 10MB)"
+        />
+      </div>
+
+      <!-- Required Upload Test -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Required Upload</h2>
+        <FileUpload
+          name="requiredFile"
+          label="Required File"
+          accept="*/*"
+          maxSize={10485760}
+          required={true}
+          helpText="This field is required"
+        />
+      </div>
+
+      <div class="flex gap-4">
+        <button
+          type="submit"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Submit Form
+        </button>
+        <button
+          type="reset"
+          class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
+        >
+          Reset
+        </button>
+      </div>
+    </form>
+  </main>
+</BaseLayout>

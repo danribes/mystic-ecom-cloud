@@ -1,0 +1,361 @@
+---
+/**
+ * EventFilters Component
+ * 
+ * Reusable filter sidebar for event catalog with location,
+ * date range, time frame, price range, and capacity filters.
+ * Supports instant filtering for quick exploration.
+ */
+
+interface Props {
+  currentCity?: string;
+  currentCountry?: string;
+  currentStartDate?: string;
+  currentEndDate?: string;
+  currentTimeFrame?: string;
+  currentMinPrice?: string;
+  currentMaxPrice?: string;
+  currentAvailability?: string;
+  cities: string[];
+  countries: string[];
+}
+
+const {
+  currentCity = '',
+  currentCountry = '',
+  currentStartDate = '',
+  currentEndDate = '',
+  currentTimeFrame = 'all',
+  currentMinPrice = '',
+  currentMaxPrice = '',
+  currentAvailability = 'all',
+  cities = [],
+  countries = [],
+} = Astro.props;
+
+// Check if any filters are active
+const hasActiveFilters =
+  currentCity !== '' ||
+  currentCountry !== '' ||
+  currentStartDate !== '' ||
+  currentEndDate !== '' ||
+  currentTimeFrame !== 'all' ||
+  currentMinPrice !== '' ||
+  currentMaxPrice !== '' ||
+  currentAvailability !== 'all';
+---
+
+<aside class="bg-white rounded-lg shadow-md p-6 sticky top-4 w-full lg:w-64">
+  <form id="event-filters" action="/events" method="GET" class="space-y-6">
+    
+    <!-- Location Section -->
+    <div>
+      <h2 class="text-lg font-semibold mb-3 text-gray-900">Location</h2>
+      
+      <!-- Country Filter -->
+      <div class="mb-3">
+        <label for="country" class="block text-sm font-medium text-gray-700 mb-1">
+          Country
+        </label>
+        <select
+          id="country"
+          name="country"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Countries</option>
+          {countries.map((country) => (
+            <option value={country} selected={currentCountry === country}>
+              {country}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <!-- City Filter -->
+      <div>
+        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">
+          City
+        </label>
+        <select
+          id="city"
+          name="city"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Cities</option>
+          {cities.map((city) => (
+            <option value={city} selected={currentCity === city}>
+              {city}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <!-- Time Frame Filter -->
+    <div>
+      <h2 class="text-lg font-semibold mb-3 text-gray-900">Time Frame</h2>
+      
+      <label class="flex items-center mb-2 cursor-pointer">
+        <input
+          type="radio"
+          name="timeFrame"
+          value="all"
+          checked={currentTimeFrame === 'all'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">All Events</span>
+      </label>
+
+      <label class="flex items-center mb-2 cursor-pointer">
+        <input
+          type="radio"
+          name="timeFrame"
+          value="upcoming"
+          checked={currentTimeFrame === 'upcoming'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">Upcoming Only</span>
+      </label>
+
+      <label class="flex items-center mb-2 cursor-pointer">
+        <input
+          type="radio"
+          name="timeFrame"
+          value="this-week"
+          checked={currentTimeFrame === 'this-week'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">This Week</span>
+      </label>
+
+      <label class="flex items-center mb-2 cursor-pointer">
+        <input
+          type="radio"
+          name="timeFrame"
+          value="this-month"
+          checked={currentTimeFrame === 'this-month'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">This Month</span>
+      </label>
+
+      <label class="flex items-center cursor-pointer">
+        <input
+          type="radio"
+          name="timeFrame"
+          value="custom"
+          checked={currentTimeFrame === 'custom'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">Custom Range</span>
+      </label>
+    </div>
+
+    <!-- Custom Date Range (shown when custom timeFrame selected) -->
+    <div id="custom-date-range" class={currentTimeFrame === 'custom' ? '' : 'hidden'}>
+      <h2 class="text-lg font-semibold mb-3 text-gray-900">Date Range</h2>
+      
+      <div class="space-y-3">
+        <div>
+          <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">
+            From
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            value={currentStartDate}
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">
+            To
+          </label>
+          <input
+            type="date"
+            id="endDate"
+            name="endDate"
+            value={currentEndDate}
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Range Filter -->
+    <div>
+      <h2 class="text-lg font-semibold mb-3 text-gray-900">Price Range</h2>
+      
+      <div class="space-y-3">
+        <div>
+          <label for="minPrice" class="block text-sm font-medium text-gray-700 mb-1">
+            Minimum ($)
+          </label>
+          <input
+            type="number"
+            id="minPrice"
+            name="minPrice"
+            value={currentMinPrice}
+            min="0"
+            step="0.01"
+            placeholder="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-1">
+            Maximum ($)
+          </label>
+          <input
+            type="number"
+            id="maxPrice"
+            name="maxPrice"
+            value={currentMaxPrice}
+            min="0"
+            step="0.01"
+            placeholder="No limit"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Availability Filter -->
+    <div>
+      <h2 class="text-lg font-semibold mb-3 text-gray-900">Availability</h2>
+      
+      <label class="flex items-center mb-2 cursor-pointer">
+        <input
+          type="radio"
+          name="availability"
+          value="all"
+          checked={currentAvailability === 'all'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">All Events</span>
+      </label>
+
+      <label class="flex items-center mb-2 cursor-pointer">
+        <input
+          type="radio"
+          name="availability"
+          value="available"
+          checked={currentAvailability === 'available'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">Spots Available</span>
+      </label>
+
+      <label class="flex items-center cursor-pointer">
+        <input
+          type="radio"
+          name="availability"
+          value="limited"
+          checked={currentAvailability === 'limited'}
+          class="mr-2 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">Limited Spots (< 20%)</span>
+      </label>
+    </div>
+
+    <!-- Apply Filters Button -->
+    <button
+      type="submit"
+      class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200"
+    >
+      Apply Filters
+    </button>
+
+    <!-- Clear Filters Link -->
+    {hasActiveFilters && (
+      <a
+        href="/events"
+        class="block text-center text-sm text-gray-600 hover:text-gray-800 mt-3 underline"
+      >
+        Clear all filters
+      </a>
+    )}
+  </form>
+</aside>
+
+<script>
+  // Auto-submit form when radio buttons or select dropdowns change (instant filtering)
+  const form = document.getElementById('event-filters') as HTMLFormElement;
+  
+  if (form) {
+    // Radio buttons: instant filtering
+    const radioInputs = form.querySelectorAll('input[type="radio"]');
+    radioInputs.forEach((radio) => {
+      radio.addEventListener('change', () => {
+        form.submit();
+      });
+    });
+
+    // Select dropdowns: instant filtering
+    const selects = form.querySelectorAll('select');
+    selects.forEach((select) => {
+      select.addEventListener('change', () => {
+        form.submit();
+      });
+    });
+
+    // Show/hide custom date range based on timeFrame selection
+    const timeFrameRadios = form.querySelectorAll('input[name="timeFrame"]');
+    const customDateRange = document.getElementById('custom-date-range');
+    
+    timeFrameRadios.forEach((radio) => {
+      radio.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (customDateRange) {
+          if (target.value === 'custom') {
+            customDateRange.classList.remove('hidden');
+          } else {
+            customDateRange.classList.add('hidden');
+            // Clear custom date inputs when switching away from custom
+            const startDateInput = form.querySelector('#startDate') as HTMLInputElement;
+            const endDateInput = form.querySelector('#endDate') as HTMLInputElement;
+            if (startDateInput) startDateInput.value = '';
+            if (endDateInput) endDateInput.value = '';
+          }
+        }
+      });
+    });
+
+    // Validate price inputs (prevent negative values)
+    const minPriceInput = form.querySelector('#minPrice') as HTMLInputElement;
+    const maxPriceInput = form.querySelector('#maxPrice') as HTMLInputElement;
+
+    [minPriceInput, maxPriceInput].forEach((input) => {
+      input?.addEventListener('input', () => {
+        if (parseFloat(input.value) < 0) {
+          input.value = '0';
+        }
+      });
+    });
+
+    // Validate date range (end date must be after start date)
+    const startDateInput = form.querySelector('#startDate') as HTMLInputElement;
+    const endDateInput = form.querySelector('#endDate') as HTMLInputElement;
+
+    if (startDateInput && endDateInput) {
+      const validateDateRange = () => {
+        if (startDateInput.value && endDateInput.value) {
+          const start = new Date(startDateInput.value);
+          const end = new Date(endDateInput.value);
+          
+          if (end < start) {
+            endDateInput.setCustomValidity('End date must be after start date');
+          } else {
+            endDateInput.setCustomValidity('');
+          }
+        }
+      };
+
+      startDateInput.addEventListener('change', validateDateRange);
+      endDateInput.addEventListener('change', validateDateRange);
+    }
+  }
+</script>

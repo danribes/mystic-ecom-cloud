@@ -1,0 +1,137 @@
+---
+/**
+ * Header Component
+ *
+ * Main navigation header with authentication state and global search.
+ */
+
+import SearchBar from './SearchBar.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import { getTranslations } from '../i18n';
+
+const user = Astro.locals.user;
+const isLoggedIn = !!user;
+const isAdmin = user?.role === 'admin';
+const locale = Astro.locals.locale || 'en';
+const t = getTranslations(locale);
+
+const currentPath = Astro.url.pathname;
+
+function isActive(path: string): boolean {
+  if (path === '/') {
+    return currentPath === '/';
+  }
+  return currentPath.startsWith(path);
+}
+---
+
+<header class="sticky top-0 z-[1000] h-[var(--header-height)] border-b border-border bg-background shadow-sm">
+  <div class="container">
+    <div class="flex h-full items-center justify-between gap-4">
+      <!-- Logo -->
+      <a href="/" class="flex flex-shrink-0 items-center gap-sm text-xl font-bold text-primary">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 32 32"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" />
+          <path
+            d="M16 8 L16 16 M16 16 L20 20 M16 16 L12 20"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span class="hidden sm:inline">{t.common.appName}</span>
+      </a>
+
+      <!-- Search Bar (Desktop) -->
+      <div class="hidden flex-1 lg:block">
+        <SearchBar className="mx-auto" />
+      </div>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden flex-shrink-0 md:block">
+        <ul class="flex gap-lg list-none">
+          <li>
+            <a href="/courses" class:list={['relative py-sm font-medium text-text-light transition-colors hover:text-primary', { 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:content-[""]': isActive('/courses') }]}>
+              {t.nav.courses}
+            </a>
+          </li>
+          <li>
+            <a href="/events" class:list={['relative py-sm font-medium text-text-light transition-colors hover:text-primary', { 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:content-[""]': isActive('/events') }]}>
+              {t.nav.events}
+            </a>
+          </li>
+          <li>
+            <a href="/shop" class:list={['relative py-sm font-medium text-text-light transition-colors hover:text-primary', { 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:content-[""]': isActive('/shop') }]}>
+              {t.nav.shop}
+            </a>
+          </li>
+          <li>
+            <a href="/about" class:list={['relative py-sm font-medium text-text-light transition-colors hover:text-primary', { 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:content-[""]': isActive('/about') }]}>
+              {t.nav.about}
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Auth / User Menu -->
+      <div class="flex items-center gap-md">
+        <!-- Language Switcher -->
+        <LanguageSwitcher />
+
+        {
+          isLoggedIn ? (
+            <>
+              {isAdmin && (
+                <a href="/admin" class="rounded-md border border-border px-md py-xs text-sm font-medium text-text transition-colors hover:bg-surface">
+                  {t.nav.admin}
+                </a>
+              )}
+              <a href="/cart" class="cursor-pointer text-xl transition-transform duration-fast hover:scale-110" aria-label={t.nav.shoppingCart}>
+                🛒
+              </a>
+              <div class="group relative">
+                <button class="cursor-pointer border-none bg-transparent" aria-label={t.nav.userMenu}>
+                  <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-bold text-white">{user?.name?.charAt(0).toUpperCase()}</span>
+                </button>
+                <div class="absolute right-0 top-[calc(100%+0.5rem)] hidden min-w-[200px] rounded-lg border border-border bg-background p-sm shadow-lg group-hover:block">
+                  <a href="/dashboard" class="block w-full cursor-pointer rounded-md border-none bg-transparent px-md py-sm text-left text-text transition-colors duration-fast hover:bg-surface hover:text-primary">{t.nav.dashboard}</a>
+                  <a href="/profile" class="block w-full cursor-pointer rounded-md border-none bg-transparent px-md py-sm text-left text-text transition-colors duration-fast hover:bg-surface hover:text-primary">{t.nav.profile}</a>
+                  <a href="/orders" class="block w-full cursor-pointer rounded-md border-none bg-transparent px-md py-sm text-left text-text transition-colors duration-fast hover:bg-surface hover:text-primary">{t.nav.orders}</a>
+                  <hr class="my-sm border-t border-border" />
+                  <form action="/api/auth/logout" method="POST">
+                    <button type="submit" class="block w-full cursor-pointer rounded-md border-none bg-transparent px-md py-sm text-left text-text transition-colors duration-fast hover:bg-surface hover:text-primary">{t.auth.signOut}</button>
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <a href="/login" class="rounded-md border border-border px-md py-xs text-sm font-medium text-text transition-colors hover:bg-surface">{t.auth.signIn}</a>
+              <a href="/register" class="rounded-md bg-primary px-md py-xs text-sm font-semibold text-white transition-all duration-fast hover:bg-primary-dark hover:shadow-md">{t.auth.signUp}</a>
+            </>
+          )
+        }
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="flex cursor-pointer flex-col gap-1 border-none bg-transparent md:hidden" aria-label={t.nav.toggleMobileMenu} id="mobile-menu-toggle">
+        <span class="block h-[2px] w-6 bg-text transition-all duration-fast"></span>
+        <span class="block h-[2px] w-6 bg-text transition-all duration-fast"></span>
+        <span class="block h-[2px] w-6 bg-text transition-all duration-fast"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Search Bar -->
+    <div class="pb-3 pt-2 lg:hidden">
+      <SearchBar />
+    </div>
+  </div>
+</header>
+
+

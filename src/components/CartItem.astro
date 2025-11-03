@@ -1,0 +1,185 @@
+---
+/**
+ * CartItem Component
+ * 
+ * Displays a cart item with image, title, price, quantity controls,
+ * and remove button. Used in the shopping cart page.
+ */
+
+import type { CartItem } from '@/types';
+
+interface Props {
+  item: CartItem;
+  onRemove?: (itemId: string, itemType: string) => void;
+  onUpdateQuantity?: (itemId: string, itemType: string, quantity: number) => void;
+}
+
+const { item } = Astro.props;
+
+// Format price (cents to dollars)
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(2)}`;
+};
+
+// Calculate item total
+const itemTotal = item.price * item.quantity;
+
+// Get item type label
+const getItemTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
+    course: 'Course',
+    event: 'Event',
+    digital_product: 'Digital Product',
+  };
+  return labels[type] || type;
+};
+
+// Placeholder image if none provided
+const imageSrc = item.itemImageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200';
+---
+
+<div class="grid grid-cols-[150px_1fr_auto] gap-lg rounded-lg border border-border bg-white p-lg transition-shadow duration-fast hover:shadow-md md:grid-cols-[100px_1fr] lg:grid-cols-[150px_1fr_auto]" data-item-id={item.itemId} data-item-type={item.itemType}>
+  <div class="relative h-[100px] w-[150px] overflow-hidden rounded-md md:h-[75px] md:w-[100px] lg:h-[100px] lg:w-[150px]">
+    <img src={imageSrc} alt={item.itemTitle} class="h-full w-full object-cover" />
+    <span class="absolute left-xs top-xs rounded-sm bg-black/70 px-sm py-xs text-xs font-medium text-white">{getItemTypeLabel(item.itemType)}</span>
+  </div>
+
+  <div class="flex flex-col gap-sm">
+    <h3 class="m-0 text-lg font-semibold">
+      <a href={`/${item.itemType === 'course' ? 'courses' : item.itemType === 'event' ? 'events' : 'products'}/${item.itemSlug || item.itemId}`} class="text-text no-underline transition-colors duration-fast hover:text-primary">
+        {item.itemTitle}
+      </a>
+    </h3>
+    <p class="m-0 text-sm text-text-light">{formatPrice(item.price)} each</p>
+  </div>
+
+  <div class="col-span-full flex flex-col items-end gap-md md:flex-row md:justify-between md:items-center lg:col-auto lg:flex-col lg:items-end">
+    <div class="flex items-center gap-xs overflow-hidden rounded-md border border-border">
+      <button 
+        class="flex h-8 w-8 items-center justify-center border-none bg-surface text-lg font-bold text-text transition-colors duration-fast hover:bg-surface-dark disabled:cursor-not-allowed disabled:opacity-50" 
+        aria-label="Decrease quantity"
+        data-action="decrease"
+      >
+        −
+      </button>
+      <input 
+        type="number" 
+        class="h-8 w-[50px] border-x border-border bg-white text-center text-base font-medium [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" 
+        value={item.quantity} 
+        min="1" 
+        max="10"
+        aria-label="Quantity"
+      />
+      <button 
+        class="flex h-8 w-8 items-center justify-center border-none bg-surface text-lg font-bold text-text transition-colors duration-fast hover:bg-surface-dark disabled:cursor-not-allowed disabled:opacity-50" 
+        aria-label="Increase quantity"
+        data-action="increase"
+      >
+        +
+      </button>
+    </div>
+
+    <div class="flex flex-col items-end gap-xs md:flex-row md:gap-sm lg:flex-col lg:items-end">
+      <span class="text-sm text-text-light">Total:</span>
+      <span class="text-xl font-bold text-primary">{formatPrice(itemTotal)}</span>
+    </div>
+
+    <button class="flex items-center gap-xs rounded-md border border-border bg-white px-md py-sm text-sm font-medium text-error transition-all duration-fast hover:border-error hover:bg-error-light" aria-label="Remove item" data-action="remove">
+      <span class="text-base">🗑️</span>
+      <span>Remove</span>
+    </button>
+  </div>
+</div>
+
+
+<script>
+  /**
+   * CartItem functionality
+   * Handles quantity updates and item removal
+   */
+
+  // Handle quantity change
+  function handleQuantityChange(
+    cartItem: HTMLElement,
+    action: 'increase' | 'decrease' | 'input',
+    newValue?: number
+  ): void {
+    const quantityInput = cartItem.querySelector('.quantity-input') as HTMLInputElement;
+    if (!quantityInput) return;
+
+    let quantity = parseInt(quantityInput.value, 10);
+
+    if (action === 'increase') {
+      quantity = Math.min(quantity + 1, 10);
+    } else if (action === 'decrease') {
+      quantity = Math.max(quantity - 1, 1);
+    } else if (action === 'input' && newValue !== undefined) {
+      quantity = Math.max(1, Math.min(newValue, 10));
+    }
+
+    quantityInput.value = quantity.toString();
+
+    // Dispatch custom event for parent to handle
+    const event = new CustomEvent('cart-quantity-change', {
+      detail: {
+        itemId: cartItem.dataset.itemId,
+        itemType: cartItem.dataset.itemType,
+        quantity,
+      },
+      bubbles: true,
+    });
+    cartItem.dispatchEvent(event);
+  }
+
+  // Handle remove item
+  function handleRemove(cartItem: HTMLElement): void {
+    // Dispatch custom event for parent to handle
+    const event = new CustomEvent('cart-item-remove', {
+      detail: {
+        itemId: cartItem.dataset.itemId,
+        itemType: cartItem.dataset.itemType,
+      },
+      bubbles: true,
+    });
+    cartItem.dispatchEvent(event);
+  }
+
+  // Initialize event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const cartItems = document.querySelectorAll('.cart-item');
+
+    cartItems.forEach((cartItem) => {
+      const htmlItem = cartItem as HTMLElement;
+
+      // Quantity buttons
+      const btnDecrease = htmlItem.querySelector('.btn-decrease') as HTMLButtonElement;
+      const btnIncrease = htmlItem.querySelector('.btn-increase') as HTMLButtonElement;
+      const quantityInput = htmlItem.querySelector('.quantity-input') as HTMLInputElement;
+
+      if (btnDecrease) {
+        btnDecrease.addEventListener('click', () =>
+          handleQuantityChange(htmlItem, 'decrease')
+        );
+      }
+
+      if (btnIncrease) {
+        btnIncrease.addEventListener('click', () =>
+          handleQuantityChange(htmlItem, 'increase')
+        );
+      }
+
+      if (quantityInput) {
+        quantityInput.addEventListener('change', (e) => {
+          const value = parseInt((e.target as HTMLInputElement).value, 10);
+          handleQuantityChange(htmlItem, 'input', value);
+        });
+      }
+
+      // Remove button
+      const btnRemove = htmlItem.querySelector('.btn-remove') as HTMLButtonElement;
+      if (btnRemove) {
+        btnRemove.addEventListener('click', () => handleRemove(htmlItem));
+      }
+    });
+  });
+</script>

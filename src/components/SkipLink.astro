@@ -1,0 +1,40 @@
+---
+/**
+ * Skip Link Component
+ *
+ * Provides a keyboard-accessible skip link for users to bypass navigation
+ * and jump directly to main content. This is a WCAG 2.1 Level A requirement.
+ *
+ * WCAG 2.1 Criteria:
+ * - 2.4.1 Bypass Blocks (Level A)
+ *
+ * Usage:
+ * <SkipLink targetId="main-content" />
+ * <main id="main-content">...</main>
+ */
+
+interface Props {
+  targetId?: string;
+  label?: string;
+}
+
+const {
+  targetId = 'main-content',
+  label = 'Skip to main content',
+} = Astro.props;
+---
+
+<a
+  href={`#${targetId}`}
+  class="skip-link"
+  aria-label={label}
+>
+  {label}
+</a>
+
+<style>
+  /* Additional component-specific styles if needed */
+  .skip-link {
+    /* Inherited from global.css */
+  }
+</style>

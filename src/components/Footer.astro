@@ -1,0 +1,91 @@
+---
+/**
+ * Footer Component
+ *
+ * Site footer with links, social media, and copyright.
+ */
+
+import { getTranslations } from '../i18n';
+
+const locale = Astro.locals.locale || 'en';
+const t = getTranslations(locale);
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="mt-auto border-t border-border bg-surface-dark px-0 pb-xl pt-3xl">
+  <div class="container">
+    <div class="mb-2xl grid grid-cols-1 gap-2xl sm:grid-cols-2 md:grid-cols-4">
+      <!-- About Section -->
+      <div class="col-span-1 md:col-span-2">
+        <h3 class="mb-md text-2xl font-bold text-primary">{t.common.appName}</h3>
+        <p class="mb-lg leading-relaxed text-text-light">
+          {t.footer.tagline}
+        </p>
+        <div class="flex gap-md">
+          <a href="https://facebook.com" aria-label="Facebook" class="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-xl transition-all duration-base hover:-translate-y-0.5 hover:bg-primary">
+            📘
+          </a>
+          <a href="https://twitter.com" aria-label="Twitter" class="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-xl transition-all duration-base hover:-translate-y-0.5 hover:bg-primary">
+            🐦
+          </a>
+          <a href="https://instagram.com" aria-label="Instagram" class="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-xl transition-all duration-base hover:-translate-y-0.5 hover:bg-primary">
+            📷
+          </a>
+          <a href="https://youtube.com" aria-label="YouTube" class="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-xl transition-all duration-base hover:-translate-y-0.5 hover:bg-primary">
+            📺
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4 class="mb-md text-lg font-semibold text-text">{t.footer.quickLinks}</h4>
+        <ul class="flex list-none flex-col gap-sm">
+          <li><a href="/courses" class="text-text-light transition-colors duration-base hover:text-primary">{t.nav.courses}</a></li>
+          <li><a href="/events" class="text-text-light transition-colors duration-base hover:text-primary">{t.nav.events}</a></li>
+          <li><a href="/shop" class="text-text-light transition-colors duration-base hover:text-primary">{t.nav.shop}</a></li>
+          <li><a href="/about" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.aboutUs}</a></li>
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div>
+        <h4 class="mb-md text-lg font-semibold text-text">{t.footer.resources}</h4>
+        <ul class="flex list-none flex-col gap-sm">
+          <li><a href="/blog" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.blog}</a></li>
+          <li><a href="/faq" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.faq}</a></li>
+          <li><a href="/support" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.support}</a></li>
+          <li><a href="/contact" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.contact}</a></li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div class="col-span-1 md:col-span-1">
+        <h4 class="mb-md text-lg font-semibold text-text">{t.footer.legal}</h4>
+        <ul class="flex list-none flex-col gap-sm">
+          <li><a href="/privacy" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.privacy}</a></li>
+          <li><a href="/terms" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.terms}</a></li>
+          <li><a href="/refunds" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.refunds}</a></li>
+          <li><a href="/cookies" class="text-text-light transition-colors duration-base hover:text-primary">{t.footer.cookies}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="flex flex-col items-center gap-sm border-t border-border pt-xl text-center md:flex-row md:justify-between">
+      <p class="text-sm text-text-lighter">
+        {t.footer.copyright.replace('{{year}}', currentYear.toString()).replace('{{appName}}', t.common.appName)}
+      </p>
+      <p class="text-sm text-text-lighter">
+        {t.footer.builtWith.replace('{{heart}}', '')} <span class="inline-block animate-[heartbeat_1.5s_ease-in-out_infinite] text-error">❤️</span>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+</style>

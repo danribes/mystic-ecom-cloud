@@ -1,0 +1,89 @@
+---
+/**
+ * T177: SEO Metadata Component
+ *
+ * Provides multilingual SEO optimization including:
+ * - hreflang tags for language/region targeting
+ * - Localized meta descriptions
+ * - Open Graph tags
+ * - Twitter Card metadata
+ * - Canonical URLs
+ */
+
+import type { Locale } from '@/i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  canonicalPath: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'product';
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  locale,
+  canonicalPath,
+  ogImage = '/images/og-default.jpg',
+  ogType = 'website',
+  noindex = false
+} = Astro.props;
+
+// Get base URL from environment or default
+const baseUrl = import.meta.env.PUBLIC_SITE_URL || 'https://quantumhealingportal.com';
+
+// Build full URLs for canonical and alternates
+const canonicalUrl = `${baseUrl}${canonicalPath}`;
+const enUrl = `${baseUrl}${canonicalPath}`;
+const esUrl = `${baseUrl}/es${canonicalPath}`;
+
+// Locale mapping for Open Graph
+const ogLocaleMap: Record<Locale, string> = {
+  'en': 'en_US',
+  'es': 'es_ES'
+};
+
+const ogLocale = ogLocaleMap[locale];
+const ogLocaleAlternate = locale === 'en' ? 'es_ES' : 'en_US';
+
+// Full image URL
+const fullOgImage = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`;
+---
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonicalUrl} />
+
+<!-- hreflang Tags for Language/Region Targeting -->
+<link rel="alternate" hreflang="en" href={enUrl} />
+<link rel="alternate" hreflang="es" href={esUrl} />
+<link rel="alternate" hreflang="x-default" href={enUrl} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={fullOgImage} />
+<meta property="og:locale" content={ogLocale} />
+<meta property="og:locale:alternate" content={ogLocaleAlternate} />
+<meta property="og:site_name" content="Quantum Healing Portal" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={canonicalUrl} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={fullOgImage} />
+
+<!-- Additional SEO -->
+<meta name="language" content={locale === 'en' ? 'English' : 'Spanish'} />
+<link rel="alternate" type="application/rss+xml" title="RSS Feed" href={`${baseUrl}/rss.xml`} />

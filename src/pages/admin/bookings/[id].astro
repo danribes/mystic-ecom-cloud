@@ -1,0 +1,540 @@
+---
+/**
+ * T090: Admin Booking Management Interface
+ * 
+ * View and manage attendees for a specific event.
+ * Allows admins to see all bookings, attendee details,
+ * and send updates to attendees.
+ */
+
+import { getEventById } from '@/lib/events';
+import { query } from '@/lib/db';
+import type { Event } from '@/lib/events';
+
+const { id } = Astro.params;
+
+// Verify admin access
+import { getSessionFromRequest } from '@/lib/auth/session';
+const session = await getSessionFromRequest(Astro.cookies);
+
+if (!session || session.role !== 'admin') {
+  return Astro.redirect('/admin/login');
+}
+
+let event: Event | null = null;
+let bookings: any[] = [];
+let error: string | null = null;
+
+interface Booking {
+  id: string;
+  user_id: string;
+  attendees: number;
+  total_price: number;
+  status: string;
+  created_at: Date;
+  user_name: string;
+  user_email: string;
+  user_phone: string;
+  whatsapp_notified: boolean;
+  email_notified: boolean;
+}
+
+try {
+  if (!id) {
+    throw new Error('Event ID is required');
+  }
+
+  // Get event details
+  event = await getEventById(id);
+
+  if (!event) {
+    error = 'Event not found';
+  } else {
+    // Get all bookings for this event with user details
+    const bookingsResult = await query(
+      `SELECT 
+        b.id,
+        b.user_id,
+        b.attendees,
+        b.total_price,
+        b.status,
+        b.created_at,
+        b.whatsapp_notified,
+        b.email_notified,
+        u.name as user_name,
+        u.email as user_email,
+        u.phone_number as user_phone
+      FROM bookings b
+      INNER JOIN users u ON b.user_id = u.id
+      WHERE b.event_id = $1
+      ORDER BY b.created_at DESC`,
+      [id]
+    );
+
+    bookings = bookingsResult.rows as Booking[];
+  }
+} catch (err) {
+  console.error('Error fetching event bookings:', err);
+  error = err instanceof Error ? err.message : 'Failed to load event bookings';
+}
+
+// Calculate statistics
+const totalBookings = bookings.length;
+const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length;
+const pendingBookings = bookings.filter(b => b.status === 'pending').length;
+const cancelledBookings = bookings.filter(b => b.status === 'cancelled').length;
+const totalAttendees = bookings
+  .filter(b => b.status !== 'cancelled')
+  .reduce((sum, b) => sum + b.attendees, 0);
+const totalRevenue = bookings
+  .filter(b => b.status === 'confirmed')
+  .reduce((sum, b) => sum + parseFloat(b.total_price.toString()), 0);
+
+const title = event ? `Bookings for ${event.title}` : 'Event Bookings';
+const description = 'Manage event attendees and send updates';
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <a href="/admin/events" class="text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block">
+            ← Back to Events
+          </a>
+          <h1 class="text-2xl font-bold text-gray-900">{title}</h1>
+          {event && (
+            <p class="text-sm text-gray-600 mt-1">
+              {new Date(event.event_date).toLocaleDateString('en-US', { 
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {error ? (
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-red-800">{error}</p>
+      </div>
+    ) : event ? (
+      <>
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Bookings</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{totalBookings}</p>
+              </div>
+              <div class="bg-blue-100 rounded-full p-3">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-gray-600">
+              <span class="text-green-600 font-semibold">{confirmedBookings}</span> confirmed,
+              <span class="text-yellow-600 font-semibold">{pendingBookings}</span> pending,
+              <span class="text-gray-500 font-semibold">{cancelledBookings}</span> cancelled
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Attendees</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{totalAttendees}</p>
+              </div>
+              <div class="bg-green-100 rounded-full p-3">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-gray-600">
+              of {event.capacity} capacity
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Available Spots</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{event.available_spots}</p>
+              </div>
+              <div class="bg-yellow-100 rounded-full p-3">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  class="bg-blue-600 h-2 rounded-full" 
+                  style={`width: ${((event.capacity - event.available_spots) / event.capacity * 100).toFixed(1)}%`}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">${totalRevenue.toFixed(2)}</p>
+              </div>
+              <div class="bg-purple-100 rounded-full p-3">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-gray-600">
+              from confirmed bookings
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div class="flex flex-wrap gap-3">
+            <button
+              id="send-update-btn"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Send Update to All
+            </button>
+            
+            <button
+              id="export-csv-btn"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export to CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Bookings Table -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Attendee List</h2>
+          </div>
+
+          {bookings.length === 0 ? (
+            <div class="px-6 py-12 text-center">
+              <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <p class="text-gray-500 text-sm">No bookings yet for this event</p>
+            </div>
+          ) : (
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Attendee
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Attendees
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Notifications
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Booked
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  {bookings.map((booking) => (
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{booking.user_name}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{booking.user_email}</div>
+                        {booking.user_phone && (
+                          <div class="text-sm text-gray-500">{booking.user_phone}</div>
+                        )}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {booking.attendees}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${parseFloat(booking.total_price.toString()).toFixed(2)}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : ''}
+                          ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
+                          ${booking.status === 'cancelled' ? 'bg-gray-100 text-gray-800' : ''}
+                        `}>
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex gap-2">
+                          {booking.email_notified ? (
+                            <span class="inline-flex items-center text-green-600" title="Email sent">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span class="inline-flex items-center text-gray-400" title="Email not sent">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                              </svg>
+                            </span>
+                          )}
+                          {booking.whatsapp_notified ? (
+                            <span class="inline-flex items-center text-green-600" title="WhatsApp sent">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span class="inline-flex items-center text-gray-400" title="WhatsApp not sent">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(booking.created_at).toLocaleDateString('en-US', { 
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          class="text-blue-600 hover:text-blue-900 send-individual-update"
+                          data-booking-id={booking.id}
+                          data-user-email={booking.user_email}
+                          data-user-name={booking.user_name}
+                        >
+                          Send Update
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </>
+    ) : null}
+  </main>
+
+  <!-- Send Update Modal -->
+  <div id="update-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900" id="modal-title">Send Update</h3>
+        <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="update-form">
+        <div class="mb-4">
+          <label for="update-subject" class="block text-sm font-medium text-gray-700 mb-2">
+            Subject
+          </label>
+          <input
+            type="text"
+            id="update-subject"
+            name="subject"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Event Update"
+          />
+        </div>
+
+        <div class="mb-4">
+          <label for="update-message" class="block text-sm font-medium text-gray-700 mb-2">
+            Message
+          </label>
+          <textarea
+            id="update-message"
+            name="message"
+            rows="6"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Write your update message here..."
+          ></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              id="send-whatsapp"
+              name="sendWhatsapp"
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+            />
+            <span class="ml-2 text-sm text-gray-700">Also send via WhatsApp (if phone number available)</span>
+          </label>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <button
+            type="button"
+            id="cancel-update"
+            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+          >
+            Send Update
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Modal handling
+    const modal = document.getElementById('update-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const updateForm = document.getElementById('update-form') as HTMLFormElement;
+    const sendUpdateBtn = document.getElementById('send-update-btn');
+    const closeModalBtn = document.getElementById('close-modal');
+    const cancelUpdateBtn = document.getElementById('cancel-update');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+
+    let currentRecipient: 'all' | { id: string; email: string; name: string } = 'all';
+
+    function openModal(recipient: typeof currentRecipient) {
+      currentRecipient = recipient;
+      if (recipient === 'all') {
+        modalTitle!.textContent = 'Send Update to All Attendees';
+      } else {
+        modalTitle!.textContent = `Send Update to ${recipient.name}`;
+      }
+      modal?.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      modal?.classList.add('hidden');
+      updateForm.reset();
+    }
+
+    sendUpdateBtn?.addEventListener('click', () => openModal('all'));
+    closeModalBtn?.addEventListener('click', closeModal);
+    cancelUpdateBtn?.addEventListener('click', closeModal);
+
+    // Handle individual send update buttons
+    document.querySelectorAll('.send-individual-update').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const bookingId = target.dataset.bookingId!;
+        const userEmail = target.dataset.userEmail!;
+        const userName = target.dataset.userName!;
+        openModal({ id: bookingId, email: userEmail, name: userName });
+      });
+    });
+
+    // Handle form submission
+    updateForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(updateForm);
+      const subject = formData.get('subject') as string;
+      const message = formData.get('message') as string;
+      const sendWhatsapp = (formData.get('sendWhatsapp') as string) === 'on';
+
+      const eventId = window.location.pathname.split('/').pop();
+
+      try {
+        const response = await fetch(`/api/admin/bookings/${eventId}/send-update`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            subject,
+            message,
+            sendWhatsapp,
+            recipient: currentRecipient,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert('Update sent successfully!');
+          closeModal();
+          window.location.reload();
+        } else {
+          alert(`Error: ${result.error || 'Failed to send update'}`);
+        }
+      } catch (error) {
+        console.error('Error sending update:', error);
+        alert('Failed to send update. Please try again.');
+      }
+    });
+
+    // Export to CSV
+    exportCsvBtn?.addEventListener('click', () => {
+      const eventId = window.location.pathname.split('/').pop();
+      window.location.href = `/api/admin/bookings/${eventId}/export-csv`;
+    });
+
+    // Close modal on outside click
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

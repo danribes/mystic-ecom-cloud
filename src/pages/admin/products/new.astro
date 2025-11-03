@@ -1,0 +1,532 @@
+---
+/**
+ * T101: Admin Create New Digital Product Page
+ * 
+ * Form for creating new digital products with file upload
+ */
+
+import { checkAdminAuth } from '@/lib/auth/admin';
+
+// Check admin authentication
+const authResult = await checkAdminAuth(Astro.cookies, Astro.url.pathname);
+if (authResult.shouldRedirect) {
+  return Astro.redirect(authResult.redirectTo!);
+}
+
+const title = 'Create New Digital Product';
+const description = 'Add a new digital product to your catalog';
+
+// Product type options
+const productTypes = [
+  { value: 'pdf', label: 'PDF Document', icon: '📄' },
+  { value: 'audio', label: 'Audio File', icon: '🎵' },
+  { value: 'video', label: 'Video File', icon: '🎥' },
+  { value: 'ebook', label: 'eBook', icon: '📚' }
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50">
+  <div class="min-h-screen">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm border-b">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900" data-testid="page-title">
+              Create New Product
+            </h1>
+            <p class="mt-2 text-sm text-gray-600">
+              Add a new digital product to your catalog
+            </p>
+          </div>
+          <a
+            href="/admin/products"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Products
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      <!-- Error Message Container -->
+      <div id="errorMessage" class="hidden mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md" role="alert">
+        <div class="flex">
+          <svg class="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <span id="errorMessageText"></span>
+        </div>
+      </div>
+
+      <!-- Success Message Container -->
+      <div id="successMessage" class="hidden mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md" role="alert">
+        <div class="flex">
+          <svg class="h-5 w-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span id="successMessageText"></span>
+        </div>
+      </div>
+
+      <!-- Product Form -->
+      <form id="productForm" class="space-y-8" data-testid="product-form">
+        
+        <!-- Basic Information Section -->
+        <div class="bg-white shadow-sm rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">Basic Information</h2>
+          
+          <div class="space-y-6">
+            <!-- Title -->
+            <div>
+              <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+                Title <span class="text-red-600">*</span>
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                required
+                maxlength="255"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="e.g., Complete TypeScript Guide"
+                data-testid="title-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">The name of your digital product</p>
+            </div>
+
+            <!-- Slug -->
+            <div>
+              <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">
+                Slug <span class="text-red-600">*</span>
+              </label>
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                required
+                maxlength="255"
+                pattern="[a-z0-9-]+"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono"
+                placeholder="complete-typescript-guide"
+                data-testid="slug-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">URL-friendly version (lowercase, hyphens only). Auto-generated from title.</p>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                Description <span class="text-red-600">*</span>
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                required
+                rows="4"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Describe your product in detail..."
+                data-testid="description-input"
+              ></textarea>
+              <p class="mt-1 text-sm text-gray-500">Provide a detailed description of what customers will receive</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Details Section -->
+        <div class="bg-white shadow-sm rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">Product Details</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Product Type -->
+            <div>
+              <label for="productType" class="block text-sm font-medium text-gray-700 mb-1">
+                Product Type <span class="text-red-600">*</span>
+              </label>
+              <select
+                id="productType"
+                name="productType"
+                required
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                data-testid="product-type-select"
+              >
+                <option value="">Select type...</option>
+                {productTypes.map(type => (
+                  <option value={type.value}>
+                    {type.icon} {type.label}
+                  </option>
+                ))}
+              </select>
+              <p class="mt-1 text-sm text-gray-500">Type of digital file</p>
+            </div>
+
+            <!-- Price -->
+            <div>
+              <label for="price" class="block text-sm font-medium text-gray-700 mb-1">
+                Price (USD) <span class="text-red-600">*</span>
+              </label>
+              <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  required
+                  min="0"
+                  step="0.01"
+                  class="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="0.00"
+                  data-testid="price-input"
+                />
+              </div>
+              <p class="mt-1 text-sm text-gray-500">Price in US dollars</p>
+            </div>
+
+            <!-- File Size -->
+            <div>
+              <label for="fileSizeMb" class="block text-sm font-medium text-gray-700 mb-1">
+                File Size (MB)
+              </label>
+              <input
+                type="number"
+                id="fileSizeMb"
+                name="fileSizeMb"
+                min="0"
+                step="0.01"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="5.5"
+                data-testid="file-size-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">Size of the downloadable file in megabytes</p>
+            </div>
+
+            <!-- Download Limit -->
+            <div>
+              <label for="downloadLimit" class="block text-sm font-medium text-gray-700 mb-1">
+                Download Limit
+              </label>
+              <input
+                type="number"
+                id="downloadLimit"
+                name="downloadLimit"
+                min="1"
+                value="3"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                data-testid="download-limit-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">Number of times a customer can download this product</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files & Media Section -->
+        <div class="bg-white shadow-sm rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">Files & Media</h2>
+          
+          <div class="space-y-6">
+            <!-- File URL -->
+            <div>
+              <label for="fileUrl" class="block text-sm font-medium text-gray-700 mb-1">
+                File URL <span class="text-red-600">*</span>
+              </label>
+              <input
+                type="url"
+                id="fileUrl"
+                name="fileUrl"
+                required
+                maxlength="500"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+                placeholder="https://storage.example.com/products/your-file.pdf"
+                data-testid="file-url-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">Direct URL to the downloadable file (stored in cloud storage)</p>
+            </div>
+
+            <!-- Preview URL (Optional) -->
+            <div>
+              <label for="previewUrl" class="block text-sm font-medium text-gray-700 mb-1">
+                Preview URL
+              </label>
+              <input
+                type="url"
+                id="previewUrl"
+                name="previewUrl"
+                maxlength="500"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+                placeholder="https://storage.example.com/previews/sample.pdf"
+                data-testid="preview-url-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">Optional preview or sample file URL</p>
+            </div>
+
+            <!-- Image URL (Optional) -->
+            <div>
+              <label for="imageUrl" class="block text-sm font-medium text-gray-700 mb-1">
+                Product Image URL
+              </label>
+              <input
+                type="url"
+                id="imageUrl"
+                name="imageUrl"
+                maxlength="500"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+                placeholder="https://storage.example.com/images/product-cover.jpg"
+                data-testid="image-url-input"
+              />
+              <p class="mt-1 text-sm text-gray-500">Cover image or thumbnail for the product</p>
+              
+              <!-- Image Preview -->
+              <div id="imagePreview" class="hidden mt-3">
+                <img id="imagePreviewImg" src="" alt="Product preview" class="w-48 h-48 object-cover rounded-lg border border-gray-300" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Publishing Options Section -->
+        <div class="bg-white shadow-sm rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">Publishing Options</h2>
+          
+          <div class="space-y-4">
+            <!-- Published Status -->
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input
+                  id="isPublished"
+                  name="isPublished"
+                  type="checkbox"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  data-testid="is-published-checkbox"
+                />
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="isPublished" class="font-medium text-gray-700">
+                  Publish immediately
+                </label>
+                <p class="text-gray-500">Make this product visible to customers right away</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-between">
+          <a
+            href="/admin/products"
+            class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
+          </a>
+          <div class="flex space-x-3">
+            <button
+              type="submit"
+              name="action"
+              value="draft"
+              class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              data-testid="save-draft-button"
+            >
+              Save as Draft
+            </button>
+            <button
+              type="submit"
+              name="action"
+              value="publish"
+              class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              data-testid="publish-button"
+            >
+              <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Create & Publish
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script is:inline>
+    // Auto-generate slug from title
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
+    
+    if (titleInput && slugInput) {
+      titleInput.addEventListener('input', (e) => {
+        if (!slugInput.value || slugInput.dataset.autoGenerated === 'true') {
+          const slug = e.target.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+          slugInput.value = slug;
+          slugInput.dataset.autoGenerated = 'true';
+        }
+      });
+      
+      slugInput.addEventListener('input', () => {
+        slugInput.dataset.autoGenerated = 'false';
+      });
+    }
+
+    // Image preview
+    const imageUrlInput = document.getElementById('imageUrl');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewImg = document.getElementById('imagePreviewImg');
+    
+    if (imageUrlInput && imagePreview && imagePreviewImg) {
+      imageUrlInput.addEventListener('blur', () => {
+        const url = imageUrlInput.value.trim();
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+          imagePreviewImg.src = url;
+          imagePreview.classList.remove('hidden');
+          
+          imagePreviewImg.onerror = () => {
+            imagePreview.classList.add('hidden');
+          };
+        } else {
+          imagePreview.classList.add('hidden');
+        }
+      });
+    }
+
+    // Form submission
+    const productForm = document.getElementById('productForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorMessageText = document.getElementById('errorMessageText');
+    const successMessage = document.getElementById('successMessage');
+    const successMessageText = document.getElementById('successMessageText');
+    
+    if (productForm) {
+      productForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Hide previous messages
+        errorMessage.classList.add('hidden');
+        successMessage.classList.add('hidden');
+        
+        // Get form data
+        const formData = new FormData(productForm);
+        const action = e.submitter?.value || 'draft';
+        
+        // Build product object
+        const productData = {
+          title: formData.get('title'),
+          slug: formData.get('slug'),
+          description: formData.get('description'),
+          product_type: formData.get('productType'),
+          price: parseFloat(formData.get('price')) || 0,
+          file_url: formData.get('fileUrl'),
+          file_size_mb: parseFloat(formData.get('fileSizeMb')) || null,
+          preview_url: formData.get('previewUrl') || null,
+          image_url: formData.get('imageUrl') || null,
+          download_limit: parseInt(formData.get('downloadLimit')) || 3,
+          is_published: action === 'publish' || formData.get('isPublished') === 'on',
+        };
+        
+        // Client-side validation
+        if (!productData.title || productData.title.length < 3) {
+          errorMessageText.textContent = 'Title must be at least 3 characters long';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+        
+        if (!productData.slug || !/^[a-z0-9-]+$/.test(productData.slug)) {
+          errorMessageText.textContent = 'Slug must contain only lowercase letters, numbers, and hyphens';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+        
+        if (!productData.description || productData.description.length < 10) {
+          errorMessageText.textContent = 'Description must be at least 10 characters long';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+        
+        if (!productData.product_type) {
+          errorMessageText.textContent = 'Please select a product type';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+        
+        if (productData.price < 0) {
+          errorMessageText.textContent = 'Price cannot be negative';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+        
+        if (!productData.file_url) {
+          errorMessageText.textContent = 'File URL is required';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+        
+        // Disable submit buttons
+        const submitButtons = productForm.querySelectorAll('button[type="submit"]');
+        submitButtons.forEach(btn => {
+          btn.disabled = true;
+          btn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+        
+        try {
+          // Submit to API
+          const response = await fetch('/api/admin/products', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productData),
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok) {
+            successMessageText.textContent = `Product "${productData.title}" ${productData.is_published ? 'created and published' : 'saved as draft'} successfully!`;
+            successMessage.classList.remove('hidden');
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+              window.location.href = '/admin/products';
+            }, 2000);
+          } else {
+            errorMessageText.textContent = result.error || 'Failed to create product';
+            errorMessage.classList.remove('hidden');
+            
+            // Re-enable submit buttons
+            submitButtons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+          }
+        } catch (error) {
+          console.error('Error creating product:', error);
+          errorMessageText.textContent = 'An unexpected error occurred. Please try again.';
+          errorMessage.classList.remove('hidden');
+          
+          // Re-enable submit buttons
+          submitButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+dist/
+node_modules/
+.astro/
+.env
+.env.local
+.env.*.local
+*.log
+logs/
+uploads/

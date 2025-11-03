@@ -1,0 +1,34 @@
+---
+/**
+ * Keyboard Navigation Detector
+ *
+ * Detects when user is navigating with keyboard (Tab key) and adds
+ * a class to enhance focus indicators. Removes class when mouse is used.
+ *
+ * This provides better UX by showing focus rings only when needed.
+ *
+ * WCAG 2.1 Criteria:
+ * - 2.4.7 Focus Visible (Level AA)
+ * - 2.1.1 Keyboard (Level A)
+ */
+---
+
+<script>
+  // Detect keyboard navigation
+  function handleFirstTab(e: KeyboardEvent) {
+    if (e.key === 'Tab') {
+      document.body.classList.add('keyboard-nav-active');
+      window.removeEventListener('keydown', handleFirstTab);
+      window.addEventListener('mousedown', handleMouseDown);
+    }
+  }
+
+  function handleMouseDown() {
+    document.body.classList.remove('keyboard-nav-active');
+    window.removeEventListener('mousedown', handleMouseDown);
+    window.addEventListener('keydown', handleFirstTab);
+  }
+
+  // Start listening for keyboard navigation
+  window.addEventListener('keydown', handleFirstTab);
+</script>

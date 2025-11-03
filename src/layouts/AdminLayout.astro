@@ -1,0 +1,440 @@
+---
+/**
+ * T064: Admin Layout Component
+ * 
+ * Provides admin-specific layout with:
+ * - Admin authentication check
+ * - Admin navigation sidebar
+ * - Role-based access control
+ * - Mobile-responsive design
+ * - Admin-specific styling and branding
+ */
+
+import { checkAdminAuth } from '@/lib/auth/admin';
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+// Check admin authentication
+const authResult = await checkAdminAuth(Astro.cookies, currentPath);
+
+if (authResult.redirectUrl) {
+  return Astro.redirect(authResult.redirectUrl);
+}
+
+const user = authResult.user!;
+
+// Admin navigation items
+const adminNavItems = [
+  { 
+    href: '/admin', 
+    label: 'Dashboard', 
+    icon: 'dashboard',
+    description: 'Overview & Analytics'
+  },
+  { 
+    href: '/admin/courses', 
+    label: 'Courses', 
+    icon: 'courses',
+    description: 'Manage Course Content'
+  },
+  { 
+    href: '/admin/courses/new', 
+    label: 'New Course', 
+    icon: 'add-course',
+    description: 'Create New Course'
+  },
+  { 
+    href: '/admin/orders', 
+    label: 'Orders', 
+    icon: 'orders',
+    description: 'Order Management'
+  },
+  { 
+    href: '/admin/users', 
+    label: 'Users', 
+    icon: 'users',
+    description: 'User Management'
+  },
+  { 
+    href: '/admin/analytics', 
+    label: 'Analytics', 
+    icon: 'analytics',
+    description: 'Reports & Insights'
+  },
+  { 
+    href: '/admin/settings', 
+    label: 'Settings', 
+    icon: 'settings',
+    description: 'System Configuration'
+  },
+];
+
+// Quick actions for admin
+const quickActions = [
+  { href: '/admin/courses/new', label: 'Add Course', icon: '➕' },
+  { href: '/admin/orders?status=pending', label: 'Review Orders', icon: '📋' },
+  { href: '/courses', label: 'View Site', icon: '🌐' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | Admin - Spirituality Platform</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Admin-specific styles -->
+    <style>
+      .admin-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      
+      .admin-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .admin-nav-item:hover {
+        transform: translateX(4px);
+        transition: all 0.2s ease;
+      }
+      
+      .admin-badge {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 admin-gradient">
+    <!-- Mobile header -->
+    <div class="lg:hidden bg-white/90 backdrop-blur-md border-b border-white/20 shadow-lg">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center space-x-3">
+          <a href="/admin" class="text-xl font-bold text-purple-700">
+            🔧 Admin Panel
+          </a>
+          <span class="admin-badge">ADMIN</span>
+        </div>
+        <button
+          id="mobile-menu-toggle"
+          type="button"
+          class="p-2 text-purple-700 hover:text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg transition-colors"
+          aria-label="Toggle admin menu"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile sidebar overlay -->
+    <div
+      id="mobile-sidebar-overlay"
+      class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm"
+      aria-hidden="true"
+    ></div>
+
+    <div class="flex min-h-screen">
+      <!-- Admin Sidebar -->
+      <aside
+        id="admin-sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-72 admin-card border-r border-white/30 transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static shadow-2xl"
+      >
+        <!-- Admin Logo & Brand -->
+        <div class="flex items-center justify-between h-16 px-6 border-b border-white/20 admin-gradient">
+          <div class="flex items-center space-x-3">
+            <a href="/admin" class="text-xl font-bold text-white flex items-center space-x-2">
+              <span>🔧</span>
+              <span>Admin Panel</span>
+            </a>
+          </div>
+          <button
+            id="mobile-menu-close"
+            type="button"
+            class="lg:hidden p-2 text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-lg transition-colors"
+            aria-label="Close admin menu"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Admin User Profile Section -->
+        <div class="px-6 py-4 border-b border-white/20">
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} class="w-12 h-12 rounded-full border-2 border-purple-200" />
+              ) : (
+                <div class="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center shadow-lg">
+                  <span class="text-white font-bold text-lg">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-2">
+                <p class="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+                <span class="admin-badge">ADMIN</span>
+              </div>
+              <p class="text-xs text-gray-600 truncate">{user.email}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="px-6 py-3 border-b border-white/20">
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Quick Actions</h3>
+          <div class="flex flex-wrap gap-2">
+            {quickActions.map((action) => (
+              <a
+                href={action.href}
+                class="inline-flex items-center px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
+                title={action.label}
+              >
+                <span class="mr-1">{action.icon}</span>
+                {action.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <!-- Admin Navigation -->
+        <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+            Administration
+          </h3>
+          {adminNavItems.map((item) => {
+            const isActive = currentPath === item.href || 
+                           (item.href !== '/admin' && currentPath.startsWith(item.href));
+            return (
+              <a
+                href={item.href}
+                class={`admin-nav-item flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
+                  isActive
+                    ? 'bg-purple-100 text-purple-800 shadow-md border border-purple-200'
+                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900 hover:shadow-sm'
+                }`}
+                data-testid={`admin-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <span class="mr-3 text-lg">{
+                  item.icon === 'dashboard' ? '📊' :
+                  item.icon === 'courses' ? '📚' :
+                  item.icon === 'add-course' ? '➕' :
+                  item.icon === 'orders' ? '🛒' :
+                  item.icon === 'users' ? '👥' :
+                  item.icon === 'analytics' ? '📈' :
+                  item.icon === 'settings' ? '⚙️' : '📋'
+                }</span>
+                <div class="flex-1">
+                  <div class="font-medium">{item.label}</div>
+                  <div class="text-xs text-gray-500 group-hover:text-gray-600">
+                    {item.description}
+                  </div>
+                </div>
+                {isActive && (
+                  <div class="w-2 h-2 bg-purple-600 rounded-full"></div>
+                )}
+              </a>
+            );
+          })}
+        </nav>
+
+        <!-- Bottom Admin Actions -->
+        <div class="px-4 py-4 border-t border-white/20 space-y-1">
+          <a
+            href="/dashboard"
+            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-white/80 hover:text-gray-900 transition-colors"
+            data-testid="admin-user-dashboard"
+          >
+            <span class="mr-3 text-lg">👤</span>
+            <div>
+              <div>User Dashboard</div>
+              <div class="text-xs text-gray-500">Switch to User View</div>
+            </div>
+          </a>
+          <a
+            href="/support"
+            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-white/80 hover:text-gray-900 transition-colors"
+          >
+            <span class="mr-3 text-lg">💬</span>
+            <div>
+              <div>Support</div>
+              <div class="text-xs text-gray-500">Get Help</div>
+            </div>
+          </a>
+          <form method="POST" action="/api/auth/logout">
+            <button
+              type="submit"
+              class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+              data-testid="admin-logout"
+            >
+              <span class="mr-3 text-lg">🚪</span>
+              <div class="text-left">
+                <div>Logout</div>
+                <div class="text-xs text-red-400">End Admin Session</div>
+              </div>
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Main Admin Content -->
+      <main class="flex-1 lg:ml-0">
+        <!-- Admin Page Header -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-white/20 shadow-sm">
+          <div class="px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="flex items-center space-x-3">
+                  <h1 class="text-2xl font-bold text-gray-900" data-testid="admin-page-title">
+                    {title}
+                  </h1>
+                  <span class="admin-badge">ADMIN</span>
+                </div>
+                {description && (
+                  <p class="mt-1 text-sm text-gray-600">{description}</p>
+                )}
+              </div>
+              
+              <!-- Admin header actions -->
+              <div class="flex items-center space-x-3">
+                <a
+                  href="/courses"
+                  class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm"
+                  title="View public site"
+                >
+                  <span class="mr-2">🌐</span>
+                  View Site
+                </a>
+                <div class="text-sm text-gray-500">
+                  <span>Admin Mode</span>
+                  <div class="text-xs">Logged in as {user.name}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Page Content -->
+        <div class="px-4 sm:px-6 lg:px-8 py-8">
+          <div class="max-w-7xl mx-auto">
+            <slot />
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Admin Mobile Menu Script -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.getElementById('admin-sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
+        const toggleButton = document.getElementById('mobile-menu-toggle');
+        const closeButton = document.getElementById('mobile-menu-close');
+
+        function openAdminSidebar() {
+          sidebar?.classList.remove('-translate-x-full');
+          overlay?.classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+        }
+
+        function closeAdminSidebar() {
+          sidebar?.classList.add('-translate-x-full');
+          overlay?.classList.add('hidden');
+          document.body.style.overflow = '';
+        }
+
+        toggleButton?.addEventListener('click', openAdminSidebar);
+        closeButton?.addEventListener('click', closeAdminSidebar);
+        overlay?.addEventListener('click', closeAdminSidebar);
+
+        // Close admin sidebar on escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !overlay?.classList.contains('hidden')) {
+            closeAdminSidebar();
+          }
+        });
+
+        // Add active state visual feedback
+        const navItems = document.querySelectorAll('.admin-nav-item');
+        navItems.forEach(item => {
+          item.addEventListener('mouseenter', () => {
+            item.style.transform = 'translateX(4px)';
+          });
+          item.addEventListener('mouseleave', () => {
+            item.style.transform = 'translateX(0)';
+          });
+        });
+      });
+    </script>
+
+    <!-- Admin Panel Enhancement Script -->
+    <script>
+      // Add admin-specific functionality
+      document.addEventListener('DOMContentLoaded', () => {
+        // Add keyboard shortcuts for admin
+        document.addEventListener('keydown', (e) => {
+          // Ctrl/Cmd + K for quick search (placeholder for future)
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            console.log('Quick search shortcut triggered');
+            // TODO: Implement quick search modal
+          }
+          
+          // Ctrl/Cmd + N for new course
+          if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            window.location.href = '/admin/courses/new';
+          }
+        });
+
+        // Add visual feedback for admin actions
+        const adminButtons = document.querySelectorAll('[data-testid^="admin-"]');
+        adminButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              button.style.transform = 'scale(1)';
+            }, 150);
+          });
+        });
+
+        // Add loading states for form submissions
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+          form.addEventListener('submit', (e) => {
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+              submitButton.disabled = true;
+              submitButton.innerHTML = submitButton.innerHTML.replace(/🚪/, '⏳');
+              setTimeout(() => {
+                submitButton.disabled = false;
+                submitButton.innerHTML = submitButton.innerHTML.replace(/⏳/, '🚪');
+              }, 2000);
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

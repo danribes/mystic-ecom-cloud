@@ -1,0 +1,74 @@
+---
+/**
+ * Accessibility Announcer Component
+ *
+ * Provides a live region for screen reader announcements.
+ * Useful for announcing dynamic content changes, form submissions, etc.
+ *
+ * WCAG 2.1 Criteria:
+ * - 4.1.3 Status Messages (Level AA)
+ *
+ * Usage:
+ * <A11yAnnouncer />
+ * // In your JavaScript:
+ * window.announce('Item added to cart', 'polite');
+ */
+
+interface Props {
+  id?: string;
+}
+
+const {
+  id = 'a11y-announcer',
+} = Astro.props;
+---
+
+<!-- Polite announcements (don't interrupt screen reader) -->
+<div
+  id={`${id}-polite`}
+  role="status"
+  aria-live="polite"
+  aria-atomic="true"
+  class="sr-only"
+></div>
+
+<!-- Assertive announcements (interrupt screen reader) -->
+<div
+  id={`${id}-assertive`}
+  role="alert"
+  aria-live="assertive"
+  aria-atomic="true"
+  class="sr-only"
+></div>
+
+<script>
+  /**
+   * Announce a message to screen readers
+   * @param message - Message to announce
+   * @param politeness - 'polite' or 'assertive'
+   */
+  function announce(message: string, politeness: 'polite' | 'assertive' = 'polite'): void {
+    const announcerId = politeness === 'polite' ? 'a11y-announcer-polite' : 'a11y-announcer-assertive';
+    const announcer = document.getElementById(announcerId);
+
+    if (announcer) {
+      // Clear previous message
+      announcer.textContent = '';
+
+      // Use setTimeout to ensure screen readers pick up the change
+      setTimeout(() => {
+        announcer.textContent = message;
+      }, 100);
+
+      // Clear message after announcement
+      setTimeout(() => {
+        announcer.textContent = '';
+      }, 1000);
+    }
+  }
+
+  // Expose globally for use in other components
+  if (typeof window !== 'undefined') {
+    (window as any).announce = announce;
+  }
+</script>

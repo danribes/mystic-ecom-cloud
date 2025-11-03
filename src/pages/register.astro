@@ -1,0 +1,245 @@
+---
+/**
+ * User Registration Page
+ * 
+ * Allows new users to create an account.
+ * Validates input and creates user with hashed password.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = false; // Enable SSR for form handling
+
+// Check if already logged in
+import { getSessionFromRequest } from '@/lib/auth/session';
+const session = await getSessionFromRequest(Astro.cookies);
+if (session) {
+  return Astro.redirect('/dashboard');
+}
+
+// Get redirect parameter (where to go after login)
+const redirect = Astro.url.searchParams.get('redirect') || '/dashboard';
+
+// Get error/success messages from URL
+const error = Astro.url.searchParams.get('error');
+const success = Astro.url.searchParams.get('success');
+---
+
+<BaseLayout 
+  title="Create Account - Spirituality Platform"
+  description="Join our community and start your spiritual journey today"
+>
+  <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-purple-50 to-indigo-50">
+    <div class="max-w-md w-full">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">
+          Create Account 🙏
+        </h1>
+        <p class="text-gray-600">
+          Join our community and start your spiritual journey today
+        </p>
+      </div>
+
+      <!-- Registration Card -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <!-- Success Message -->
+        {success && (
+          <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p class="text-sm text-green-800 flex items-center">
+              <span class="mr-2">✅</span>
+              {success === 'registered' && 'Account created successfully! Please log in.'}
+            </p>
+          </div>
+        )}
+
+        <!-- Error Message -->
+        {error && (
+          <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-800 flex items-center">
+              <span class="mr-2">⚠️</span>
+              {error === 'email_exists' && 'An account with this email already exists.'}
+              {error === 'validation_error' && 'Please check your input and try again.'}
+              {error === 'server_error' && 'Something went wrong. Please try again later.'}
+              {error === 'invalid_request' && 'Invalid request. Please try again.'}
+            </p>
+          </div>
+        )}
+
+        <!-- Registration Form -->
+        <form method="POST" action="/api/auth/register" class="space-y-6">
+          <!-- Hidden redirect field -->
+          <input type="hidden" name="redirect" value={redirect} />
+
+          <!-- Name Field -->
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              minlength="2"
+              maxlength="100"
+              placeholder="Your full name"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+            />
+          </div>
+
+          <!-- Email Field -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="you@example.com"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+            />
+          </div>
+
+          <!-- Password Field -->
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              minlength="8"
+              placeholder="At least 8 characters"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              Must be at least 8 characters long
+            </p>
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div>
+            <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              required
+              minlength="8"
+              placeholder="Re-enter your password"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+            />
+          </div>
+
+          <!-- WhatsApp (Optional) -->
+          <div>
+            <label for="whatsapp" class="block text-sm font-medium text-gray-700 mb-2">
+              WhatsApp Number (Optional)
+            </label>
+            <input
+              type="tel"
+              id="whatsapp"
+              name="whatsapp"
+              placeholder="+1234567890"
+              pattern="^\+?[1-9]\d{1,14}$"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              Format: +1234567890 (for event booking notifications)
+            </p>
+          </div>
+
+          <!-- Terms and Conditions -->
+          <div class="flex items-start">
+            <input
+              type="checkbox"
+              id="terms"
+              name="terms"
+              required
+              class="mt-1 h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+            />
+            <label for="terms" class="ml-2 text-sm text-gray-600">
+              I agree to the <a href="/terms" class="text-purple-600 hover:text-purple-700 underline">Terms of Service</a> and <a href="/privacy" class="text-purple-600 hover:text-purple-700 underline">Privacy Policy</a>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02]"
+          >
+            Create Account
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="mt-6 flex items-center">
+          <div class="flex-1 border-t border-gray-300"></div>
+          <span class="px-4 text-sm text-gray-500">Already have an account?</span>
+          <div class="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        <!-- Login Link -->
+        <div class="mt-6 text-center">
+          <a
+            href={`/login?redirect=${encodeURIComponent(redirect)}`}
+            class="text-purple-600 hover:text-purple-700 font-medium text-sm"
+          >
+            Sign in to your account →
+          </a>
+        </div>
+      </div>
+
+      <!-- Back to Home -->
+      <div class="mt-6 text-center">
+        <a
+          href="/"
+          class="text-sm text-gray-600 hover:text-gray-900"
+        >
+          ← Back to Home
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Password Validation -->
+  <script>
+    const form = document.querySelector('form');
+    const password = document.getElementById('password') as HTMLInputElement;
+    const confirmPassword = document.getElementById('confirm_password') as HTMLInputElement;
+
+    form?.addEventListener('submit', (e) => {
+      // Check if passwords match
+      if (password.value !== confirmPassword.value) {
+        e.preventDefault();
+        alert('Passwords do not match. Please try again.');
+        confirmPassword.focus();
+        return false;
+      }
+
+      // Check password length
+      if (password.value.length < 8) {
+        e.preventDefault();
+        alert('Password must be at least 8 characters long.');
+        password.focus();
+        return false;
+      }
+    });
+
+    // Real-time password match indicator
+    confirmPassword?.addEventListener('input', () => {
+      if (confirmPassword.value && password.value !== confirmPassword.value) {
+        confirmPassword.style.borderColor = '#ef4444'; // red
+      } else {
+        confirmPassword.style.borderColor = '#10b981'; // green
+      }
+    });
+  </script>
+</BaseLayout>

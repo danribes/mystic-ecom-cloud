@@ -1,0 +1,250 @@
+---
+/**
+ * CourseCard Component
+ * 
+ * Displays a course preview card with image, title, instructor, price,
+ * rating, and enrollment information. Used in course listings and grids.
+ */
+
+import type { Course } from '@/types';
+
+interface Props {
+  course: Course;
+  showDescription?: boolean;
+  variant?: 'default' | 'compact';
+}
+
+const { course, showDescription = false, variant = 'default' } = Astro.props;
+
+// Format price (cents to dollars)
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(2)}`;
+};
+
+// Format duration (seconds to hours/minutes)
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+  return `${minutes}m`;
+};
+
+// Get level badge Tailwind classes
+const getLevelClasses = (level: string): string => {
+  const classes = {
+    beginner: 'bg-success-light text-success',
+    intermediate: 'bg-warning-light text-warning',
+    advanced: 'bg-error-light text-error',
+  };
+  return classes[level as keyof typeof classes] || 'bg-success-light text-success';
+};
+
+// Truncate description
+const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + '...';
+};
+
+const courseUrl = `/courses/${course.slug}`;
+const imageUrl = course.imageUrl || course.thumbnailUrl || '/images/course-placeholder.jpg';
+const description = showDescription && course.description
+  ? truncateText(course.description, 120)
+  : null;
+
+// Render stars for rating display
+const renderStars = (rating: number) => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+
+  for (let i = 1; i <= 5; i++) {
+    if (i <= fullStars) {
+      stars.push({ type: 'full', id: i });
+    } else if (i === fullStars + 1 && hasHalfStar) {
+      stars.push({ type: 'half', id: i });
+    } else {
+      stars.push({ type: 'empty', id: i });
+    }
+  }
+  return stars;
+};
+
+const stars = course.avgRating ? renderStars(course.avgRating) : [];
+---
+
+<article class:list={[
+  'flex h-full flex-col overflow-hidden rounded-xl bg-background shadow-md transition-all duration-base hover:-translate-y-1 hover:shadow-xl',
+  variant === 'compact' ? 'flex-row h-auto' : ''
+]}>
+  <!-- Course Image -->
+  <a href={courseUrl} class:list={[
+    'group relative block overflow-hidden',
+    variant === 'default' ? 'aspect-video' : 'w-[200px] shrink-0'
+  ]}>
+    <img
+      src={imageUrl}
+      alt={course.title}
+      class="h-full w-full object-cover transition-transform duration-slow group-hover:scale-105"
+      loading="lazy"
+    />
+    {course.isFeatured && (
+      <span class="absolute right-md top-md rounded-full bg-accent px-md py-xs text-sm font-bold text-white shadow-md">
+        ⭐ Featured
+      </span>
+    )}
+    {course.previewVideoUrl && (
+      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-base group-hover:opacity-100">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="24" fill="rgba(255, 255, 255, 0.9)" />
+          <path d="M18 14 L18 34 L34 24 Z" fill="var(--color-primary)" />
+        </svg>
+      </div>
+    )}
+  </a>
+
+  <!-- Course Info -->
+  <div class:list={[
+    'flex flex-1 flex-col gap-md p-lg',
+    variant === 'compact' ? 'p-md' : ''
+  ]}>
+    <!-- Category & Level -->
+    <div class="flex flex-wrap items-center gap-sm">
+      <span class="text-xs font-semibold uppercase tracking-wider text-primary">{course.category}</span>
+      <span class:list={[
+        'rounded-sm px-sm py-xs text-xs font-medium capitalize',
+        getLevelClasses(course.level)
+      ]}>
+        {course.level}
+      </span>
+    </div>
+
+    <!-- Title -->
+    <a href={courseUrl} class="group">
+      <h3 class:list={[
+        'm-0 font-bold leading-tight text-text transition-colors duration-base group-hover:text-primary',
+        variant === 'default' ? 'text-xl' : 'text-lg'
+      ]}>{course.title}</h3>
+    </a>
+
+    <!-- Description (optional) -->
+    {description && (
+      <p class="m-0 text-sm leading-relaxed text-text-light">{description}</p>
+    )}
+
+    <!-- Instructor -->
+    {course.instructorName && (
+      <div class="flex items-center gap-sm">
+        {course.instructorAvatar && (
+          <img
+            src={course.instructorAvatar}
+            alt={course.instructorName}
+            class="h-6 w-6 rounded-full object-cover"
+          />
+        )}
+        <span class="text-sm text-text-light">{course.instructorName}</span>
+      </div>
+    )}
+
+    <!-- Stats Row -->
+    <div class="flex flex-wrap items-center gap-lg">
+      <!-- Rating with Stars -->
+      {course.avgRating && course.avgRating > 0 ? (
+        <div class="flex items-center gap-xs text-sm">
+          <!-- Star Rating Display -->
+          <div class="flex gap-0.5" aria-label={`Rating: ${course.avgRating.toFixed(1)} out of 5 stars`}>
+            {stars.map((star) => (
+              <svg
+                class="w-4 h-4"
+                fill={star.type === 'full' ? 'currentColor' : star.type === 'half' ? `url(#half-star-card-${star.id})` : 'none'}
+                stroke={star.type === 'empty' ? 'currentColor' : 'none'}
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {star.type === 'half' && (
+                  <defs>
+                    <linearGradient id={`half-star-card-${star.id}`}>
+                      <stop offset="50%" stop-color="currentColor" class="text-yellow-400" />
+                      <stop offset="50%" stop-color="rgb(209 213 219)" />
+                    </linearGradient>
+                  </defs>
+                )}
+                <path
+                  class={star.type === 'empty' ? 'text-gray-300' : 'text-yellow-400'}
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                />
+              </svg>
+            ))}
+          </div>
+          <span class="font-semibold text-text">{course.avgRating.toFixed(1)}</span>
+          <span class="text-text-light">({course.reviewCount?.toLocaleString() || 0})</span>
+        </div>
+      ) : (
+        <div class="flex items-center gap-xs text-sm text-text-light">
+          <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          <span>No reviews yet</span>
+        </div>
+      )}
+
+      <!-- Enrollments -->
+      <div class="flex items-center gap-xs text-sm">
+        <span class="text-base">👥</span>
+        <span class="font-semibold text-text">{course.enrollmentCount.toLocaleString()}</span>
+        <span class="text-text-light">enrolled</span>
+      </div>
+
+      <!-- Duration -->
+      <div class="flex items-center gap-xs text-sm">
+        <span class="text-base">⏱️</span>
+        <span class="font-semibold text-text">{formatDuration(course.duration)}</span>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    {course.tags && course.tags.length > 0 && (
+      <div class="flex flex-wrap gap-xs">
+        {course.tags.slice(0, 3).map((tag) => (
+          <span class="rounded-sm bg-surface px-sm py-xs text-xs text-text-light transition-all duration-base hover:bg-primary hover:text-white">{tag}</span>
+        ))}
+        {course.tags.length > 3 && (
+          <span class="rounded-sm bg-surface px-sm py-xs text-xs font-semibold text-text-light transition-all duration-base hover:bg-primary hover:text-white">+{course.tags.length - 3}</span>
+        )}
+      </div>
+    )}
+
+    <!-- Footer: Price & CTA -->
+    <div class="mt-auto flex items-center justify-between gap-md border-t border-border pt-md">
+      <div class="flex items-baseline gap-xs">
+        {course.price === 0 ? (
+          <span class="text-2xl font-bold text-success">Free</span>
+        ) : (
+          <>
+            <span class="text-2xl font-bold text-primary">{formatPrice(course.price)}</span>
+            <span class="text-sm text-text-light">USD</span>
+          </>
+        )}
+      </div>
+      <a href={courseUrl} class="whitespace-nowrap rounded-md bg-primary px-lg py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md">
+        Enroll Now
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  /* Responsive adjustments for compact variant */
+  @media (max-width: 640px) {
+    article.flex-row {
+      flex-direction: column;
+    }
+    
+    article.flex-row a[class*="w-[200px]"] {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+    }
+  }
+</style>

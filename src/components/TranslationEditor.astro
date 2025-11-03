@@ -1,0 +1,170 @@
+---
+/**
+ * T176: Translation Editor Component
+ *
+ * Side-by-side editor for English and Spanish content
+ */
+
+interface Props {
+  contentType: 'course' | 'event' | 'product';
+  contentId: string;
+  titleEn: string;
+  titleEs: string | null;
+  descriptionEn: string;
+  descriptionEs: string | null;
+}
+
+const {
+  contentType,
+  contentId,
+  titleEn,
+  titleEs,
+  descriptionEn,
+  descriptionEs
+} = Astro.props;
+
+const titleLabel = contentType === 'product' ? 'Name' : 'Title';
+---
+
+<form
+  id="translation-form"
+  class="space-y-6"
+  data-content-type={contentType}
+  data-content-id={contentId}
+>
+  <!-- Title / Name Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- English Title -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {titleLabel} (English)
+      </label>
+      <input
+        type="text"
+        value={titleEn}
+        readonly
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+      />
+      <p class="mt-1 text-xs text-gray-500">Original English version (read-only)</p>
+    </div>
+
+    <!-- Spanish Title -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {titleLabel} (Spanish) <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        name="title_es"
+        value={titleEs || ''}
+        required
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        placeholder={`Enter Spanish ${titleLabel.toLowerCase()}...`}
+      />
+      <p class="mt-1 text-xs text-gray-500">Spanish translation</p>
+    </div>
+  </div>
+
+  <!-- Description Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- English Description -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Description (English)
+      </label>
+      <textarea
+        readonly
+        rows="10"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed resize-none"
+      >{descriptionEn}</textarea>
+      <p class="mt-1 text-xs text-gray-500">Original English version (read-only)</p>
+    </div>
+
+    <!-- Spanish Description -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Description (Spanish) <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        name="description_es"
+        required
+        rows="10"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+        placeholder="Enter Spanish description..."
+      >{descriptionEs || ''}</textarea>
+      <p class="mt-1 text-xs text-gray-500">Spanish translation</p>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+    <button
+      type="button"
+      onclick="window.history.back()"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+    >
+      Cancel
+    </button>
+    <button
+      type="submit"
+      class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+    >
+      Save Translation
+    </button>
+  </div>
+
+  <!-- Status Messages -->
+  <div id="status-message" class="hidden">
+    <div class="p-4 rounded-lg" id="status-content"></div>
+  </div>
+</form>
+
+<script>
+  document.getElementById('translation-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const contentType = form.dataset.contentType;
+    const contentId = form.dataset.contentId;
+
+    const statusMessage = document.getElementById('status-message');
+    const statusContent = document.getElementById('status-content');
+
+    try {
+      const response = await fetch(`/api/admin/translations/${contentType}/${contentId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          titleEs: formData.get('title_es'),
+          descriptionEs: formData.get('description_es'),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (statusMessage && statusContent) {
+          statusMessage.classList.remove('hidden');
+          statusContent.className = 'p-4 rounded-lg bg-green-50 text-green-800 border border-green-200';
+          statusContent.textContent = 'Translation saved successfully!';
+        }
+
+        // Redirect after 1 second
+        setTimeout(() => {
+          window.location.href = '/admin/translations';
+        }, 1000);
+      } else {
+        throw new Error(result.error || 'Failed to save translation');
+      }
+    } catch (error) {
+      if (statusMessage && statusContent) {
+        statusMessage.classList.remove('hidden');
+        statusContent.className = 'p-4 rounded-lg bg-red-50 text-red-800 border border-red-200';
+        statusContent.textContent = error instanceof Error ? error.message : 'An error occurred';
+      }
+    }
+  });
+</script>

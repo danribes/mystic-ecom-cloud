@@ -1,0 +1,140 @@
+---
+/**
+ * Focus Trap Component
+ *
+ * Traps focus within a container (like modals/dialogs) to ensure
+ * keyboard users stay within the interactive element.
+ *
+ * WCAG 2.1 Criteria:
+ * - 2.1.2 No Keyboard Trap (Level A) - Must allow escape
+ * - 2.4.3 Focus Order (Level A)
+ *
+ * Usage:
+ * <FocusTrap>
+ *   <div role="dialog" aria-modal="true">
+ *     ...modal content...
+ *   </div>
+ * </FocusTrap>
+ */
+
+interface Props {
+  active?: boolean;
+  className?: string;
+  restoreFocus?: boolean;
+}
+
+const {
+  active = true,
+  className = '',
+  restoreFocus = true,
+} = Astro.props;
+
+const id = `focus-trap-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div
+  id={id}
+  class={className}
+  data-focus-trap={active ? 'true' : 'false'}
+  data-restore-focus={restoreFocus ? 'true' : 'false'}
+>
+  <slot />
+</div>
+
+<script>
+  import { KEYS } from '../lib/accessibility';
+
+  class FocusTrap {
+    private container: HTMLElement;
+    private previousFocus: Element | null = null;
+    private restoreFocus: boolean;
+    private isActive: boolean;
+
+    constructor(container: HTMLElement) {
+      this.container = container;
+      this.restoreFocus = container.dataset.restoreFocus === 'true';
+      this.isActive = container.dataset.focusTrap === 'true';
+
+      if (this.isActive) {
+        this.activate();
+      }
+    }
+
+    private getFocusableElements(): HTMLElement[] {
+      const elements = this.container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      return Array.from(elements);
+    }
+
+    private handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== KEYS.TAB && e.key !== KEYS.ESCAPE) return;
+
+      if (e.key === KEYS.ESCAPE) {
+        this.deactivate();
+        return;
+      }
+
+      const focusableElements = this.getFocusableElements();
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement?.focus();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement?.focus();
+        }
+      }
+    };
+
+    public activate() {
+      if (this.restoreFocus) {
+        this.previousFocus = document.activeElement;
+      }
+
+      this.container.addEventListener('keydown', this.handleKeyDown);
+
+      // Focus first focusable element
+      const focusableElements = this.getFocusableElements();
+      if (focusableElements.length > 0) {
+        focusableElements[0]?.focus();
+      }
+
+      this.isActive = true;
+    }
+
+    public deactivate() {
+      this.container.removeEventListener('keydown', this.handleKeyDown);
+
+      if (this.restoreFocus && this.previousFocus instanceof HTMLElement) {
+        this.previousFocus.focus();
+      }
+
+      this.isActive = false;
+
+      // Dispatch custom event for parent components
+      this.container.dispatchEvent(new CustomEvent('focus-trap-deactivate', {
+        bubbles: true,
+        detail: { container: this.container }
+      }));
+    }
+
+    public destroy() {
+      this.deactivate();
+    }
+  }
+
+  // Initialize all focus traps
+  document.querySelectorAll('[data-focus-trap]').forEach((element) => {
+    new FocusTrap(element as HTMLElement);
+  });
+</script>

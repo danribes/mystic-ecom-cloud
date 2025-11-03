@@ -1,0 +1,282 @@
+---
+/**
+ * My Products Dashboard
+ * Shows user's purchased digital products with download links
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getUserPurchasedProducts, generateDownloadLink, type DigitalProduct } from '@/lib/products';
+import { getSessionFromRequest } from '@/lib/auth/session';
+
+const session = await getSessionFromRequest(Astro.cookies);
+
+if (!session) {
+  return Astro.redirect('/login?redirect=/dashboard/my-products');
+}
+
+// Get all products the user has purchased
+const purchasedProducts = await getUserPurchasedProducts(session.userId);
+
+// Helper function to format file size
+function formatFileSize(sizeMB: number): string {
+  const size = Number(sizeMB);
+  if (size < 1) return `${(size * 1024).toFixed(0)} KB`;
+  if (size >= 1000) return `${(size / 1024).toFixed(1)} GB`;
+  return `${size.toFixed(1)} MB`;
+}
+
+// Helper function to get type icon
+function getTypeIcon(type: string): string {
+  const icons: Record<string, string> = {
+    pdf: '📄',
+    audio: '🎵',
+    video: '🎥',
+    ebook: '📚'
+  };
+  return icons[type] || '📦';
+}
+
+// Helper function to get type badge color
+function getTypeBadgeColor(type: string): string {
+  const colors: Record<string, string> = {
+    pdf: 'bg-red-100 text-red-800',
+    audio: 'bg-blue-100 text-blue-800',
+    video: 'bg-purple-100 text-purple-800',
+    ebook: 'bg-green-100 text-green-800'
+  };
+  return colors[type] || 'bg-gray-100 text-gray-800';
+}
+---
+
+<BaseLayout title="My Products">
+  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">My Products</h1>
+        <p class="text-gray-600">
+          Access and download your purchased digital products
+        </p>
+      </div>
+
+      <!-- Empty State -->
+      {purchasedProducts.length === 0 && (
+        <div class="text-center py-12 bg-white rounded-lg shadow">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No products yet</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            You haven't purchased any digital products yet.
+          </p>
+          <div class="mt-6">
+            <a
+              href="/products"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Browse Products
+            </a>
+          </div>
+        </div>
+      )}
+
+      <!-- Products Grid -->
+      {purchasedProducts.length > 0 && (
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {purchasedProducts.map((item) => {
+            const product = item.product as DigitalProduct;
+            const downloadLink = generateDownloadLink(
+              product.id,
+              item.order_id,
+              session.userId
+            );
+            const downloadsRemaining = item.download_limit - item.download_count;
+            const canDownload = downloadsRemaining > 0;
+
+            return (
+              <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
+                <div class="p-6">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                      <!-- Type Badge -->
+                      <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeColor(product.product_type)}`}>
+                        {getTypeIcon(product.product_type)} {product.product_type.toUpperCase()}
+                      </span>
+                      
+                      <!-- Title -->
+                      <h3 class="mt-2 text-xl font-semibold text-gray-900">
+                        {product.title}
+                      </h3>
+                    </div>
+
+                    <!-- Preview Link -->
+                    {product.preview_url && (
+                      <a
+                        href={product.preview_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="ml-4 text-indigo-600 hover:text-indigo-800"
+                        title="Preview"
+                      >
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </a>
+                    )}
+                  </div>
+
+                  <!-- Description -->
+                  <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <!-- Product Details -->
+                  <div class="flex items-center text-sm text-gray-500 space-x-4 mb-4">
+                    <div class="flex items-center">
+                      <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      {formatFileSize(product.file_size_mb)}
+                    </div>
+                    
+                    <div class="flex items-center">
+                      <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {new Date(item.purchase_date).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <!-- Download Status -->
+                  <div class="border-t border-gray-200 pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <span class="text-sm text-gray-600">Downloads:</span>
+                      <span class="text-sm font-medium text-gray-900">
+                        {item.download_count} of {item.download_limit}
+                      </span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                      <div
+                        class={`h-2 rounded-full transition-all ${
+                          item.download_count >= item.download_limit
+                            ? 'bg-red-500'
+                            : item.download_count > item.download_limit / 2
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                        }`}
+                        style={`width: ${(item.download_count / item.download_limit) * 100}%`}
+                      ></div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3">
+                      {canDownload ? (
+                        <a
+                          href={downloadLink.url}
+                          class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                          data-product-id={product.id}
+                        >
+                          <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                          </svg>
+                          Download ({downloadsRemaining} left)
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+                        >
+                          <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                          </svg>
+                          Download Limit Reached
+                        </button>
+                      )}
+
+                      <a
+                        href={`/products/${product.slug}`}
+                        class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        View Details
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <!-- Download Help -->
+      {purchasedProducts.length > 0 && (
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-blue-800">
+                Download Tips
+              </h3>
+              <div class="mt-2 text-sm text-blue-700">
+                <ul class="list-disc list-inside space-y-1">
+                  <li>Each product has a limited number of downloads to prevent abuse</li>
+                  <li>Download links are valid for 15 minutes for security</li>
+                  <li>We recommend saving the file to a secure location after downloading</li>
+                  <li>If you encounter issues, please contact support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Back to Dashboard -->
+      <div class="mt-6 text-center">
+        <a
+          href="/dashboard"
+          class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800"
+        >
+          <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Track download clicks
+    const downloadLinks = document.querySelectorAll('a[data-product-id]');
+    
+    downloadLinks.forEach(link => {
+      link.addEventListener('click', function(this: HTMLAnchorElement) {
+        const button = this;
+        const originalHTML = button.innerHTML;
+        
+        // Show loading state
+        button.innerHTML = `
+          <svg class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Preparing Download...
+        `;
+        
+        // Reset after a delay
+        setTimeout(() => {
+          button.innerHTML = originalHTML;
+        }, 2000);
+      });
+    });
+  });
+</script>

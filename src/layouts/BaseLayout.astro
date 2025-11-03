@@ -1,0 +1,86 @@
+---
+/**
+ * Base Layout Component
+ * 
+ * Main layout wrapper for all pages.
+ * Includes header, footer, and global styles.
+ */
+
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import SkipLink from '@/components/SkipLink.astro';
+import KeyboardNavDetector from '@/components/KeyboardNavDetector.astro';
+import A11yAnnouncer from '@/components/A11yAnnouncer.astro';
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  keywords?: string;
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = 'Discover spiritual growth through online courses, transformative events, and inspiring digital content.',
+  keywords = 'spirituality, meditation, mindfulness, spiritual courses, personal growth, enlightenment',
+  ogImage = '/images/og-default.jpg',
+} = Astro.props;
+
+const siteTitle = title ? `${title} | Spirituality Platform` : 'Spirituality Platform';
+const canonicalURL = Astro.site 
+  ? new URL(Astro.url.pathname, Astro.site).href
+  : `${Astro.url.origin}${Astro.url.pathname}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={siteTitle} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={ogImage} />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Title -->
+    <title>{siteTitle}</title>
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <!-- Skip Link for Keyboard Navigation -->
+    <SkipLink />
+
+    <!-- Keyboard Navigation Detector -->
+    <KeyboardNavDetector />
+
+    <!-- Accessibility Announcer for Screen Readers -->
+    <A11yAnnouncer />
+
+    <Header />
+
+    <main id="main-content" class="flex-1 py-2xl" role="main">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

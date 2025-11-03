@@ -1,0 +1,268 @@
+---
+/**
+ * T066: Admin Courses List Page - Simple Debug Version
+ * 
+ * Simplified version without AdminLayout to test the core functionality
+ */
+
+import { listCourses } from '@/services/course.service';
+import type { Course } from '@/types';
+
+const title = 'Course Management';
+const description = 'Manage all courses, edit content, and organize your course catalog';
+
+// Get query parameters for filtering and pagination
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1', 10);
+const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+const search = url.searchParams.get('search') || '';
+const category = url.searchParams.get('category') || '';
+const status = url.searchParams.get('status') || '';
+const sortBy = url.searchParams.get('sortBy') || 'createdAt';
+const sortOrder = url.searchParams.get('sortOrder') as 'ASC' | 'DESC' || 'DESC';
+
+let courses: Course[] = [];
+let total = 0;
+let totalPages = 0;
+let error: string | null = null;
+
+// Initialize with safe defaults in case of error
+let paginationNumbers: number[] = [];
+
+try {
+  // Build filter options
+  const filterOptions = {
+    page,
+    limit,
+    search: search || undefined,
+    category: category || undefined,
+    isPublished: status === 'published' ? true : status === 'draft' ? false : undefined,
+    sortBy: sortBy as any,
+    sortOrder,
+  };
+
+  const result = await listCourses(filterOptions);
+  courses = result.courses;
+  total = result.total;
+  totalPages = result.totalPages;
+  
+  // Generate pagination numbers only after successful query
+  const generatePaginationNumbers = () => {
+    const maxVisible = 7;
+    const numbers: number[] = [];
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        numbers.push(i);
+      }
+    } else if (page <= 4) {
+      for (let i = 1; i <= maxVisible; i++) {
+        numbers.push(i);
+      }
+    } else if (page >= totalPages - 3) {
+      for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
+        numbers.push(i);
+      }
+    } else {
+      for (let i = page - 3; i <= page + 3; i++) {
+        numbers.push(i);
+      }
+    }
+    
+    return numbers;
+  };
+
+  paginationNumbers = generatePaginationNumbers();
+  
+} catch (e) {
+  console.error('Error loading courses:', e);
+  error = 'Failed to load courses. Please try again.';
+  // Set safe defaults
+  courses = [];
+  total = 0;
+  totalPages = 0;
+  paginationNumbers = [];
+}
+
+// Available categories for filter dropdown
+const categories = [
+  'Manifestation',
+  'Energy Healing', 
+  'Meditation',
+  'Spirituality',
+  'Personal Growth',
+  'Consciousness',
+  'Chakras',
+  'Reiki',
+  'Mindfulness'
+];
+
+// Format currency for display
+const formatCurrency = (cents: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(cents / 100);
+};
+
+// Format date for display
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(date));
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50">
+  <div class="min-h-screen">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 data-testid="admin-page-title" class="text-3xl font-bold text-gray-900">Course Management</h1>
+            <p class="mt-2 text-sm text-gray-600">
+              Manage your course catalog, content, and settings
+            </p>
+          </div>
+          <div class="flex space-x-3">
+            <a
+              href="/admin/courses/new"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Add New Course
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug Info -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+        <h3 class="text-sm font-medium text-blue-800">Debug Info</h3>
+        <div class="mt-2 text-sm text-blue-700">
+          <p>Total courses: {total}</p>
+          <p>Current page: {page}</p>
+          <p>Total pages: {totalPages}</p>
+          <p>Auth bypass enabled: {process.env.BYPASS_ADMIN_AUTH === 'true' ? 'Yes' : 'No'}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {error && (
+        <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <div class="flex">
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">Error</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Course List -->
+      <div class="bg-white rounded-lg shadow-sm border">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Courses ({total})</h2>
+        </div>
+
+        {courses.length > 0 ? (
+          <div class="overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {courses.map((course) => (
+                  <tr key={course.id}>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{course.title}</div>
+                      <div class="text-sm text-gray-500">{course.description}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{course.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        course.isPublished 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {course.isPublished ? 'Published' : 'Draft'}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatCurrency(course.price)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(course.createdAt)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <a
+                          href={`/admin/courses/${course.id}/edit`}
+                          class="text-purple-600 hover:text-purple-900"
+                        >
+                          Edit
+                        </a>
+                        <span class="text-gray-300">|</span>
+                        <button
+                          data-delete-course={course.id}
+                          class="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No courses found</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new course.</p>
+            <div class="mt-6">
+              <a
+                href="/admin/courses/new"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              >
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                New Course
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</body>
+</html>

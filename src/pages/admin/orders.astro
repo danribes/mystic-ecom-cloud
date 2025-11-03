@@ -1,0 +1,354 @@
+---
+/**
+ * T071: Admin Orders List Page
+ * 
+ * Displays all orders with:
+ * - Order ID, user, date, total, status
+ * - Filters: status, date range, search
+ * - Pagination support
+ * - Export to CSV functionality
+ */
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { getSessionFromRequest } from '@/lib/auth/session';
+import { searchOrders } from '@/services/order.service';
+import type { OrderStatus } from '@/types';
+
+export const prerender = false; // Enable SSR for authentication
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/login?redirect=/admin/orders');
+}
+
+// Get query parameters
+const url = new URL(Astro.request.url);
+const searchQuery = url.searchParams.get('search') || '';
+const statusFilter = (url.searchParams.get('status') || '') as OrderStatus;
+const startDate = url.searchParams.get('startDate') || '';
+const endDate = url.searchParams.get('endDate') || '';
+const itemType = url.searchParams.get('itemType') as 'course' | 'event' | 'digital_product' | undefined;
+
+// Build filters
+const filters: any = {};
+if (statusFilter) filters.status = statusFilter;
+if (startDate) filters.startDate = new Date(startDate);
+if (endDate) filters.endDate = new Date(endDate);
+if (itemType) filters.itemType = itemType;
+
+// Fetch orders
+let orders = [];
+let error = '';
+try {
+  orders = await searchOrders(searchQuery, filters);
+} catch (err: any) {
+  error = err.message;
+  console.error('Error fetching orders:', err);
+}
+
+// Calculate summary stats from filtered orders
+const stats = {
+  total: orders.length,
+  totalRevenue: orders
+    .filter(o => o.status === 'completed')
+    .reduce((sum, o) => sum + o.total, 0),
+  pending: orders.filter(o => o.status === 'pending').length,
+  completed: orders.filter(o => o.status === 'completed').length,
+};
+
+// Status color mapping
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  payment_pending: 'bg-orange-100 text-orange-800',
+  paid: 'bg-blue-100 text-blue-800',
+  processing: 'bg-purple-100 text-purple-800',
+  completed: 'bg-green-100 text-green-800',
+  cancelled: 'bg-gray-100 text-gray-800',
+  refunded: 'bg-red-100 text-red-800',
+};
+---
+
+<AdminLayout title="Orders Management">
+  <div class="p-6">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold mb-2">Orders Management</h1>
+      <p class="text-gray-600">View and manage all customer orders</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-sm text-gray-600 mb-1">Total Orders</div>
+        <div class="text-2xl font-bold">{stats.total}</div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-sm text-gray-600 mb-1">Total Revenue</div>
+        <div class="text-2xl font-bold">${(stats.totalRevenue / 100).toFixed(2)}</div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-sm text-gray-600 mb-1">Pending</div>
+        <div class="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-sm text-gray-600 mb-1">Completed</div>
+        <div class="text-2xl font-bold text-green-600">{stats.completed}</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6">
+      <form id="filterForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <!-- Search -->
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+            Search
+          </label>
+          <input
+            type="text"
+            id="search"
+            name="search"
+            value={searchQuery}
+            placeholder="Order ID or email"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- Status Filter -->
+        <div>
+          <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            id="status"
+            name="status"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All Statuses</option>
+            <option value="pending" selected={statusFilter === 'pending'}>Pending</option>
+            <option value="payment_pending" selected={statusFilter === 'payment_pending'}>Payment Pending</option>
+            <option value="paid" selected={statusFilter === 'paid'}>Paid</option>
+            <option value="processing" selected={statusFilter === 'processing'}>Processing</option>
+            <option value="completed" selected={statusFilter === 'completed'}>Completed</option>
+            <option value="cancelled" selected={statusFilter === 'cancelled'}>Cancelled</option>
+            <option value="refunded" selected={statusFilter === 'refunded'}>Refunded</option>
+          </select>
+        </div>
+
+        <!-- Item Type Filter -->
+        <div>
+          <label for="itemType" class="block text-sm font-medium text-gray-700 mb-1">
+            Item Type
+          </label>
+          <select
+            id="itemType"
+            name="itemType"
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All Types</option>
+            <option value="course" selected={itemType === 'course'}>Courses</option>
+            <option value="event" selected={itemType === 'event'}>Events</option>
+            <option value="digital_product" selected={itemType === 'digital_product'}>Digital Products</option>
+          </select>
+        </div>
+
+        <!-- Start Date -->
+        <div>
+          <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">
+            Start Date
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            value={startDate}
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- End Date -->
+        <div>
+          <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">
+            End Date
+          </label>
+          <input
+            type="date"
+            id="endDate"
+            name="endDate"
+            value={endDate}
+            class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </form>
+
+      <!-- Filter Buttons -->
+      <div class="flex gap-2 mt-4">
+        <button
+          type="submit"
+          form="filterForm"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Apply Filters
+        </button>
+        <a
+          href="/admin/orders"
+          class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          Clear Filters
+        </a>
+        <button
+          id="exportBtn"
+          type="button"
+          class="ml-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          Export to CSV
+        </button>
+      </div>
+    </div>
+
+    {error && (
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        Error loading orders: {error}
+      </div>
+    )}
+
+    <!-- Orders Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Order ID
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Customer
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Items
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {orders.length === 0 ? (
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                  No orders found matching your criteria
+                </td>
+              </tr>
+            ) : (
+              orders.map((order) => (
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {order.id.substring(0, 8)}...
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{order.userName || 'N/A'}</div>
+                    <div class="text-sm text-gray-500">{order.userEmail}</div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} class="mb-1">
+                          {item.quantity}x {item.itemTitle}
+                          <span class="text-gray-500 text-xs">({item.itemType})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${(order.total / 100).toFixed(2)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
+                      {order.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <a
+                      href={`/admin/orders/${order.id}`}
+                      class="text-blue-600 hover:text-blue-900 mr-3"
+                    >
+                      View
+                    </a>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Results Info -->
+    {orders.length > 0 && (
+      <div class="mt-4 text-sm text-gray-600 text-center">
+        Showing {orders.length} order{orders.length !== 1 ? 's' : ''}
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  // Export to CSV functionality
+  document.getElementById('exportBtn')?.addEventListener('click', () => {
+    const table = document.querySelector('table');
+    if (!table) return;
+
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+
+    // Get headers
+    const headers: string[] = [];
+    rows[0].querySelectorAll('th').forEach((th) => {
+      headers.push(th.textContent?.trim() || '');
+    });
+    csv.push(headers.join(','));
+
+    // Get data rows
+    for (let i = 1; i < rows.length; i++) {
+      const row: string[] = [];
+      const cols = rows[i].querySelectorAll('td');
+      
+      cols.forEach((col) => {
+        const text = col.textContent?.trim().replace(/\n/g, ' ').replace(/,/g, ';') || '';
+        row.push(`"${text}"`);
+      });
+      
+      if (row.length > 0) {
+        csv.push(row.join(','));
+      }
+    }
+
+    // Download CSV
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `orders-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+</script>

@@ -1,0 +1,1468 @@
+---
+/**
+ * Course Detail Page
+ * 
+ * Displays full course information including description, instructor,
+ * curriculum, reviews, and enrollment options.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ReviewForm from '@/components/ReviewForm.astro';
+import ReviewStats from '@/components/ReviewStats.astro';
+import ReviewList from '@/components/ReviewList.astro';
+import type { Course } from '@/types';
+import { getSessionFromRequest } from '@/lib/auth/session';
+import { getPool } from '@/lib/db';
+import { ReviewService } from '@/lib/reviews';
+import { getLocalizedCourseBySlug } from '@/lib/coursesI18n';
+
+// Get the course ID from the URL
+const { id } = Astro.params;
+
+// Get current user session
+const session = await getSessionFromRequest(Astro.cookies);
+
+// Get locale from middleware (T168)
+const locale = Astro.locals.locale || 'en';
+
+// Fetch localized course from database (T168)
+let course: Course | null = null;
+let error: string | null = null;
+
+try {
+  if (id) {
+    course = await getLocalizedCourseBySlug(id, locale);
+  }
+} catch (err) {
+  console.error('[T168] Error fetching localized course:', err);
+  error = 'Failed to load course';
+}
+
+// Fallback to mock data if database query fails
+// Mock course data - matches the format from homepage
+const mockCourses: Record<string, Course> = {
+  'quantum-manifestation-mastery': {
+    id: '1',
+    title: 'Quantum Manifestation Mastery',
+    slug: 'quantum-manifestation-mastery',
+    description: 'Learn to collapse quantum possibilities into your desired reality through advanced manifestation techniques.',
+    longDescription: 'A comprehensive course on quantum manifestation that combines cutting-edge quantum physics with ancient spiritual wisdom. You\'ll learn how to harness the power of observation to collapse quantum wave functions in your favor, understand the role of consciousness in creating reality, and master advanced techniques for manifesting your desires with precision and speed.',
+    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400',
+    previewVideoUrl: 'https://example.com/preview-quantum.mp4',
+    price: 19900,
+    duration: 14400, // 4 hours
+    level: 'intermediate',
+    category: 'Manifestation',
+    tags: ['manifestation', 'quantum', 'law of attraction'],
+    instructorId: '1',
+    instructorName: 'Dr. Sarah Quantum',
+    instructorAvatar: 'https://i.pravatar.cc/150?img=5',
+    enrollmentCount: 1247,
+    avgRating: 4.9,
+    reviewCount: 423,
+    learningOutcomes: [
+      'Master the fundamentals of quantum physics as applied to manifestation',
+      'Learn to collapse quantum possibilities through focused intention',
+      'Understand how consciousness affects reality at the quantum level',
+      'Develop a consistent daily manifestation practice',
+      'Overcome limiting beliefs that block manifestation',
+      'Manifest specific outcomes with precision and speed',
+    ],
+    prerequisites: [
+      'Basic understanding of Law of Attraction principles',
+      'Open mind and willingness to explore quantum concepts',
+      'Commitment to daily practice (15-30 minutes)',
+    ],
+    curriculum: [
+      {
+        title: 'Foundations of Quantum Manifestation',
+        description: 'Introduction to quantum physics and consciousness',
+        order: 1,
+        lessons: [
+          { title: 'Welcome & Course Overview', duration: 600, type: 'video', order: 1 },
+          { title: 'Quantum Physics Basics for Manifestation', duration: 1200, type: 'video', order: 2 },
+          { title: 'The Observer Effect and You', duration: 900, type: 'video', order: 3 },
+          { title: 'Quiz: Quantum Foundations', duration: 300, type: 'quiz', order: 4 },
+        ],
+      },
+      {
+        title: 'Consciousness and Reality Creation',
+        description: 'How your awareness shapes your experience',
+        order: 2,
+        lessons: [
+          { title: 'The Measurement Problem', duration: 1000, type: 'video', order: 1 },
+          { title: 'Collapsing the Wave Function', duration: 1100, type: 'video', order: 2 },
+          { title: 'Practical Exercise: Reality Selection', duration: 600, type: 'assignment', order: 3 },
+        ],
+      },
+      {
+        title: 'Advanced Manifestation Techniques',
+        description: 'Powerful methods for rapid manifestation',
+        order: 3,
+        lessons: [
+          { title: 'Quantum Jumping Method', duration: 1200, type: 'video', order: 1 },
+          { title: 'Timeline Shifting Practices', duration: 1100, type: 'video', order: 2 },
+          { title: 'Integration Exercise', duration: 800, type: 'assignment', order: 3 },
+        ],
+      },
+      {
+        title: 'Daily Practice & Integration',
+        description: 'Building your manifestation routine',
+        order: 4,
+        lessons: [
+          { title: 'Creating Your Daily Practice', duration: 900, type: 'video', order: 1 },
+          { title: 'Overcoming Manifestation Blocks', duration: 1000, type: 'video', order: 2 },
+          { title: 'Final Assessment', duration: 600, type: 'quiz', order: 3 },
+          { title: 'Next Steps & Resources', duration: 500, type: 'text', order: 4 },
+        ],
+      },
+    ],
+    isPublished: true,
+    isFeatured: true,
+    publishedAt: new Date('2024-01-15'),
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-06-15'),
+  },
+  'advanced-energy-healing-certification': {
+    id: '2',
+    title: 'Advanced Energy Healing Certification',
+    slug: 'advanced-energy-healing-certification',
+    description: 'Master the art of energy healing and become a certified practitioner in multiple modalities.',
+    longDescription: 'Complete certification program covering Reiki, Pranic Healing, Quantum Touch, and other advanced energy healing modalities. Learn to work with subtle energy fields, clear blockages, and facilitate profound healing transformations for yourself and others.',
+    imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=1200',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400',
+    previewVideoUrl: 'https://example.com/preview-healing.mp4',
+    price: 29900,
+    duration: 28800, // 8 hours
+    level: 'advanced',
+    category: 'Energy Healing',
+    tags: ['reiki', 'energy healing', 'certification'],
+    instructorId: '2',
+    instructorName: 'Master Elena Light',
+    instructorAvatar: 'https://i.pravatar.cc/150?img=9',
+    enrollmentCount: 892,
+    avgRating: 4.8,
+    reviewCount: 312,
+    learningOutcomes: [
+      'Master Reiki Level 1, 2, and 3 techniques',
+      'Learn Pranic Healing fundamentals and advanced protocols',
+      'Understand energy field anatomy and chakra systems',
+      'Develop intuitive healing abilities',
+      'Receive certification in multiple modalities',
+      'Build a professional energy healing practice',
+    ],
+    prerequisites: [
+      'Some prior experience with energy work or meditation',
+      'Commitment to complete all practice sessions',
+      'Dedication to ethical healing practices',
+    ],
+    curriculum: [
+      {
+        title: 'Energy Healing Foundations',
+        description: 'Core concepts and preparation',
+        order: 1,
+        lessons: [
+          { title: 'Introduction to Energy Healing', duration: 1200, type: 'video', order: 1 },
+          { title: 'Energy Field Anatomy', duration: 1500, type: 'video', order: 2 },
+          { title: 'Sensing Energy Exercise', duration: 900, type: 'assignment', order: 3 },
+        ],
+      },
+      {
+        title: 'Reiki Certification Path',
+        description: 'Complete Reiki training from Level 1 to Master',
+        order: 2,
+        lessons: [
+          { title: 'Reiki Level 1: Foundations', duration: 2400, type: 'video', order: 1 },
+          { title: 'Reiki Level 2: Advanced Symbols', duration: 2400, type: 'video', order: 2 },
+          { title: 'Reiki Level 3: Master Training', duration: 3000, type: 'video', order: 3 },
+          { title: 'Attunement Process', duration: 1800, type: 'video', order: 4 },
+        ],
+      },
+    ],
+    isPublished: true,
+    isFeatured: true,
+    publishedAt: new Date('2024-02-01'),
+    createdAt: new Date('2024-01-15'),
+    updatedAt: new Date('2024-07-01'),
+  },
+  'chakra-awakening-journey': {
+    id: '3',
+    title: 'Chakra Awakening Journey',
+    slug: 'chakra-awakening-journey',
+    description: 'Unlock and balance all seven chakras for optimal energy flow and spiritual awakening.',
+    longDescription: 'A transformative journey through the seven-chakra system, combining ancient wisdom with modern practices. Learn to identify blockages, clear stagnant energy, and awaken the full potential of each energy center.',
+    imageUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=1200',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400',
+    previewVideoUrl: null,
+    price: 14900,
+    duration: 10800, // 3 hours
+    level: 'beginner',
+    category: 'Spiritual Development',
+    tags: ['chakras', 'energy work', 'meditation'],
+    instructorId: '1',
+    instructorName: 'Dr. Sarah Quantum',
+    instructorAvatar: 'https://i.pravatar.cc/150?img=5',
+    enrollmentCount: 2103,
+    avgRating: 4.7,
+    reviewCount: 687,
+    learningOutcomes: [
+      'Understand the seven-chakra system in depth',
+      'Learn to sense and assess chakra energy',
+      'Master meditation techniques for each chakra',
+      'Clear energy blockages and restore balance',
+      'Develop a personalized chakra maintenance practice',
+    ],
+    prerequisites: [
+      'No prior experience required',
+      'Open mind and willingness to explore energy work',
+    ],
+    curriculum: [
+      {
+        title: 'Introduction to Chakras',
+        description: 'Understanding the energy body',
+        order: 1,
+        lessons: [
+          { title: 'What Are Chakras?', duration: 900, type: 'video', order: 1 },
+          { title: 'The Seven-Chakra System', duration: 1200, type: 'video', order: 2 },
+          { title: 'Chakra Assessment Exercise', duration: 600, type: 'assignment', order: 3 },
+        ],
+      },
+      {
+        title: 'Lower Chakras (Root, Sacral, Solar Plexus)',
+        description: 'Grounding and personal power',
+        order: 2,
+        lessons: [
+          { title: 'Root Chakra Healing', duration: 1200, type: 'video', order: 1 },
+          { title: 'Sacral Chakra Activation', duration: 1100, type: 'video', order: 2 },
+          { title: 'Solar Plexus Empowerment', duration: 1000, type: 'video', order: 3 },
+        ],
+      },
+      {
+        title: 'Upper Chakras (Heart, Throat, Third Eye, Crown)',
+        description: 'Connection and transcendence',
+        order: 3,
+        lessons: [
+          { title: 'Heart Chakra Opening', duration: 1100, type: 'video', order: 1 },
+          { title: 'Throat Chakra Expression', duration: 900, type: 'video', order: 2 },
+          { title: 'Third Eye Awakening', duration: 1200, type: 'video', order: 3 },
+          { title: 'Crown Chakra Connection', duration: 1100, type: 'video', order: 4 },
+        ],
+      },
+    ],
+    isPublished: true,
+    isFeatured: false,
+    publishedAt: new Date('2024-03-01'),
+    createdAt: new Date('2024-02-15'),
+    updatedAt: new Date('2024-08-01'),
+  },
+};
+
+// Fallback to mock data if database course not found
+if (!course && id && mockCourses[id]) {
+  course = mockCourses[id];
+}
+
+if (!course) {
+  error = 'Course not found';
+}
+
+// If no course found, return 404
+if (!course) {
+  return Astro.redirect('/404');
+}
+
+// Check if user has purchased this course and if they have an existing review
+let hasPurchased = false;
+let existingReview = null;
+
+if (session && course) {
+  try {
+    const pool = getPool();
+    // Check if user has purchased the course (completed order with this course)
+    const purchaseResult = await pool.query(
+      `SELECT 1 FROM order_items oi
+       JOIN orders o ON oi.order_id = o.id
+       WHERE o.user_id = $1 AND oi.course_id = $2 AND o.status = 'completed'
+       LIMIT 1`,
+      [session.userId, course.id]
+    );
+    hasPurchased = purchaseResult.rows.length > 0;
+
+    // Check if user has already reviewed this course
+    const reviewResult = await pool.query(
+      `SELECT id, rating, comment, is_approved
+       FROM reviews
+       WHERE user_id = $1 AND course_id = $2
+       LIMIT 1`,
+      [session.userId, course.id]
+    );
+
+    if (reviewResult.rows.length > 0) {
+      const review = reviewResult.rows[0];
+      existingReview = {
+        id: review.id,
+        rating: review.rating,
+        comment: review.comment,
+        isApproved: review.is_approved,
+      };
+    }
+  } catch (err) {
+    console.error('Error checking purchase/review status:', err);
+  }
+}
+
+// Fetch review statistics and reviews list
+const reviewService = new ReviewService(getPool());
+let reviewStats = null;
+let reviewsData = null;
+
+if (course) {
+  try {
+    // Get review statistics
+    reviewStats = await reviewService.getCourseReviewStats(course.id);
+
+    // Get current page from URL query params
+    const url = new URL(Astro.request.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+
+    // Get paginated reviews (only approved reviews)
+    reviewsData = await reviewService.getReviews({
+      courseId: course.id,
+      isApproved: true,
+      page,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC',
+    });
+  } catch (err) {
+    console.error('Error fetching reviews:', err);
+  }
+}
+
+// Helper functions
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(2)}`;
+};
+
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+  return `${minutes}m`;
+};
+
+const getLevelColor = (level: string): string => {
+  const colors = {
+    beginner: 'level-beginner',
+    intermediate: 'level-intermediate',
+    advanced: 'level-advanced',
+  };
+  return colors[level as keyof typeof colors] || 'level-beginner';
+};
+
+const getTotalLessons = (curriculum: typeof course.curriculum): number => {
+  return curriculum.reduce((total, section) => total + section.lessons.length, 0);
+};
+
+const formatLessonType = (type: string): string => {
+  const types: Record<string, string> = {
+    video: '📹 Video',
+    text: '📄 Reading',
+    quiz: '✅ Quiz',
+    assignment: '📝 Assignment',
+  };
+  return types[type] || type;
+};
+---
+
+<BaseLayout
+  title={course.title}
+  description={course.description}
+  keywords={course.tags.join(', ')}
+  ogImage={course.imageUrl}
+>
+  <div class="course-detail">
+    <!-- Course Header -->
+    <section class="course-header">
+      <div class="container">
+        <div class="header-content">
+          <!-- Left: Course Info -->
+          <div class="course-info">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+              <a href="/">Home</a>
+              <span>/</span>
+              <a href="/courses">Courses</a>
+              <span>/</span>
+              <span>{course.title}</span>
+            </nav>
+
+            <h1>{course.title}</h1>
+            <p class="subtitle">{course.description}</p>
+
+            <!-- Meta Info -->
+            <div class="course-meta">
+              <div class="meta-item">
+                <span class="icon">⭐</span>
+                <span class="value">{course.avgRating}</span>
+                <span class="label">({course.reviewCount} reviews)</span>
+              </div>
+              <div class="meta-item">
+                <span class="icon">👥</span>
+                <span class="value">{course.enrollmentCount.toLocaleString()}</span>
+                <span class="label">students</span>
+              </div>
+              <div class="meta-item">
+                <span class="icon">⏱️</span>
+                <span class="value">{formatDuration(course.duration)}</span>
+                <span class="label">total</span>
+              </div>
+              <div class="meta-item">
+                <span class={`level-badge ${getLevelColor(course.level)}`}>
+                  {course.level}
+                </span>
+              </div>
+            </div>
+
+            <!-- Instructor -->
+            <div class="instructor-info">
+              <img
+                src={course.instructorAvatar}
+                alt={course.instructorName}
+                class="instructor-avatar"
+              />
+              <div>
+                <p class="instructor-label">Created by</p>
+                <p class="instructor-name">{course.instructorName}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Course Image & CTA -->
+          <div class="course-preview">
+            <div class="preview-card">
+              <img
+                src={course.imageUrl}
+                alt={course.title}
+                class="preview-image"
+              />
+              {course.previewVideoUrl && (
+                <button class="play-preview" aria-label="Play preview video">
+                  <span class="play-icon">▶</span>
+                  <span>Preview this course</span>
+                </button>
+              )}
+            </div>
+
+            <div class="purchase-card">
+              <div class="price-section">
+                <span class="price">{formatPrice(course.price)}</span>
+                {course.price === 0 && <span class="free-badge">FREE</span>}
+              </div>
+
+              <!-- Add to Cart button -->
+              <button 
+                class="btn-primary btn-add-cart" 
+                data-course-id={course.id}
+                data-course-title={course.title}
+                data-course-price={course.price}
+              >
+                <span class="btn-text">Add to Cart</span>
+                <span class="btn-loading" style="display: none;">Adding...</span>
+              </button>
+              <button 
+                class="btn-secondary btn-buy-now"
+                data-course-id={course.id}
+              >
+                Buy Now
+              </button>
+
+              <!-- Success message -->
+              <div class="add-to-cart-success" style="display: none;">
+                <span class="success-icon">✓</span>
+                <span>Added to cart successfully!</span>
+              </div>
+
+              <div class="purchase-includes">
+                <p class="includes-title">This course includes:</p>
+                <ul class="includes-list">
+                  <li>
+                    <span class="icon">📹</span>
+                    {formatDuration(course.duration)} on-demand video
+                  </li>
+                  <li>
+                    <span class="icon">📱</span>
+                    Access on mobile and desktop
+                  </li>
+                  <li>
+                    <span class="icon">📜</span>
+                    Certificate of completion
+                  </li>
+                  <li>
+                    <span class="icon">♾️</span>
+                    Lifetime access
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Course Content -->
+    <section class="course-content">
+      <div class="container">
+        <div class="content-grid">
+          <!-- Main Content -->
+          <div class="main-content">
+            <!-- What You'll Learn -->
+            <div class="content-section">
+              <h2>What you'll learn</h2>
+              <ul class="learning-outcomes">
+                {course.learningOutcomes.map((outcome) => (
+                  <li>
+                    <span class="checkmark">✓</span>
+                    <span>{outcome}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <!-- Prerequisites -->
+            {course.prerequisites.length > 0 && (
+              <div class="content-section">
+                <h2>Prerequisites</h2>
+                <ul class="prerequisites-list">
+                  {course.prerequisites.map((prerequisite) => (
+                    <li>{prerequisite}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <!-- Course Description -->
+            <div class="content-section">
+              <h2>About this course</h2>
+              <div class="description">
+                <p>{course.longDescription || course.description}</p>
+              </div>
+            </div>
+
+            <!-- Curriculum -->
+            <div class="content-section curriculum-section">
+              <h2>Course curriculum</h2>
+              <p class="curriculum-stats">
+                {course.curriculum.length} sections • {getTotalLessons(course.curriculum)} lectures • {formatDuration(course.duration)} total length
+              </p>
+
+              <div class="curriculum-list">
+                {course.curriculum.map((section, sectionIndex) => (
+                  <details class="curriculum-section-item" open={sectionIndex === 0}>
+                    <summary class="section-header">
+                      <div class="section-info">
+                        <span class="section-icon">▶</span>
+                        <span class="section-title">{section.title}</span>
+                      </div>
+                      <span class="section-meta">
+                        {section.lessons.length} lectures • {formatDuration(
+                          section.lessons.reduce((total, lesson) => total + lesson.duration, 0)
+                        )}
+                      </span>
+                    </summary>
+                    {section.description && (
+                      <p class="section-description">{section.description}</p>
+                    )}
+                    <ul class="lessons-list">
+                      {section.lessons.map((lesson) => (
+                        <li class="lesson-item">
+                          <span class="lesson-type">{formatLessonType(lesson.type)}</span>
+                          <span class="lesson-title">{lesson.title}</span>
+                          <span class="lesson-duration">{formatDuration(lesson.duration)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ))}
+              </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="content-section">
+              <ReviewForm
+                courseId={course.id}
+                userId={session?.userId || null}
+                hasPurchased={hasPurchased}
+                existingReview={existingReview}
+              />
+
+              <!-- Review Statistics -->
+              {reviewStats && (
+                <div class="mt-8">
+                  <ReviewStats stats={reviewStats} />
+                </div>
+              )}
+
+              <!-- Reviews List -->
+              {reviewsData && (
+                <div class="mt-6">
+                  <ReviewList
+                    reviews={reviewsData.reviews}
+                    currentPage={reviewsData.page}
+                    totalPages={reviewsData.totalPages}
+                    hasMore={reviewsData.hasMore}
+                    courseSlug={id || ''}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="sidebar">
+            <!-- Tags -->
+            <div class="sidebar-section">
+              <h3>Topics</h3>
+              <div class="tags">
+                {course.tags.map((tag) => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="sidebar-section">
+              <h3>Category</h3>
+              <a href={`/courses?category=${encodeURIComponent(course.category)}`} class="category-link">
+                {course.category}
+              </a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Container */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+  }
+
+  /* Course Header */
+  .course-header {
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    color: white;
+    padding: var(--spacing-3xl) 0;
+  }
+
+  .header-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: var(--spacing-3xl);
+    align-items: start;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .breadcrumb a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .breadcrumb a:hover {
+    color: white;
+  }
+
+  /* Course Info */
+  .course-info h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .subtitle {
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-xl);
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  /* Course Meta */
+  .course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+  }
+
+  .meta-item .icon {
+    font-size: var(--font-size-lg);
+  }
+
+  .meta-item .value {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .meta-item .label {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .level-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+  }
+
+  .level-beginner {
+    background-color: var(--color-success);
+    color: white;
+  }
+
+  .level-intermediate {
+    background-color: var(--color-warning);
+    color: white;
+  }
+
+  .level-advanced {
+    background-color: var(--color-error);
+    color: white;
+  }
+
+  /* Instructor Info */
+  .instructor-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .instructor-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .instructor-label {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .instructor-name {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-lg);
+  }
+
+  /* Course Preview */
+  .course-preview {
+    position: sticky;
+    top: var(--spacing-lg);
+  }
+
+  .preview-card {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .preview-image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .play-preview {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: none;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-base);
+    transition: background var(--transition-fast);
+  }
+
+  .play-preview:hover {
+    background: rgba(0, 0, 0, 0.9);
+  }
+
+  .play-icon {
+    font-size: var(--font-size-xl);
+  }
+
+  /* Purchase Card */
+  .purchase-card {
+    background: white;
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .price-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .price {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+  }
+
+  .free-badge {
+    background: var(--color-success);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: white;
+    margin-bottom: var(--spacing-md);
+    position: relative;
+  }
+
+  .btn-primary:not(:disabled):hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-loading {
+    display: none;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .btn-secondary:not(:disabled):hover {
+    background: var(--color-surface);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Success Message */
+  .add-to-cart-success {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--color-success-light);
+    border: 1px solid var(--color-success);
+    border-radius: var(--radius-md);
+    color: var(--color-success);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-lg);
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .success-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--color-success);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Purchase Includes */
+  .purchase-includes {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+  }
+
+  .includes-title {
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text);
+  }
+
+  .includes-list {
+    list-style: none;
+  }
+
+  .includes-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+  }
+
+  .includes-list .icon {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Course Content */
+  .course-content {
+    padding: var(--spacing-3xl) 0;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--spacing-3xl);
+  }
+
+  .main-content {
+    min-width: 0; /* Prevent grid blowout */
+  }
+
+  /* Content Sections */
+  .content-section {
+    margin-bottom: var(--spacing-3xl);
+  }
+
+  .content-section h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-text);
+  }
+
+  /* Learning Outcomes */
+  .learning-outcomes {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .learning-outcomes li {
+    display: flex;
+    gap: var(--spacing-md);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .checkmark {
+    color: var(--color-success);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-xl);
+    flex-shrink: 0;
+  }
+
+  /* Prerequisites */
+  .prerequisites-list {
+    list-style: disc;
+    padding-left: var(--spacing-xl);
+    color: var(--color-text-light);
+  }
+
+  .prerequisites-list li {
+    margin-bottom: var(--spacing-sm);
+    line-height: var(--line-height-relaxed);
+  }
+
+  /* Description */
+  .description p {
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-light);
+  }
+
+  /* Curriculum */
+  .curriculum-stats {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .curriculum-list {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .curriculum-section-item {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .curriculum-section-item:last-child {
+    border-bottom: none;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    cursor: pointer;
+    background: var(--color-surface);
+    transition: background var(--transition-fast);
+    list-style: none;
+  }
+
+  .section-header::-webkit-details-marker {
+    display: none;
+  }
+
+  .section-header:hover {
+    background: var(--color-surface-dark);
+  }
+
+  .section-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .section-icon {
+    transition: transform var(--transition-fast);
+  }
+
+  details[open] .section-icon {
+    transform: rotate(90deg);
+  }
+
+  .section-title {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+  }
+
+  .section-meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+  }
+
+  .section-description {
+    padding: 0 var(--spacing-lg) var(--spacing-md);
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+  }
+
+  .lessons-list {
+    list-style: none;
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+  }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) 0;
+    font-size: var(--font-size-sm);
+  }
+
+  .lesson-type {
+    flex-shrink: 0;
+    width: 100px;
+    color: var(--color-text-lighter);
+  }
+
+  .lesson-title {
+    flex: 1;
+    color: var(--color-text);
+  }
+
+  .lesson-duration {
+    color: var(--color-text-light);
+  }
+
+  /* Reviews Placeholder */
+  .reviews-placeholder {
+    padding: var(--spacing-xl);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+
+  .reviews-placeholder p {
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-light);
+  }
+
+  .coming-soon {
+    font-style: italic;
+    color: var(--color-text-lighter);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: sticky;
+    top: var(--spacing-lg);
+  }
+
+  .sidebar-section {
+    background: var(--color-surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .sidebar-section h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .tag {
+    background: white;
+    color: var(--color-primary);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    border: 1px solid var(--color-border);
+  }
+
+  .category-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: color var(--transition-fast);
+  }
+
+  .category-link:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .header-content {
+      grid-template-columns: 1fr;
+    }
+
+    .course-preview {
+      position: static;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+      position: static;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .course-header {
+      padding: var(--spacing-xl) 0;
+    }
+
+    .course-info h1 {
+      font-size: var(--font-size-3xl);
+    }
+
+    .subtitle {
+      font-size: var(--font-size-lg);
+    }
+
+    .course-meta {
+      gap: var(--spacing-md);
+    }
+
+    .learning-outcomes {
+      grid-template-columns: 1fr;
+    }
+
+    .lesson-type {
+      width: 80px;
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 0 var(--spacing-md);
+    }
+
+    .course-info h1 {
+      font-size: var(--font-size-2xl);
+    }
+
+    .price {
+      font-size: var(--font-size-3xl);
+    }
+
+    .meta-item {
+      font-size: var(--font-size-xs);
+    }
+
+    .section-header {
+      padding: var(--spacing-md);
+    }
+
+    .section-title {
+      font-size: var(--font-size-sm);
+    }
+
+    .lesson-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-xs);
+    }
+
+    .lesson-type {
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Add to Cart functionality
+   * Handles adding course to cart with API call and UI feedback
+   */
+
+  // Get cart item count from session storage or default to 0
+  function getCartCount(): number {
+    const count = sessionStorage.getItem('cartItemCount');
+    return count ? parseInt(count, 10) : 0;
+  }
+
+  // Update cart count in session storage and header
+  function updateCartCount(count: number): void {
+    sessionStorage.setItem('cartItemCount', count.toString());
+    
+    // Update header cart count if element exists
+    const cartCountElement = document.querySelector('.cart-count');
+    if (cartCountElement) {
+      cartCountElement.textContent = count.toString();
+      if (count > 0) {
+        cartCountElement.classList.add('has-items');
+      }
+    }
+  }
+
+  // Show success message
+  function showSuccess(button: HTMLButtonElement): void {
+    const successMsg = document.querySelector('.add-to-cart-success') as HTMLElement;
+    if (successMsg) {
+      successMsg.style.display = 'flex';
+      
+      // Hide after 3 seconds
+      setTimeout(() => {
+        successMsg.style.display = 'none';
+      }, 3000);
+    }
+  }
+
+  // Handle Add to Cart button click
+  async function handleAddToCart(button: HTMLButtonElement): Promise<void> {
+    const courseId = button.dataset.courseId;
+    const courseTitle = button.dataset.courseTitle;
+    const coursePrice = button.dataset.coursePrice;
+
+    if (!courseId) {
+      console.error('Course ID not found');
+      return;
+    }
+
+    // Show loading state
+    const btnText = button.querySelector('.btn-text') as HTMLElement;
+    const btnLoading = button.querySelector('.btn-loading') as HTMLElement;
+    
+    if (btnText && btnLoading) {
+      btnText.style.display = 'none';
+      btnLoading.style.display = 'inline';
+    }
+    button.disabled = true;
+
+    try {
+      // For now, simulate API call since cart API endpoints (T042) not yet implemented
+      // In production, this will be: POST /api/cart/add
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+      // TODO: Replace with actual API call when T042 is implemented:
+      // const response = await fetch('/api/cart/add', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     itemType: 'course',
+      //     itemId: courseId,
+      //     quantity: 1
+      //   })
+      // });
+      // 
+      // if (!response.ok) {
+      //   throw new Error('Failed to add to cart');
+      // }
+      // 
+      // const data = await response.json();
+      // updateCartCount(data.cart.itemCount);
+
+      // For now, update count locally
+      const currentCount = getCartCount();
+      updateCartCount(currentCount + 1);
+
+      // Store cart item in session storage (temporary until API is ready)
+      const cartItems = JSON.parse(sessionStorage.getItem('cartItems') || '[]');
+      const existingItem = cartItems.find((item: any) => item.itemId === courseId);
+      
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cartItems.push({
+          itemType: 'course',
+          itemId: courseId,
+          itemTitle: courseTitle,
+          price: parseInt(coursePrice || '0', 10),
+          quantity: 1
+        });
+      }
+      
+      sessionStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+      // Show success message
+      showSuccess(button);
+
+      // Update button text
+      if (btnText) {
+        btnText.textContent = 'Added to Cart';
+      }
+
+      // Reset button after 2 seconds
+      setTimeout(() => {
+        if (btnText && btnLoading) {
+          btnText.textContent = 'Add to Cart';
+          btnText.style.display = 'inline';
+          btnLoading.style.display = 'none';
+        }
+        button.disabled = false;
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      
+      // Show error message
+      alert('Failed to add to cart. Please try again.');
+      
+      // Reset button
+      if (btnText && btnLoading) {
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+      }
+      button.disabled = false;
+    }
+  }
+
+  // Handle Buy Now button click
+  async function handleBuyNow(button: HTMLButtonElement): Promise<void> {
+    const courseId = button.dataset.courseId;
+
+    if (!courseId) {
+      console.error('Course ID not found');
+      return;
+    }
+
+    // Add to cart first
+    const addToCartBtn = document.querySelector('.btn-add-cart') as HTMLButtonElement;
+    if (addToCartBtn) {
+      await handleAddToCart(addToCartBtn);
+    }
+
+    // Redirect to cart/checkout page
+    // For now, just show alert since cart page (T040) not yet implemented
+    setTimeout(() => {
+      alert('Redirecting to checkout... (Cart page will be implemented in T040)');
+      // TODO: Replace with actual redirect when T040 is implemented:
+      // window.location.href = '/cart';
+    }, 500);
+  }
+
+  // Initialize event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add to Cart button
+    const addToCartBtn = document.querySelector('.btn-add-cart') as HTMLButtonElement;
+    if (addToCartBtn) {
+      addToCartBtn.addEventListener('click', () => handleAddToCart(addToCartBtn));
+    }
+
+    // Buy Now button
+    const buyNowBtn = document.querySelector('.btn-buy-now') as HTMLButtonElement;
+    if (buyNowBtn) {
+      buyNowBtn.addEventListener('click', () => handleBuyNow(buyNowBtn));
+    }
+  });
+</script>

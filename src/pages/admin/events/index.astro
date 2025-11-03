@@ -1,0 +1,437 @@
+---
+/**
+ * T086: Admin Events List Page
+ * 
+ * Admin interface for managing events with capacity tracking.
+ * Displays all events (published and draft) with booking status,
+ * capacity indicators, and quick action buttons.
+ */
+
+import { getEvents } from '@/lib/events';
+import type { Event } from '@/lib/events';
+import { query } from '@/lib/db';
+
+const title = 'Event Management';
+const description = 'Manage all events, track capacity, and view bookings';
+
+// Get query parameters for filtering
+const url = new URL(Astro.request.url);
+const city = url.searchParams.get('city') || '';
+const country = url.searchParams.get('country') || '';
+const status = url.searchParams.get('status') || '';
+
+let events: Event[] = [];
+let bookingStats: Map<string, { totalBookings: number; totalAttendees: number }> = new Map();
+let error: string | null = null;
+
+try {
+  // Build filter options
+  const filterOptions: any = {};
+  
+  if (city) filterOptions.city = city;
+  if (country) filterOptions.country = country;
+  if (status === 'published') {
+    filterOptions.isPublished = true;
+  } else if (status === 'draft') {
+    filterOptions.isPublished = false;
+  }
+  // If no status filter, get all events (both published and draft)
+
+  // Get all events
+  events = await getEvents(filterOptions);
+
+  // Get booking statistics for each event
+  const bookingStatsResult = await query(`
+    SELECT 
+      event_id,
+      COUNT(*) as total_bookings,
+      SUM(attendees) as total_attendees
+    FROM bookings
+    WHERE status = 'confirmed'
+    GROUP BY event_id
+  `);
+
+  bookingStatsResult.rows.forEach((row) => {
+    bookingStats.set(row.event_id, {
+      totalBookings: parseInt(row.total_bookings),
+      totalAttendees: parseInt(row.total_attendees),
+    });
+  });
+
+} catch (e) {
+  console.error('Error loading events:', e);
+  error = 'Failed to load events. Please try again.';
+  events = [];
+}
+
+// Format currency for display
+const formatCurrency = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(numPrice);
+};
+
+// Format date for display
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(date));
+};
+
+// Calculate capacity percentage
+const getCapacityPercentage = (event: Event): number => {
+  return Math.round(((event.capacity - event.available_spots) / event.capacity) * 100);
+};
+
+// Get capacity status color
+const getCapacityColor = (percentage: number): string => {
+  if (percentage >= 90) return 'text-red-600 bg-red-50';
+  if (percentage >= 70) return 'text-yellow-600 bg-yellow-50';
+  return 'text-green-600 bg-green-50';
+};
+
+// Check if event is in the past
+const isPastEvent = (eventDate: Date): boolean => {
+  return new Date(eventDate) < new Date();
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50">
+  <div class="min-h-screen">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 data-testid="admin-page-title" class="text-3xl font-bold text-gray-900">Event Management</h1>
+            <p class="mt-2 text-sm text-gray-600">
+              Manage events, track capacity, and monitor bookings
+            </p>
+          </div>
+          <div class="flex space-x-3">
+            <a
+              href="/admin/events/new"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Add New Event
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="bg-white rounded-lg shadow-sm border p-4">
+        <form method="get" class="flex flex-wrap gap-4">
+          <div class="flex-1 min-w-[200px]">
+            <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={city}
+              placeholder="Filter by city"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
+          
+          <div class="flex-1 min-w-[200px]">
+            <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+            <input
+              type="text"
+              id="country"
+              name="country"
+              value={country}
+              placeholder="Filter by country"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
+
+          <div class="flex-1 min-w-[200px]">
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select
+              id="status"
+              name="status"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+            >
+              <option value="">All Events</option>
+              <option value="published" selected={status === 'published'}>Published</option>
+              <option value="draft" selected={status === 'draft'}>Draft</option>
+            </select>
+          </div>
+
+          <div class="flex items-end space-x-2">
+            <button
+              type="submit"
+              class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              Apply Filters
+            </button>
+            <a
+              href="/admin/events"
+              class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Clear
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {error && (
+        <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <div class="flex">
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">Error</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Summary Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
+              <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Total Events</p>
+              <p class="text-2xl font-bold text-gray-900">{events.length}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+              <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Published</p>
+              <p class="text-2xl font-bold text-gray-900">{events.filter(e => e.is_published).length}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+              <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Upcoming</p>
+              <p class="text-2xl font-bold text-gray-900">{events.filter(e => !isPastEvent(e.event_date)).length}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+              <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Nearly Full</p>
+              <p class="text-2xl font-bold text-gray-900">{events.filter(e => getCapacityPercentage(e) >= 90).length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events List -->
+      <div class="bg-white rounded-lg shadow-sm border">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Events ({events.length})</h2>
+        </div>
+
+        {events.length > 0 ? (
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {events.map((event) => {
+                  const stats = bookingStats.get(event.id);
+                  const capacityPercentage = getCapacityPercentage(event);
+                  const capacityColor = getCapacityColor(capacityPercentage);
+                  const past = isPastEvent(event.event_date);
+                  
+                  return (
+                    <tr class="hover:bg-gray-50">
+                      <!-- Event Info -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div>
+                            <div class="text-sm font-medium text-gray-900">{event.title}</div>
+                            <div class="text-sm text-gray-500">{formatCurrency(event.price)}</div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <!-- Date & Time -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{formatDate(event.event_date)}</div>
+                        <div class="text-sm text-gray-500">{event.duration_hours}h duration</div>
+                        {past && (
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            Past Event
+                          </span>
+                        )}
+                      </td>
+
+                      <!-- Venue -->
+                      <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">{event.venue_name}</div>
+                        <div class="text-sm text-gray-500">{event.venue_city}, {event.venue_country}</div>
+                      </td>
+
+                      <!-- Capacity -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                          {event.capacity - event.available_spots} / {event.capacity}
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                          <div 
+                            class={`h-2 rounded-full ${capacityPercentage >= 90 ? 'bg-red-500' : capacityPercentage >= 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                            style={`width: ${capacityPercentage}%`}
+                          ></div>
+                        </div>
+                        <div class={`text-xs font-medium mt-1 ${capacityColor} inline-block px-2 py-0.5 rounded`}>
+                          {capacityPercentage}% Full
+                        </div>
+                      </td>
+
+                      <!-- Bookings -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                          {stats ? stats.totalBookings : 0} bookings
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          {stats ? stats.totalAttendees : 0} attendees
+                        </div>
+                      </td>
+
+                      <!-- Status -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        {event.is_published ? (
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Published
+                          </span>
+                        ) : (
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            Draft
+                          </span>
+                        )}
+                      </td>
+
+                      <!-- Actions -->
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                          <a
+                            href={`/admin/events/${event.id}/edit`}
+                            class="text-purple-600 hover:text-purple-900"
+                            title="Edit event"
+                          >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                          </a>
+                          <a
+                            href={`/events/${event.slug}`}
+                            class="text-blue-600 hover:text-blue-900"
+                            title="View event page"
+                            target="_blank"
+                          >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                          </a>
+                          {stats && stats.totalBookings > 0 && (
+                            <a
+                              href={`/admin/bookings/${event.id}`}
+                              class="text-green-600 hover:text-green-900"
+                              title="View bookings"
+                            >
+                              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                              </svg>
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No events found</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new event.</p>
+            <div class="mt-6">
+              <a
+                href="/admin/events/new"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              >
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add New Event
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</body>
+</html>

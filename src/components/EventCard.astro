@@ -1,0 +1,212 @@
+---
+/**
+ * EventCard Component
+ * 
+ * Displays an event preview card with image, title, date, location, price,
+ * capacity, and booking CTA. Used in event listings and grids.
+ */
+
+import type { Event } from '@/lib/events';
+
+interface Props {
+  event: Event;
+  variant?: 'default' | 'compact';
+}
+
+const { event, variant = 'default' } = Astro.props;
+
+// Format price for display
+const formatPrice = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice === 0 ? 'Free' : `$${numPrice.toFixed(2)}`;
+};
+
+// Format date for display
+const formatDate = (date: Date): string => {
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+// Format time for display
+const formatTime = (date: Date): string => {
+  return new Date(date).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
+
+// Calculate spots status
+const getSpotsStatus = (available: number, capacity: number): { text: string; color: string } => {
+  const percentage = (available / capacity) * 100;
+  
+  if (available === 0) {
+    return { text: 'Sold Out', color: 'error' };
+  } else if (percentage <= 20) {
+    return { text: `Only ${available} spots left!`, color: 'warning' };
+  } else {
+    return { text: `${available} spots available`, color: 'success' };
+  }
+};
+
+const spotsStatus = getSpotsStatus(event.available_spots, event.capacity);
+const eventUrl = `/events/${event.slug}`;
+const imageUrl = event.image_url || '/images/event-placeholder.jpg';
+const isSoldOut = event.available_spots === 0;
+
+// Duration display
+const durationText = event.duration_hours === 1 
+  ? '1 hour' 
+  : `${event.duration_hours} hours`;
+---
+
+<article class:list={[
+  'flex h-full flex-col overflow-hidden rounded-xl bg-background shadow-md transition-all duration-base hover:-translate-y-1 hover:shadow-xl',
+  variant === 'compact' ? 'flex-row h-auto' : '',
+  isSoldOut ? 'opacity-75' : ''
+]}>
+  <!-- Event Image -->
+  <a href={eventUrl} class:list={[
+    'group relative block overflow-hidden',
+    variant === 'default' ? 'aspect-video' : 'w-[200px] shrink-0'
+  ]}>
+    <img
+      src={imageUrl}
+      alt={event.title}
+      class="h-full w-full object-cover transition-transform duration-slow group-hover:scale-105"
+      loading="lazy"
+    />
+    {isSoldOut && (
+      <div class="absolute inset-0 flex items-center justify-center bg-black/60">
+        <span class="rounded-full bg-error px-xl py-sm text-lg font-bold text-white shadow-md">
+          SOLD OUT
+        </span>
+      </div>
+    )}
+    {!isSoldOut && event.available_spots <= (event.capacity * 0.2) && (
+      <span class="absolute right-md top-md rounded-full bg-warning px-md py-xs text-sm font-bold text-white shadow-md">
+        🔥 Limited Spots
+      </span>
+    )}
+  </a>
+
+  <!-- Event Info -->
+  <div class:list={[
+    'flex flex-1 flex-col gap-md p-lg',
+    variant === 'compact' ? 'p-md' : ''
+  ]}>
+    <!-- Date & Time -->
+    <div class="flex items-start gap-md">
+      <div class="flex shrink-0 flex-col items-center justify-center rounded-lg bg-primary-light px-md py-sm text-primary">
+        <span class="text-2xl font-bold leading-none">
+          {new Date(event.event_date).getDate()}
+        </span>
+        <span class="text-xs font-semibold uppercase leading-none">
+          {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short' })}
+        </span>
+      </div>
+      <div class="flex-1">
+        <div class="text-sm font-semibold text-text">
+          {formatDate(event.event_date)}
+        </div>
+        <div class="text-sm text-text-light">
+          {formatTime(event.event_date)} • {durationText}
+        </div>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <a href={eventUrl} class="group">
+      <h3 class:list={[
+        'm-0 font-bold leading-tight text-text transition-colors duration-base group-hover:text-primary',
+        variant === 'default' ? 'text-xl' : 'text-lg'
+      ]}>{event.title}</h3>
+    </a>
+
+    <!-- Description Preview -->
+    {event.description && (
+      <p class="m-0 line-clamp-2 text-sm leading-relaxed text-text-light">
+        {event.description}
+      </p>
+    )}
+
+    <!-- Location -->
+    <div class="flex items-start gap-xs text-sm">
+      <span class="text-lg leading-none">📍</span>
+      <div class="flex-1">
+        <div class="font-semibold text-text">{event.venue_name}</div>
+        <div class="text-text-light">
+          {event.venue_city}, {event.venue_country}
+        </div>
+      </div>
+    </div>
+
+    <!-- Capacity Status -->
+    <div class="flex items-center gap-xs">
+      <span class="text-lg leading-none">👥</span>
+      <span class:list={[
+        'text-sm font-semibold',
+        spotsStatus.color === 'error' ? 'text-error' :
+        spotsStatus.color === 'warning' ? 'text-warning' :
+        'text-success'
+      ]}>
+        {spotsStatus.text}
+      </span>
+    </div>
+
+    <!-- Footer: Price & CTA -->
+    <div class="mt-auto flex items-center justify-between gap-md border-t border-border pt-md">
+      <div class="flex items-baseline gap-xs">
+        {typeof event.price === 'number' && event.price === 0 || event.price === '0' ? (
+          <span class="text-2xl font-bold text-success">Free</span>
+        ) : (
+          <>
+            <span class="text-2xl font-bold text-primary">{formatPrice(event.price)}</span>
+            <span class="text-sm text-text-light">per person</span>
+          </>
+        )}
+      </div>
+      {isSoldOut ? (
+        <button 
+          disabled
+          class="whitespace-nowrap rounded-md bg-surface px-lg py-sm text-sm font-semibold text-text-light opacity-50 cursor-not-allowed"
+        >
+          Sold Out
+        </button>
+      ) : (
+        <a 
+          href={eventUrl} 
+          class="whitespace-nowrap rounded-md bg-primary px-lg py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
+        >
+          Book Now
+        </a>
+      )}
+    </div>
+  </div>
+</article>
+
+<style>
+  /* Responsive adjustments for compact variant */
+  @media (max-width: 640px) {
+    article.flex-row {
+      flex-direction: column;
+    }
+    
+    article.flex-row a[class*="w-[200px]"] {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* Line clamp utility */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

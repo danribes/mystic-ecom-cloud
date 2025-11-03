@@ -1,0 +1,343 @@
+---
+/**
+ * FilterSidebar Component
+ * 
+ * Displays filter options for search results.
+ * Allows filtering by type, price range, level, product type, and city.
+ */
+
+interface Props {
+  currentQuery: string;
+  currentType?: string;
+  currentMinPrice?: string;
+  currentMaxPrice?: string;
+  currentLevel?: string;
+  currentProductType?: string;
+  currentCity?: string;
+}
+
+const {
+  currentQuery,
+  currentType = '',
+  currentMinPrice = '',
+  currentMaxPrice = '',
+  currentLevel = '',
+  currentProductType = '',
+  currentCity = ''
+} = Astro.props;
+
+// Build filter URL helper
+const buildFilterUrl = (filters: Record<string, string>) => {
+  const url = new URL(Astro.request.url);
+  url.searchParams.set('q', currentQuery);
+  
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) {
+      url.searchParams.set(key, value);
+    } else {
+      url.searchParams.delete(key);
+    }
+  });
+  
+  // Reset offset when filters change
+  url.searchParams.delete('offset');
+  
+  return url.toString();
+};
+
+// Check if any filters are active
+const hasActiveFilters = currentType || currentMinPrice || currentMaxPrice || 
+                         currentLevel || currentProductType || currentCity;
+
+// Clear all filters URL
+const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
+---
+
+<div class="sticky top-4 rounded-lg border border-border bg-surface p-6">
+  <div class="mb-4 flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-text">Filters</h2>
+    {hasActiveFilters && (
+      <a
+        href={clearFiltersUrl}
+        class="text-sm text-primary transition-colors hover:text-primary-dark"
+      >
+        Clear all
+      </a>
+    )}
+  </div>
+
+  <form id="search-filters" class="space-y-6">
+    <!-- Type Filter -->
+    <div class="border-b border-border pb-6">
+      <h3 class="mb-3 text-sm font-medium text-text">Type</h3>
+      <div class="space-y-2">
+        <label class="flex cursor-pointer items-center">
+          <input
+            type="radio"
+            name="type"
+            value=""
+            checked={!currentType}
+            class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <span class="ml-2 text-sm text-text">All types</span>
+        </label>
+        <label class="flex cursor-pointer items-center">
+          <input
+            type="radio"
+            name="type"
+            value="course"
+            checked={currentType === 'course'}
+            class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <span class="ml-2 text-sm text-text">Courses</span>
+        </label>
+        <label class="flex cursor-pointer items-center">
+          <input
+            type="radio"
+            name="type"
+            value="product"
+            checked={currentType === 'product'}
+            class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <span class="ml-2 text-sm text-text">Digital Products</span>
+        </label>
+        <label class="flex cursor-pointer items-center">
+          <input
+            type="radio"
+            name="type"
+            value="event"
+            checked={currentType === 'event'}
+            class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <span class="ml-2 text-sm text-text">Events</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Price Range Filter -->
+    <div class="border-b border-border pb-6">
+      <h3 class="mb-3 text-sm font-medium text-text">Price Range</h3>
+      <div class="space-y-3">
+        <div>
+          <label for="minPrice" class="mb-1 block text-xs text-text-light">
+            Minimum price ($)
+          </label>
+          <input
+            type="number"
+            id="minPrice"
+            name="minPrice"
+            value={currentMinPrice}
+            min="0"
+            step="1"
+            placeholder="0"
+            class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text placeholder-text-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+        <div>
+          <label for="maxPrice" class="mb-1 block text-xs text-text-light">
+            Maximum price ($)
+          </label>
+          <input
+            type="number"
+            id="maxPrice"
+            name="maxPrice"
+            value={currentMaxPrice}
+            min="0"
+            step="1"
+            placeholder="No limit"
+            class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text placeholder-text-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Level Filter (for courses) -->
+    {(!currentType || currentType === 'course') && (
+      <div class="border-b border-border pb-6">
+        <h3 class="mb-3 text-sm font-medium text-text">Course Level</h3>
+        <div class="space-y-2">
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="level"
+              value=""
+              checked={!currentLevel}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">All levels</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="level"
+              value="beginner"
+              checked={currentLevel === 'beginner'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">Beginner</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="level"
+              value="intermediate"
+              checked={currentLevel === 'intermediate'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">Intermediate</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="level"
+              value="advanced"
+              checked={currentLevel === 'advanced'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">Advanced</span>
+          </label>
+        </div>
+      </div>
+    )}
+
+    <!-- Product Type Filter (for products) -->
+    {(!currentType || currentType === 'product') && (
+      <div class="border-b border-border pb-6">
+        <h3 class="mb-3 text-sm font-medium text-text">Product Type</h3>
+        <div class="space-y-2">
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="productType"
+              value=""
+              checked={!currentProductType}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">All types</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="productType"
+              value="pdf"
+              checked={currentProductType === 'pdf'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">PDF</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="productType"
+              value="audio"
+              checked={currentProductType === 'audio'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">Audio</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="productType"
+              value="video"
+              checked={currentProductType === 'video'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">Video</span>
+          </label>
+          <label class="flex cursor-pointer items-center">
+            <input
+              type="radio"
+              name="productType"
+              value="ebook"
+              checked={currentProductType === 'ebook'}
+              class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <span class="ml-2 text-sm text-text">eBook</span>
+          </label>
+        </div>
+      </div>
+    )}
+
+    <!-- City Filter (for events) -->
+    {(!currentType || currentType === 'event') && (
+      <div class="pb-6">
+        <h3 class="mb-3 text-sm font-medium text-text">City</h3>
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value={currentCity}
+          placeholder="Enter city name"
+          class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text placeholder-text-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+    )}
+
+    <!-- Apply Filters Button -->
+    <button
+      type="submit"
+      class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20"
+    >
+      Apply Filters
+    </button>
+  </form>
+</div>
+
+<script>
+  // Handle filter form submission
+  const filterForm = document.getElementById('search-filters') as HTMLFormElement;
+  
+  if (filterForm) {
+    filterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(filterForm);
+      const url = new URL(window.location.href);
+      
+      // Preserve query parameter
+      const query = url.searchParams.get('q') || '';
+      url.searchParams.set('q', query);
+      
+      // Apply filters
+      const type = formData.get('type') as string;
+      const minPrice = formData.get('minPrice') as string;
+      const maxPrice = formData.get('maxPrice') as string;
+      const level = formData.get('level') as string;
+      const productType = formData.get('productType') as string;
+      const city = formData.get('city') as string;
+      
+      if (type) url.searchParams.set('type', type);
+      else url.searchParams.delete('type');
+      
+      if (minPrice) url.searchParams.set('minPrice', minPrice);
+      else url.searchParams.delete('minPrice');
+      
+      if (maxPrice) url.searchParams.set('maxPrice', maxPrice);
+      else url.searchParams.delete('maxPrice');
+      
+      if (level) url.searchParams.set('level', level);
+      else url.searchParams.delete('level');
+      
+      if (productType) url.searchParams.set('productType', productType);
+      else url.searchParams.delete('productType');
+      
+      if (city) url.searchParams.set('city', city);
+      else url.searchParams.delete('city');
+      
+      // Reset offset when filters change
+      url.searchParams.delete('offset');
+      
+      // Navigate to filtered results
+      window.location.href = url.toString();
+    });
+    
+    // Handle radio button changes for instant filtering
+    const radioInputs = filterForm.querySelectorAll('input[type="radio"]');
+    radioInputs.forEach((input) => {
+      input.addEventListener('change', () => {
+        filterForm.dispatchEvent(new Event('submit'));
+      });
+    });
+  }
+</script>

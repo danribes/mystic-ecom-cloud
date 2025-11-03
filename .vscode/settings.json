@@ -1,0 +1,62 @@
+{
+  "github.copilot.chat.tools.enabled": {
+    // Disable notebook/Jupyter tools (not needed for this project)
+    "runNotebookCell": false,
+    "edit_notebook_file": false,
+    "copilot_getNotebookSummary": false,
+    "notebook_install_packages": false,
+    "notebook_list_packages": false,
+    "configure_notebook": false,
+    "create_new_jupyter_notebook": false,
+    
+    // Disable Python-specific tools (this is a TypeScript/JavaScript project)
+    "configure_python_environment": false,
+    "get_python_environment_details": false,
+    "get_python_executable_details": false,
+    "install_python_packages": false,
+    
+    // Keep essential tools enabled (these are set to true by default)
+    "read_file": true,
+    "create_file": true,
+    "replace_string_in_file": true,
+    "list_dir": true,
+    "grep_search": true,
+    "semantic_search": true,
+    "file_search": true,
+    "run_in_terminal": true,
+    "get_terminal_output": true,
+    "get_errors": true,
+    
+    // Keep VS Code specific tools
+    "create_and_run_task": true,
+    "get_vscode_api": true,
+    
+    // Keep MCP servers (task-master, github, fetch, filesystem, git, memory)
+    // All mcp_* tools remain enabled by default
+    
+    // Disable workspace creation (use task-master instead)
+    "create_new_workspace": false,
+    
+    // Disable project setup tool (already set up)
+    "get_project_setup_info": false,
+    
+    // Disable extension search (not needed during development)
+    "vscode_searchExtensions_internal": false,
+    "install_extension": false,
+    "run_vscode_command": false,
+    
+    // Disable browser preview (not needed)
+    "open_simple_browser": false,
+    
+    // Disable webpage fetching (use mcp_fetch instead)
+    "fetch_webpage": false,
+    
+    // Disable GitHub repo search (use github MCP tools instead)
+    "github_repo": false,
+    
+    // Keep todos and test failure tools
+    "manage_todo_list": true,
+    "test_failure": true
+  },
+  "git.ignoreLimitWarning": true
+}

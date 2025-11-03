@@ -1,0 +1,384 @@
+---
+/**
+ * T052: My Courses Page
+ * 
+ * Displays all enrolled courses with:
+ * - Course thumbnails and details
+ * - Progress tracking
+ * - Access links to course content
+ * - Completion status
+ * - Filtering and sorting options
+ */
+
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { getPool } from '@/lib/db';
+import { getSessionFromRequest } from '@/lib/auth/session';
+
+export const prerender = false; // Enable SSR for authentication
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/login?redirect=/dashboard/courses');
+}
+
+// Get user ID from session
+const userId = session.userId;
+
+// Get filter and sort parameters
+const url = new URL(Astro.request.url);
+const filterStatus = url.searchParams.get('status') || 'all';
+const sortBy = url.searchParams.get('sort') || 'recent';
+
+// Fetch user's enrolled courses
+const pool = getPool();
+let courses = [];
+let stats = {
+  total: 0,
+  inProgress: 0,
+  completed: 0,
+  notStarted: 0,
+};
+
+try {
+  // Build query based on filters
+  let statusFilter = '';
+  if (filterStatus === 'completed') {
+    statusFilter = 'AND ce.completed = true';
+  } else if (filterStatus === 'in-progress') {
+    statusFilter = 'AND ce.progress > 0 AND ce.completed = false';
+  } else if (filterStatus === 'not-started') {
+    statusFilter = 'AND (ce.progress IS NULL OR ce.progress = 0)';
+  }
+
+  // Build sort clause
+  let orderClause = 'ORDER BY ce.enrolled_at DESC';
+  if (sortBy === 'progress') {
+    orderClause = 'ORDER BY ce.progress DESC NULLS LAST';
+  } else if (sortBy === 'title') {
+    orderClause = 'ORDER BY c.title ASC';
+  }
+
+  // Get enrolled courses
+  const coursesResult = await pool.query(
+    `SELECT c.id, c.title, c.slug, c.description, c.price, c.thumbnail_url,
+            c.duration_hours, c.lesson_count, c.category,
+            ce.enrolled_at, ce.progress, ce.completed, ce.last_accessed_at
+     FROM course_enrollments ce
+     JOIN courses c ON ce.course_id = c.id
+     WHERE ce.user_id = $1 ${statusFilter}
+     ${orderClause}`,
+    [userId]
+  );
+  courses = coursesResult.rows;
+
+  // Get stats
+  const statsResult = await pool.query(
+    `SELECT 
+       COUNT(*) as total,
+       COUNT(*) FILTER (WHERE progress > 0 AND NOT completed) as in_progress,
+       COUNT(*) FILTER (WHERE completed) as completed,
+       COUNT(*) FILTER (WHERE progress IS NULL OR progress = 0) as not_started
+     FROM course_enrollments
+     WHERE user_id = $1`,
+    [userId]
+  );
+  
+  if (statsResult.rows.length > 0) {
+    stats = {
+      total: parseInt(statsResult.rows[0].total || 0),
+      inProgress: parseInt(statsResult.rows[0].in_progress || 0),
+      completed: parseInt(statsResult.rows[0].completed || 0),
+      notStarted: parseInt(statsResult.rows[0].not_started || 0),
+    };
+  }
+} catch (error) {
+  console.error('[COURSES] Error fetching courses:', error);
+  // Continue with empty data
+}
+
+// Helper function to format date
+function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+// Helper function to get course status
+function getCourseStatus(course: any): string {
+  if (course.completed) return 'Completed';
+  if ((course.progress || 0) > 0) return 'In Progress';
+  return 'Not Started';
+}
+
+// Helper function to get status color
+function getStatusColor(course: any): string {
+  if (course.completed) return 'text-green-600 bg-green-100';
+  if ((course.progress || 0) > 0) return 'text-blue-600 bg-blue-100';
+  return 'text-gray-600 bg-gray-100';
+}
+---
+
+<DashboardLayout
+  title="My Courses"
+  description="Access and continue your enrolled courses"
+>
+  <!-- Stats overview -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-gray-600">Total Courses</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-gray-600">In Progress</p>
+      <p class="text-2xl font-bold text-blue-600 mt-1">{stats.inProgress}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-gray-600">Completed</p>
+      <p class="text-2xl font-bold text-green-600 mt-1">{stats.completed}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-gray-600">Not Started</p>
+      <p class="text-2xl font-bold text-gray-600 mt-1">{stats.notStarted}</p>
+    </div>
+  </div>
+
+  <!-- Filters and sorting -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <!-- Filter by status -->
+      <div class="flex flex-wrap gap-2">
+        <a
+          href="/dashboard/courses?status=all"
+          class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filterStatus === 'all'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All Courses
+        </a>
+        <a
+          href="/dashboard/courses?status=in-progress"
+          class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filterStatus === 'in-progress'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          In Progress
+        </a>
+        <a
+          href="/dashboard/courses?status=completed"
+          class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filterStatus === 'completed'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Completed
+        </a>
+        <a
+          href="/dashboard/courses?status=not-started"
+          class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filterStatus === 'not-started'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Not Started
+        </a>
+      </div>
+
+      <!-- Sort options -->
+      <div class="flex items-center gap-2">
+        <label for="sort" class="text-sm font-medium text-gray-700 whitespace-nowrap">
+          Sort by:
+        </label>
+        <select
+          id="sort"
+          name="sort"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          onchange="window.location.href = `/dashboard/courses?status=${filterStatus}&sort=${this.value}`"
+        >
+          <option value="recent" selected={sortBy === 'recent'}>Recently Enrolled</option>
+          <option value="progress" selected={sortBy === 'progress'}>Progress</option>
+          <option value="title" selected={sortBy === 'title'}>Title (A-Z)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Courses grid -->
+  {courses.length > 0 ? (
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {courses.map((course) => (
+        <div class="bg-white rounded-lg shadow hover:shadow-xl transition-all overflow-hidden group">
+          {/* Course thumbnail */}
+          <div class="relative">
+            {course.thumbnail_url ? (
+              <img
+                src={course.thumbnail_url}
+                alt={course.title}
+                class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div class="w-full h-48 bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+                <span class="text-6xl">🧘</span>
+              </div>
+            )}
+            
+            {/* Status badge */}
+            <div class="absolute top-4 right-4">
+              <span class={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(course)}`}>
+                {getCourseStatus(course)}
+              </span>
+            </div>
+          </div>
+
+          {/* Course content */}
+          <div class="p-6">
+            {/* Category */}
+            {course.category && (
+              <p class="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2">
+                {course.category}
+              </p>
+            )}
+
+            {/* Title */}
+            <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors">
+              {course.title}
+            </h3>
+
+            {/* Description */}
+            {course.description && (
+              <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                {course.description}
+              </p>
+            )}
+
+            {/* Course meta */}
+            <div class="flex items-center gap-4 text-xs text-gray-500 mb-4">
+              {course.lesson_count && (
+                <div class="flex items-center gap-1">
+                  <span>📹</span>
+                  <span>{course.lesson_count} lessons</span>
+                </div>
+              )}
+              {course.duration_hours && (
+                <div class="flex items-center gap-1">
+                  <span>⏱️</span>
+                  <span>{course.duration_hours}h</span>
+                </div>
+              )}
+            </div>
+
+            {/* Progress bar */}
+            <div class="mb-4">
+              <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                <span class="font-medium">Progress</span>
+                <span class="font-semibold">{Math.round(course.progress || 0)}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  class="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-500"
+                  style={`width: ${course.progress || 0}%`}
+                ></div>
+              </div>
+            </div>
+
+            {/* Enrollment date */}
+            <p class="text-xs text-gray-500 mb-4">
+              Enrolled on {formatDate(course.enrolled_at)}
+              {course.last_accessed_at && (
+                <span> • Last accessed {formatDate(course.last_accessed_at)}</span>
+              )}
+            </p>
+
+            {/* Action buttons */}
+            <div class="flex gap-2">
+              <a
+                href={`/courses/${course.slug}/learn`}
+                class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium text-center"
+              >
+                {(course.progress || 0) > 0 ? 'Continue Learning' : 'Start Course'}
+              </a>
+              <a
+                href={`/courses/${course.slug}`}
+                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                title="View course details"
+              >
+                ℹ️
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <!-- Empty state -->
+    <div class="bg-white rounded-lg shadow p-12 text-center">
+      <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-4xl">
+          {filterStatus === 'completed' ? '🎉' :
+           filterStatus === 'in-progress' ? '📚' :
+           filterStatus === 'not-started' ? '🆕' : '📚'}
+        </span>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">
+        {filterStatus === 'completed' ? 'No Completed Courses' :
+         filterStatus === 'in-progress' ? 'No Courses In Progress' :
+         filterStatus === 'not-started' ? 'All Courses Started!' :
+         'No Courses Yet'}
+      </h3>
+      <p class="text-gray-600 mb-6 max-w-md mx-auto">
+        {filterStatus === 'completed' 
+          ? 'Complete your enrolled courses to see them here'
+          : filterStatus === 'in-progress'
+          ? 'Start learning to see courses in progress'
+          : filterStatus === 'not-started'
+          ? 'Great job! You have started all your courses'
+          : 'Begin your spiritual journey by enrolling in a course'}
+      </p>
+      {filterStatus !== 'all' ? (
+        <a
+          href="/dashboard/courses"
+          class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+        >
+          View All Courses
+        </a>
+      ) : (
+        <a
+          href="/courses"
+          class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+        >
+          Browse Courses
+        </a>
+      )}
+    </div>
+  )}
+
+  <!-- Call to action -->
+  {courses.length > 0 && (
+    <div class="mt-8 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-100">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 class="text-lg font-semibold text-gray-900 mb-1">
+            Ready to Learn More?
+          </h4>
+          <p class="text-sm text-gray-600">
+            Explore our full catalog of spiritual courses and continue your journey
+          </p>
+        </div>
+        <a
+          href="/courses"
+          class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium whitespace-nowrap"
+        >
+          Browse More Courses
+        </a>
+      </div>
+    </div>
+  )}
+</DashboardLayout>

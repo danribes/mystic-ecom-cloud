@@ -1,0 +1,318 @@
+---
+/**
+ * LanguageSwitcher Component
+ *
+ * Allows users to switch between supported languages (English/Spanish).
+ * Integrates with T125 i18n utilities and T163 middleware.
+ *
+ * Features:
+ * - Dropdown UI with flag icons
+ * - Current language indicator
+ * - Cookie-based persistence (via middleware)
+ * - URL path preservation during switch
+ * - Keyboard accessible (Enter/Space, Escape, Arrow keys)
+ * - Click outside to close
+ * - Responsive design
+ *
+ * Integration:
+ * - Uses Astro.locals.locale from T163 middleware
+ * - Sets locale cookie for persistence
+ * - Redirects to localized URL path
+ */
+
+import { LOCALES, LOCALE_NAMES, type Locale } from '../i18n';
+
+const currentLocale = Astro.locals.locale || 'en';
+const currentPath = Astro.url.pathname;
+
+// Remove locale prefix from path to get clean path
+function getCleanPath(pathname: string): string {
+  for (const locale of LOCALES) {
+    if (pathname.startsWith(`/${locale}/`)) {
+      return pathname.substring(3); // Remove '/es/'
+    }
+    if (pathname === `/${locale}`) {
+      return '/';
+    }
+  }
+  return pathname;
+}
+
+const cleanPath = getCleanPath(currentPath);
+
+// Generate URLs for each locale
+const localeUrls: Record<Locale, string> = {
+  en: cleanPath || '/',
+  es: `/es${cleanPath || '/'}`,
+};
+
+// Language display configuration
+const languages = [
+  { code: 'en' as Locale, name: LOCALE_NAMES['en'], flag: '🇺🇸', nativeName: 'English' },
+  { code: 'es' as Locale, name: LOCALE_NAMES['es'], flag: '🇪🇸', nativeName: 'Español' },
+];
+
+const currentLanguage = languages.find(lang => lang.code === currentLocale) || languages[0];
+const otherLanguages = languages.filter(lang => lang.code !== currentLocale);
+---
+
+<div class="language-switcher relative inline-block" data-component="language-switcher">
+  <!-- Toggle Button -->
+  <button
+    type="button"
+    class="flex items-center gap-xs rounded-md border border-border bg-background px-sm py-xs text-sm font-medium text-text transition-all duration-fast hover:bg-surface hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+    aria-label="Change language"
+    aria-haspopup="true"
+    aria-expanded="false"
+    data-toggle="language-dropdown"
+  >
+    <span class="text-lg leading-none" aria-hidden="true">{currentLanguage.flag}</span>
+    <span class="hidden sm:inline">{currentLanguage.code.toUpperCase()}</span>
+    <svg
+      class="h-4 w-4 transition-transform duration-fast"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  <!-- Dropdown Menu -->
+  <div
+    class="dropdown-menu absolute right-0 top-[calc(100%+0.25rem)] z-50 hidden min-w-[180px] rounded-lg border border-border bg-background shadow-lg"
+    role="menu"
+    aria-label="Language options"
+    data-dropdown="language-menu"
+  >
+    <div class="p-xs">
+      {otherLanguages.map((lang, index) => (
+        <a
+          href={localeUrls[lang.code]}
+          class="flex items-center gap-sm rounded-md px-sm py-sm text-sm text-text transition-colors duration-fast hover:bg-surface hover:text-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+          role="menuitem"
+          tabindex={index === 0 ? 0 : -1}
+          data-locale={lang.code}
+          data-language-option
+        >
+          <span class="text-xl leading-none" aria-hidden="true">{lang.flag}</span>
+          <div class="flex flex-col">
+            <span class="font-medium">{lang.nativeName}</span>
+            <span class="text-xs text-text-light">{lang.name}</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Dropdown animation */
+  .dropdown-menu {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  .dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Rotate chevron when open */
+  [aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  /* Mobile optimization */
+  @media (max-width: 640px) {
+    .dropdown-menu {
+      right: 0;
+      min-width: 150px;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * LanguageSwitcher Client-Side Behavior
+   *
+   * Handles:
+   * - Dropdown toggle on click
+   * - Click outside to close
+   * - Keyboard navigation (Enter/Space, Escape, Arrow keys)
+   * - Cookie persistence before navigation
+   * - ARIA state management
+   */
+
+  function initLanguageSwitcher() {
+    const switcher = document.querySelector('[data-component="language-switcher"]');
+    if (!switcher) return;
+
+    const toggle = switcher.querySelector('[data-toggle="language-dropdown"]') as HTMLButtonElement;
+    const dropdown = switcher.querySelector('[data-dropdown="language-menu"]') as HTMLElement;
+    const options = Array.from(switcher.querySelectorAll('[data-language-option]')) as HTMLAnchorElement[];
+
+    if (!toggle || !dropdown) return;
+
+    let isOpen = false;
+    let currentFocusIndex = 0;
+
+    /**
+     * Open dropdown
+     */
+    function open() {
+      isOpen = true;
+      dropdown.classList.add('show');
+      toggle.setAttribute('aria-expanded', 'true');
+
+      // Focus first option
+      currentFocusIndex = 0;
+      if (options[0]) {
+        options[0].focus();
+      }
+    }
+
+    /**
+     * Close dropdown
+     */
+    function close() {
+      isOpen = false;
+      dropdown.classList.remove('show');
+      toggle.setAttribute('aria-expanded', 'false');
+      currentFocusIndex = 0;
+
+      // Return focus to toggle
+      toggle.focus();
+    }
+
+    /**
+     * Toggle dropdown
+     */
+    function toggleDropdown(event: Event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (isOpen) {
+        close();
+      } else {
+        open();
+      }
+    }
+
+    /**
+     * Handle language selection
+     */
+    function selectLanguage(event: MouseEvent, locale: string, url: string) {
+      event.preventDefault();
+
+      // Set cookie for persistence (T163 middleware will read this)
+      document.cookie = `locale=${locale}; path=/; max-age=31536000; samesite=lax`;
+
+      // Navigate to localized URL
+      window.location.href = url;
+    }
+
+    /**
+     * Handle keyboard navigation
+     */
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!isOpen) {
+        // Toggle with Enter or Space when closed
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          open();
+        }
+        return;
+      }
+
+      switch (event.key) {
+        case 'Escape':
+          event.preventDefault();
+          close();
+          break;
+
+        case 'ArrowDown':
+          event.preventDefault();
+          currentFocusIndex = Math.min(currentFocusIndex + 1, options.length - 1);
+          options[currentFocusIndex]?.focus();
+          break;
+
+        case 'ArrowUp':
+          event.preventDefault();
+          currentFocusIndex = Math.max(currentFocusIndex - 1, 0);
+          options[currentFocusIndex]?.focus();
+          break;
+
+        case 'Home':
+          event.preventDefault();
+          currentFocusIndex = 0;
+          options[0]?.focus();
+          break;
+
+        case 'End':
+          event.preventDefault();
+          currentFocusIndex = options.length - 1;
+          options[currentFocusIndex]?.focus();
+          break;
+
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          const focused = options[currentFocusIndex];
+          if (focused) {
+            const locale = focused.dataset.locale!;
+            const url = focused.href;
+            selectLanguage(event as any, locale, url);
+          }
+          break;
+      }
+    }
+
+    /**
+     * Click outside to close
+     */
+    function handleClickOutside(event: MouseEvent) {
+      if (isOpen && !switcher.contains(event.target as Node)) {
+        close();
+      }
+    }
+
+    // Event listeners
+    toggle.addEventListener('click', toggleDropdown);
+    toggle.addEventListener('keydown', handleKeyDown);
+    dropdown.addEventListener('keydown', handleKeyDown);
+
+    // Language option clicks
+    options.forEach(option => {
+      option.addEventListener('click', (event) => {
+        const locale = option.dataset.locale!;
+        const url = option.href;
+        selectLanguage(event, locale, url);
+      });
+    });
+
+    // Click outside
+    document.addEventListener('click', handleClickOutside);
+
+    // Cleanup on navigation
+    document.addEventListener('astro:before-preparation', () => {
+      document.removeEventListener('click', handleClickOutside);
+    });
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLanguageSwitcher);
+  } else {
+    initLanguageSwitcher();
+  }
+
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:page-load', initLanguageSwitcher);
+</script>

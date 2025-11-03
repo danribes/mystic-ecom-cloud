@@ -1,0 +1,141 @@
+---
+/**
+ * ProductCard Component
+ * Displays a digital product card with image, title, price, type, and file size
+ */
+
+import type { DigitalProduct } from '../lib/products';
+
+interface Props {
+  product: DigitalProduct;
+}
+
+const { product } = Astro.props;
+
+// Format file size for display
+const formatFileSize = (sizeMB: number): string => {
+  const size = Number(sizeMB);
+  if (size < 1) {
+    return `${(size * 1024).toFixed(0)} KB`;
+  } else if (size >= 1000) {
+    return `${(size / 1024).toFixed(1)} GB`;
+  } else {
+    return `${size.toFixed(1)} MB`;
+  }
+};
+
+// Get icon for product type
+const getTypeIcon = (type: string): string => {
+  switch (type) {
+    case 'pdf':
+      return '📄';
+    case 'audio':
+      return '🎵';
+    case 'video':
+      return '🎥';
+    case 'ebook':
+      return '📚';
+    default:
+      return '📦';
+  }
+};
+
+// Get type label
+const getTypeLabel = (type: string): string => {
+  return type.toUpperCase();
+};
+---
+
+<div 
+  class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+  data-product-slug={product.slug}
+  data-product-id={product.id}
+>
+  <!-- Product Image -->
+  <a href={`/products/${product.slug}`} class="block">
+    {product.image_url ? (
+      <img 
+        src={product.image_url} 
+        alt={product.title}
+        class="w-full h-48 object-cover"
+      />
+    ) : (
+      <div class="w-full h-48 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+        <span class="text-6xl">{getTypeIcon(product.product_type)}</span>
+      </div>
+    )}
+  </a>
+
+  <!-- Product Details -->
+  <div class="p-4">
+    <!-- Type Badge -->
+    <div class="mb-2">
+      <span class={`
+        inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+        ${product.product_type === 'pdf' ? 'bg-red-100 text-red-800' : ''}
+        ${product.product_type === 'audio' ? 'bg-blue-100 text-blue-800' : ''}
+        ${product.product_type === 'video' ? 'bg-purple-100 text-purple-800' : ''}
+        ${product.product_type === 'ebook' ? 'bg-green-100 text-green-800' : ''}
+      `}>
+        {getTypeIcon(product.product_type)} {getTypeLabel(product.product_type)}
+      </span>
+    </div>
+
+    <!-- Title -->
+    <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+      <a href={`/products/${product.slug}`} class="hover:text-indigo-600 transition-colors">
+        {product.title}
+      </a>
+    </h3>
+
+    <!-- Description -->
+    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+      {product.description}
+    </p>
+
+    <!-- File Info & Price -->
+    <div class="flex items-center justify-between mt-4">
+      <!-- File Size -->
+      <div class="flex items-center text-sm text-gray-500">
+        <svg 
+          class="w-4 h-4 mr-1" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        <span>{formatFileSize(product.file_size_mb)}</span>
+      </div>
+
+      <!-- Price -->
+      <div class="text-xl font-bold text-indigo-600">
+        ${Number(product.price).toFixed(2)}
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="mt-4">
+      <a
+        href={`/products/${product.slug}`}
+        class="block w-full text-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors duration-200"
+      >
+        View Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

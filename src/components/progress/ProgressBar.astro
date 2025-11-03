@@ -1,0 +1,83 @@
+---
+/**
+ * T123: ProgressBar Component
+ * 
+ * Reusable progress bar component with:
+ * - Percentage display
+ * - Customizable colors
+ * - Smooth animations
+ * - Optional label
+ * - Size variants
+ */
+
+interface Props {
+  percentage: number; // 0-100
+  label?: string;
+  showPercentage?: boolean;
+  color?: 'purple' | 'blue' | 'green' | 'orange' | 'gray';
+  size?: 'sm' | 'md' | 'lg';
+  animated?: boolean;
+  className?: string;
+}
+
+const {
+  percentage = 0,
+  label,
+  showPercentage = true,
+  color = 'purple',
+  size = 'md',
+  animated = true,
+  className = '',
+} = Astro.props;
+
+// Clamp percentage between 0 and 100
+const clampedPercentage = Math.min(Math.max(percentage, 0), 100);
+
+// Color classes
+const colorClasses = {
+  purple: 'bg-purple-600',
+  blue: 'bg-blue-600',
+  green: 'bg-green-600',
+  orange: 'bg-orange-600',
+  gray: 'bg-gray-600',
+};
+
+// Size classes for the bar height
+const sizeClasses = {
+  sm: 'h-1.5',
+  md: 'h-2',
+  lg: 'h-3',
+};
+
+const barColor = colorClasses[color];
+const barHeight = sizeClasses[size];
+const animationClass = animated ? 'transition-all duration-500 ease-out' : '';
+---
+
+<div class={`w-full ${className}`}>
+  {/* Label and percentage display */}
+  {(label || showPercentage) && (
+    <div class="flex items-center justify-between text-sm text-gray-700 mb-1.5">
+      {label && <span class="font-medium">{label}</span>}
+      {showPercentage && (
+        <span class="text-gray-600 font-semibold">
+          {Math.round(clampedPercentage)}%
+        </span>
+      )}
+    </div>
+  )}
+
+  {/* Progress bar container */}
+  <div class={`w-full bg-gray-200 rounded-full overflow-hidden ${barHeight}`}>
+    {/* Progress bar fill */}
+    <div
+      class={`${barColor} ${barHeight} rounded-full ${animationClass}`}
+      style={`width: ${clampedPercentage}%`}
+      role="progressbar"
+      aria-valuenow={clampedPercentage}
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label={label || `Progress: ${Math.round(clampedPercentage)}%`}
+    ></div>
+  </div>
+</div>

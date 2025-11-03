@@ -1,0 +1,296 @@
+---
+/**
+ * Courses Catalog Page
+ * Browse all courses with advanced filtering by category, price, level, and rating
+ */
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CourseCard from '../../components/CourseCard.astro';
+import CourseFilters from '../../components/CourseFilters.astro';
+import { getCourses, getCategories } from '../../lib/courses';
+import { getLocalizedCourses } from '../../lib/coursesI18n';
+
+// Get locale from middleware (T168)
+const locale = Astro.locals.locale || 'en';
+
+// Extract URL parameters
+const url = new URL(Astro.request.url);
+const category = url.searchParams.get('category') || 'all';
+const level = url.searchParams.get('level') || 'all';
+const minPrice = url.searchParams.get('minPrice') || '';
+const maxPrice = url.searchParams.get('maxPrice') || '';
+const minRating = url.searchParams.get('minRating') || '';
+const search = url.searchParams.get('search') || '';
+const limit = parseInt(url.searchParams.get('limit') || '12');
+const page = parseInt(url.searchParams.get('page') || '1');
+const offset = (page - 1) * limit;
+
+// Fetch localized courses with filters (T168)
+let courses = { items: [], total: 0, hasMore: false };
+let error = null;
+
+try {
+  courses = await getLocalizedCourses({
+    category: category !== 'all' ? category : undefined,
+    level: level !== 'all' ? level : undefined,
+    minPrice: minPrice ? parseFloat(minPrice) : undefined,
+    maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+    minRating: minRating ? parseFloat(minRating) : undefined,
+    search: search || undefined,
+    limit,
+    offset,
+    locale,
+  });
+} catch (err) {
+  console.error('[T168] Error fetching localized courses:', err);
+  // Fallback to non-localized version if localized fails
+  try {
+    courses = await getCourses({
+      category: category !== 'all' ? category : undefined,
+      level: level !== 'all' ? level : undefined,
+      minPrice: minPrice ? parseFloat(minPrice) : undefined,
+      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+      minRating: minRating ? parseFloat(minRating) : undefined,
+      search: search || undefined,
+      limit,
+      offset,
+    });
+  } catch (fallbackErr) {
+    console.error('Error fetching courses (fallback):', fallbackErr);
+    error = 'Failed to load courses. Please try again later.';
+  }
+}
+
+// Fetch available categories for filter
+const categories = await getCategories();
+
+// Calculate pagination
+const currentPage = page;
+const totalPages = Math.ceil(courses.total / limit);
+const hasNextPage = courses.hasMore;
+const hasPrevPage = currentPage > 1;
+
+// Helper to build URLs with filters preserved
+function buildPageUrl(pageNum: number): string {
+  const params = new URLSearchParams();
+  params.set('page', pageNum.toString());
+  params.set('limit', limit.toString());
+  
+  if (category !== 'all') params.set('category', category);
+  if (level !== 'all') params.set('level', level);
+  if (minPrice) params.set('minPrice', minPrice);
+  if (maxPrice) params.set('maxPrice', maxPrice);
+  if (minRating) params.set('minRating', minRating);
+  if (search) params.set('search', search);
+  
+  return `/courses?${params.toString()}`;
+}
+
+// Active filter count
+const activeFilterCount = [
+  category !== 'all',
+  level !== 'all',
+  minPrice !== '',
+  maxPrice !== '',
+  minRating !== '',
+].filter(Boolean).length;
+
+// Compute page numbers for pagination (done in frontmatter to avoid JSX issues with < >)
+const computeCoursePageNumbers = (): Array<{ pageNum: number; showPage: boolean; showEllipsis: boolean }> => {
+  const pages = [];
+
+  for (let i = 0; i < totalPages; i++) {
+    const pageNum = i + 1;
+    const showPage =
+      pageNum === 1 ||
+      pageNum === totalPages ||
+      Math.abs(pageNum - currentPage) <= 2;
+
+    const showEllipsis = !showPage && (pageNum === currentPage - 3 || pageNum === currentPage + 3);
+
+    pages.push({ pageNum, showPage, showEllipsis });
+  }
+
+  return pages;
+};
+
+const coursePageNumbers = computeCoursePageNumbers();
+---
+
+<BaseLayout title="Online Courses | Spirituality E-Commerce">
+  <div class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header Section -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          Browse Courses
+        </h1>
+        <p class="text-gray-600">
+          Discover spiritual and personal development courses to enhance your journey
+        </p>
+        
+        {activeFilterCount > 0 && (
+          <p class="mt-2 text-sm text-gray-700">
+            <span class="font-medium">{activeFilterCount}</span> {activeFilterCount === 1 ? 'filter' : 'filters'} active
+          </p>
+        )}
+      </div>
+
+      {error ? (
+        <!-- Error State -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <svg
+            class="w-12 h-12 text-red-400 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <h2 class="text-xl font-semibold text-red-900 mb-2">Error Loading Courses</h2>
+          <p class="text-red-700">{error}</p>
+        </div>
+      ) : (
+        <!-- Main Content: Filters + Course Grid -->
+        <div class="flex flex-col lg:flex-row gap-8">
+          <!-- Filter Sidebar -->
+          <CourseFilters
+            currentCategory={category}
+            currentLevel={level}
+            currentMinPrice={minPrice}
+            currentMaxPrice={maxPrice}
+            currentMinRating={minRating}
+            categories={categories}
+          />
+
+          <!-- Course Grid -->
+          <main class="flex-1">
+            <!-- Results Header -->
+            <div class="flex justify-between items-center mb-6">
+              <p class="text-sm text-gray-600">
+                {courses.total === 0 ? 'No courses found' : 
+                 `Showing ${offset + 1}-${Math.min(offset + limit, courses.total)} of ${courses.total} ${courses.total === 1 ? 'course' : 'courses'}`}
+              </p>
+            </div>
+
+            {courses.items.length === 0 ? (
+              <!-- Empty State -->
+              <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <svg
+                  class="w-16 h-16 text-gray-400 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">
+                  No Courses Found
+                </h2>
+                <p class="text-gray-600 mb-4">
+                  Try adjusting your filters to see more results
+                </p>
+                <a
+                  href="/courses"
+                  class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Clear All Filters
+                </a>
+              </div>
+            ) : (
+              <>
+                <!-- Course Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                  {courses.items.map((course) => (
+                    <CourseCard course={course} />
+                  ))}
+                </div>
+
+                <!-- Pagination -->
+                {totalPages > 1 && (
+                  <nav
+                    class="flex justify-center items-center gap-2"
+                    aria-label="Pagination"
+                  >
+                    {/* Previous Button */}
+                    {hasPrevPage ? (
+                      <a
+                        href={buildPageUrl(currentPage - 1)}
+                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Previous
+                      </a>
+                    ) : (
+                      <span class="px-4 py-2 border border-gray-200 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                        Previous
+                      </span>
+                    )}
+
+                    {/* Page Numbers (Desktop) */}
+                    <div class="hidden md:flex gap-1">
+                      {coursePageNumbers.map((page) => {
+                        if (!page.showPage) {
+                          if (page.showEllipsis) {
+                            return (
+                              <span class="px-3 py-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <a
+                            href={buildPageUrl(page.pageNum)}
+                            class={`px-4 py-2 border rounded-md text-sm font-medium transition-colors ${
+                              page.pageNum === currentPage
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                            aria-current={page.pageNum === currentPage ? 'page' : undefined}
+                          >
+                            {page.pageNum}
+                          </a>
+                        );
+                      })}
+                    </div>
+
+                    {/* Page Indicator (Mobile) */}
+                    <span class="md:hidden px-4 py-2 text-sm text-gray-700">
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    {/* Next Button */}
+                    {hasNextPage ? (
+                      <a
+                        href={buildPageUrl(currentPage + 1)}
+                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Next
+                      </a>
+                    ) : (
+                      <span class="px-4 py-2 border border-gray-200 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                        Next
+                      </span>
+                    )}
+                  </nav>
+                )}
+              </>
+            )}
+          </main>
+        </div>
+      )}
+    </div>
+  </div>
+</BaseLayout>

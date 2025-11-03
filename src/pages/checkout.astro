@@ -1,0 +1,418 @@
+---
+/**
+ * Checkout Page
+ * 
+ * Review order and proceed to Stripe payment
+ * First page built with Tailwind CSS!
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import type { Cart, CartItem } from '@/types';
+
+// For now, use mock data from sessionStorage (until API is fully integrated)
+// In production, this would fetch from: GET /api/cart
+let cart: Cart | null = null;
+let error: string | null = null;
+
+// Mock cart data - in production this will come from the API
+const emptyCart: Cart = {
+  userId: 'guest',
+  items: [],
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  itemCount: 0,
+  updatedAt: new Date(),
+};
+
+// Helper functions
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(2)}`;
+};
+
+const TAX_RATE = 0.08; // 8% tax
+---
+
+<BaseLayout
+  title="Checkout"
+  description="Complete your purchase and access your spiritual learning content"
+>
+  <div class="min-h-screen bg-surface py-xl">
+    <div class="mx-auto max-w-6xl px-md">
+      <!-- Header -->
+      <div class="mb-2xl">
+        <h1 class="text-4xl font-bold text-text mb-sm">Checkout</h1>
+        <p class="text-text-light">Review your order and complete your purchase</p>
+      </div>
+
+      <!-- Empty Cart State -->
+      <div id="empty-checkout" class="hidden rounded-lg bg-white p-3xl text-center shadow-md">
+        <div class="mx-auto max-w-md">
+          <span class="mb-lg block text-6xl">🛒</span>
+          <h2 class="mb-md text-2xl font-semibold text-text">Your cart is empty</h2>
+          <p class="mb-xl text-text-light">
+            Add some courses to your cart before proceeding to checkout.
+          </p>
+          <a 
+            href="/courses" 
+            class="inline-block rounded-md bg-primary px-xl py-md font-semibold text-white transition-all duration-fast hover:bg-primary-dark hover:shadow-lg"
+          >
+            Browse Courses
+          </a>
+        </div>
+      </div>
+
+      <!-- Checkout Grid -->
+      <div id="checkout-content" class="grid grid-cols-1 gap-xl lg:grid-cols-3">
+        <!-- Left Column: Order Summary & Billing Info -->
+        <div class="lg:col-span-2">
+          <!-- Order Items -->
+          <div class="mb-xl rounded-lg bg-white p-lg shadow-md">
+            <h2 class="mb-lg border-b border-border pb-md text-xl font-semibold text-text">
+              Order Summary
+            </h2>
+            
+            <div id="order-items" class="space-y-md">
+              <!-- Items will be loaded via JavaScript -->
+            </div>
+
+            <div class="mt-lg border-t border-border pt-md">
+              <a 
+                href="/cart" 
+                class="text-primary transition-colors hover:text-primary-dark"
+              >
+                ← Back to Cart
+              </a>
+            </div>
+          </div>
+
+          <!-- Billing Information -->
+          <div class="rounded-lg bg-white p-lg shadow-md">
+            <h2 class="mb-lg border-b border-border pb-md text-xl font-semibold text-text">
+              Billing Information
+            </h2>
+
+            <form id="checkout-form" class="space-y-md">
+              <!-- Email -->
+              <div>
+                <label for="email" class="mb-xs block text-sm font-medium text-text">
+                  Email Address <span class="text-error">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  class="w-full rounded-md border border-border px-md py-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="you@example.com"
+                />
+                <p class="mt-xs text-xs text-text-light">
+                  Order confirmation will be sent to this email
+                </p>
+              </div>
+
+              <!-- Name -->
+              <div class="grid grid-cols-1 gap-md sm:grid-cols-2">
+                <div>
+                  <label for="firstName" class="mb-xs block text-sm font-medium text-text">
+                    First Name <span class="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    required
+                    class="w-full rounded-md border border-border px-md py-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div>
+                  <label for="lastName" class="mb-xs block text-sm font-medium text-text">
+                    Last Name <span class="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    required
+                    class="w-full rounded-md border border-border px-md py-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <!-- Country -->
+              <div>
+                <label for="country" class="mb-xs block text-sm font-medium text-text">
+                  Country <span class="text-error">*</span>
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  required
+                  class="w-full rounded-md border border-border px-md py-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">Select a country</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="NZ">New Zealand</option>
+                  <option value="IE">Ireland</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="ES">Spain</option>
+                  <option value="IT">Italy</option>
+                  <option value="MX">Mexico</option>
+                  <option value="BR">Brazil</option>
+                  <option value="AR">Argentina</option>
+                  <option value="IN">India</option>
+                  <option value="JP">Japan</option>
+                  <option value="KR">South Korea</option>
+                  <option value="SG">Singapore</option>
+                </select>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right Column: Payment Summary -->
+        <div class="lg:col-span-1">
+          <div class="sticky top-lg rounded-lg bg-white p-lg shadow-md">
+            <h2 class="mb-lg border-b border-border pb-md text-xl font-semibold text-text">
+              Payment Summary
+            </h2>
+
+            <!-- Price Breakdown -->
+            <div class="space-y-md mb-lg">
+              <div class="flex items-center justify-between text-text">
+                <span>Subtotal</span>
+                <span id="summary-subtotal" class="font-medium">$0.00</span>
+              </div>
+              <div class="flex items-center justify-between text-text">
+                <span>Tax (8%)</span>
+                <span id="summary-tax" class="font-medium">$0.00</span>
+              </div>
+              <div class="border-t border-border pt-md">
+                <div class="flex items-center justify-between text-lg font-bold text-text">
+                  <span>Total</span>
+                  <span id="summary-total" class="text-primary">$0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Button -->
+            <button
+              id="btn-payment"
+              type="button"
+              class="mb-md w-full rounded-md bg-primary px-xl py-md font-semibold text-white transition-all duration-fast hover:bg-primary-dark hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Proceed to Payment
+            </button>
+
+            <!-- Security Notice -->
+            <div class="flex items-start gap-sm rounded-md bg-surface p-md">
+              <span class="text-lg">🔒</span>
+              <div class="text-xs text-text-light">
+                <p class="mb-xs font-medium text-text">Secure Checkout</p>
+                <p>Your payment is processed securely through Stripe. We never store your card details.</p>
+              </div>
+            </div>
+
+            <!-- Money Back Guarantee -->
+            <div class="mt-md flex items-start gap-sm rounded-md bg-success-light p-md">
+              <span class="text-lg">✓</span>
+              <div class="text-xs text-text">
+                <p class="mb-xs font-medium">30-Day Money Back Guarantee</p>
+                <p class="text-text-light">Not satisfied? Get a full refund within 30 days.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  /**
+   * Checkout Page Functionality
+   * Loads cart and handles payment processing
+   */
+
+  import type { Cart, CartItem } from '@/types';
+
+  const TAX_RATE = 0.08;
+
+  // Format price
+  function formatPrice(cents: number): string {
+    return `$${(cents / 100).toFixed(2)}`;
+  }
+
+  // Get cart from sessionStorage
+  function getCart(): Cart {
+    const cartItems = JSON.parse(sessionStorage.getItem('cartItems') || '[]');
+    const subtotal = cartItems.reduce((sum: number, item: CartItem) => sum + item.price * item.quantity, 0);
+    const tax = Math.round(subtotal * TAX_RATE);
+    const total = subtotal + tax;
+    const itemCount = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
+
+    return {
+      userId: 'guest',
+      items: cartItems,
+      subtotal,
+      tax,
+      total,
+      itemCount,
+      updatedAt: new Date(),
+    };
+  }
+
+  // Render order items
+  function renderOrderItems(cart: Cart): void {
+    const orderItemsEl = document.getElementById('order-items');
+    if (!orderItemsEl) return;
+
+    if (cart.items.length === 0) {
+      showEmptyState();
+      return;
+    }
+
+    orderItemsEl.innerHTML = cart.items.map((item) => {
+      const itemTotal = item.price * item.quantity;
+      const imageSrc = item.itemImageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100';
+
+      return `
+        <div class="flex items-start gap-md border-b border-border pb-md last:border-0 last:pb-0">
+          <img 
+            src="${imageSrc}" 
+            alt="${item.itemTitle}"
+            class="h-16 w-16 rounded-md object-cover"
+          />
+          <div class="flex-1">
+            <h3 class="font-medium text-text">${item.itemTitle}</h3>
+            <p class="text-sm text-text-light">Quantity: ${item.quantity}</p>
+          </div>
+          <div class="text-right">
+            <p class="font-semibold text-text">${formatPrice(itemTotal)}</p>
+            <p class="text-xs text-text-light">${formatPrice(item.price)} each</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Update summary
+  function updateSummary(cart: Cart): void {
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const taxEl = document.getElementById('summary-tax');
+    const totalEl = document.getElementById('summary-total');
+
+    if (subtotalEl) subtotalEl.textContent = formatPrice(cart.subtotal);
+    if (taxEl) taxEl.textContent = formatPrice(cart.tax);
+    if (totalEl) totalEl.textContent = formatPrice(cart.total);
+  }
+
+  // Show empty state
+  function showEmptyState(): void {
+    const emptyEl = document.getElementById('empty-checkout');
+    const contentEl = document.getElementById('checkout-content');
+
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    if (contentEl) contentEl.classList.add('hidden');
+  }
+
+  // Show checkout content
+  function showCheckoutContent(): void {
+    const emptyEl = document.getElementById('empty-checkout');
+    const contentEl = document.getElementById('checkout-content');
+
+    if (emptyEl) emptyEl.classList.add('hidden');
+    if (contentEl) contentEl.classList.remove('hidden');
+  }
+
+  // Validate form
+  function validateForm(): boolean {
+    const form = document.getElementById('checkout-form') as HTMLFormElement;
+    if (!form) return false;
+
+    const email = (form.elements.namedItem('email') as HTMLInputElement)?.value;
+    const firstName = (form.elements.namedItem('firstName') as HTMLInputElement)?.value;
+    const lastName = (form.elements.namedItem('lastName') as HTMLInputElement)?.value;
+    const country = (form.elements.namedItem('country') as HTMLSelectElement)?.value;
+
+    if (!email || !firstName || !lastName || !country) {
+      alert('Please fill in all required fields');
+      return false;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Handle payment
+  async function handlePayment(): Promise<void> {
+    if (!validateForm()) return;
+
+    const cart = getCart();
+    if (cart.items.length === 0) {
+      alert('Your cart is empty');
+      return;
+    }
+
+    const btnPayment = document.getElementById('btn-payment') as HTMLButtonElement;
+    if (btnPayment) {
+      btnPayment.disabled = true;
+      btnPayment.textContent = 'Processing...';
+    }
+
+    try {
+      // TODO (T046): Create Stripe checkout session
+      // For now, show a message
+      alert('Payment processing will be implemented in T046 (Stripe integration).\n\nYour order:\n' + 
+            `${cart.itemCount} item(s)\n` +
+            `Total: ${formatPrice(cart.total)}`);
+
+      // In production, this would redirect to Stripe:
+      // const response = await fetch('/api/checkout/create-session', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ cart, billingInfo }),
+      // });
+      // const { sessionUrl } = await response.json();
+      // window.location.href = sessionUrl;
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Failed to process payment. Please try again.');
+    } finally {
+      if (btnPayment) {
+        btnPayment.disabled = false;
+        btnPayment.textContent = 'Proceed to Payment';
+      }
+    }
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    const cart = getCart();
+
+    if (cart.items.length === 0) {
+      showEmptyState();
+    } else {
+      showCheckoutContent();
+      renderOrderItems(cart);
+      updateSummary(cart);
+    }
+
+    // Payment button
+    const btnPayment = document.getElementById('btn-payment');
+    if (btnPayment) {
+      btnPayment.addEventListener('click', handlePayment);
+    }
+  });
+</script>

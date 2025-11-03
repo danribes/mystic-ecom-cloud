@@ -1,0 +1,259 @@
+---
+/**
+ * SearchResult Component
+ * 
+ * Displays an individual search result with type-specific formatting.
+ * Supports courses, products, and events.
+ */
+
+interface SearchResultItem {
+  id: string;
+  type: 'course' | 'product' | 'event';
+  title: string;
+  description: string;
+  price: number;
+  slug: string;
+  relevance?: number;
+  
+  // Course-specific
+  level?: string;
+  duration_hours?: number;
+  
+  // Product-specific
+  productType?: string;
+  
+  // Event-specific
+  event_date?: string;
+  venue_name?: string;
+  venue_city?: string;
+  venue_country?: string;
+  available_spots?: number;
+}
+
+interface Props {
+  result: SearchResultItem;
+}
+
+const { result } = Astro.props;
+
+// Build result URL based on type
+const resultUrl = `/${result.type}s/${result.slug}`;
+
+// Format price
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(price);
+};
+
+// Format date
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+// Get type badge color
+const getTypeBadgeClass = (type: string) => {
+  switch (type) {
+    case 'course':
+      return 'bg-blue-100 text-blue-800';
+    case 'product':
+      return 'bg-green-100 text-green-800';
+    case 'event':
+      return 'bg-purple-100 text-purple-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+// Truncate description
+const truncateDescription = (text: string, maxLength: number = 200) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+---
+
+<article
+  class="rounded-lg border border-border bg-surface p-6 transition-all duration-fast hover:shadow-md"
+>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <!-- Main Content -->
+    <div class="flex-1">
+      <!-- Type Badge -->
+      <div class="mb-2 flex items-center gap-2">
+        <span
+          class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeBadgeClass(result.type)}`}
+        >
+          {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+        </span>
+        
+        <!-- Course Level -->
+        {result.level && (
+          <span class="text-xs text-text-light">
+            {result.level.charAt(0).toUpperCase() + result.level.slice(1)}
+          </span>
+        )}
+        
+        <!-- Product Type -->
+        {result.productType && (
+          <span class="text-xs uppercase text-text-light">
+            {result.productType}
+          </span>
+        )}
+        
+        <!-- Event Availability -->
+        {result.type === 'event' && result.available_spots !== undefined && (
+          <span
+            class={`text-xs font-medium ${
+              result.available_spots > 10
+                ? 'text-green-600'
+                : result.available_spots > 0
+                  ? 'text-yellow-600'
+                  : 'text-error'
+            }`}
+          >
+            {result.available_spots > 0
+              ? `${result.available_spots} spots left`
+              : 'Sold out'}
+          </span>
+        )}
+      </div>
+
+      <!-- Title -->
+      <h3 class="mb-2">
+        <a
+          href={resultUrl}
+          class="text-xl font-semibold text-text transition-colors hover:text-primary"
+        >
+          {result.title}
+        </a>
+      </h3>
+
+      <!-- Description -->
+      <p class="mb-3 text-sm text-text-light">
+        {truncateDescription(result.description)}
+      </p>
+
+      <!-- Meta Information -->
+      <div class="flex flex-wrap gap-4 text-xs text-text-light">
+        <!-- Course Duration -->
+        {result.duration_hours && (
+          <div class="flex items-center gap-1">
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{result.duration_hours} hours</span>
+          </div>
+        )}
+
+        <!-- Event Date & Venue -->
+        {result.event_date && (
+          <>
+            <div class="flex items-center gap-1">
+              <svg
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <span>{formatDate(result.event_date)}</span>
+            </div>
+            {result.venue_city && result.venue_country && (
+              <div class="flex items-center gap-1">
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <span>{result.venue_city}, {result.venue_country}</span>
+              </div>
+            )}
+          </>
+        )}
+
+        <!-- Relevance Score (for debugging/admin) -->
+        {result.relevance !== undefined && result.relevance > 0 && (
+          <div class="ml-auto hidden items-center gap-1 sm:flex">
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+            <span>{(result.relevance * 100).toFixed(0)}% relevant</span>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Price & CTA -->
+    <div class="flex shrink-0 flex-col items-start gap-2 sm:items-end sm:text-right">
+      <div class="text-2xl font-bold text-primary">
+        {formatPrice(result.price)}
+      </div>
+      <a
+        href={resultUrl}
+        class="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20"
+      >
+        {result.type === 'course' && 'View Course'}
+        {result.type === 'product' && 'View Product'}
+        {result.type === 'event' && 'View Event'}
+        <svg
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </a>
+    </div>
+  </div>
+</article>
