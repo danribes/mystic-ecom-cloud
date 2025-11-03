@@ -105,12 +105,12 @@ npm install stripe @stripe/stripe-js
 Added to `.env`:
 ```bash
 # Stripe Payment Configuration (Test Mode)
-STRIPE_SECRET_KEY=sk_test_51QMxZ3RtJVtOHbKOLTZGxvQpM6Qp1gP3YQq9X7Z8aB4cD5eF6gH7iJ8kL9mN0oP1qR2sT3uV4wX5yZ6
-STRIPE_PUBLISHABLE_KEY=pk_test_51QMxZ3RtJVtOHbKO1A2B3C4D5E6F7G8H9I0J1K2L3M4N5O6P7Q8R9S0T1U2V3W4X5Y6Z7
-STRIPE_WEBHOOK_SECRET=whsec_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+STRIPE_SECRET_KEY=sk_test_YOUR_SECRET_KEY_HERE
+STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_PUBLISHABLE_KEY_HERE
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET_HERE
 ```
 
-**Note**: These are placeholder test keys. Replace with actual Stripe test keys from dashboard.
+**Note**: Replace with actual Stripe test keys from your Stripe dashboard.
 
 Already present in `.env.example` (no changes needed).
 
