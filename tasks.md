@@ -121,6 +121,34 @@ None currently in progress.
 
 ---
 
+## Post-Deployment Tasks
+
+### SEO Configuration (After Deployment)
+
+SEO implementation is **complete** (T177 ✅), but requires post-deployment configuration:
+
+**Immediate Actions:**
+- [ ] Update site URL in [astro.config.mjs](astro.config.mjs) to production domain
+- [ ] Create and submit `sitemap.xml` to Google Search Console
+- [ ] Configure `robots.txt` for production
+- [ ] Test structured data with [Rich Results Test](https://search.google.com/test/rich-results)
+
+**Analytics & Monitoring:**
+- [ ] Set up Google Search Console
+- [ ] Configure Google Analytics (optional)
+- [ ] Submit to Bing Webmaster Tools
+- [ ] Monitor with [PageSpeed Insights](https://pagespeed.web.dev/)
+
+**Ongoing Optimization:**
+- [ ] Monitor search rankings for target keywords
+- [ ] Review and optimize meta descriptions based on CTR
+- [ ] Add FAQ schema for common questions
+- [ ] Update sitemap weekly as content changes
+
+**Complete Guide:** See [docs/SEO_GUIDE.md](docs/SEO_GUIDE.md) for detailed instructions on all post-deployment SEO tasks.
+
+---
+
 ## Notes
 
 - All implementations follow TypeScript best practices
@@ -132,4 +160,4 @@ None currently in progress.
 
 ---
 
-**Last Updated:** 2025-11-02
+**Last Updated:** 2025-11-03
