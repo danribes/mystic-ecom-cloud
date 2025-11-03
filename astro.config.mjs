@@ -1,14 +1,15 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
+import cloudflare from '@astrojs/cloudflare';
 import tailwind from '@astrojs/tailwind';
 
+// Cloudflare Pages Configuration
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://mystic-ecom.netlify.app', // Update with your Netlify URL
+  site: 'https://mystic-ecom.pages.dev', // Update with your Cloudflare Pages URL
   output: 'server',
-  adapter: netlify({
-    edgeMiddleware: false, // Disable edge middleware to use regular functions
+  adapter: cloudflare({
+    mode: 'directory',
   }),
   integrations: [
     tailwind({

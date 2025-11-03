@@ -173,24 +173,28 @@ The platform supports English and Spanish:
 
 ## 🚢 Deployment
 
-See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for complete deployment instructions including:
+**Ready to deploy!** Your project is configured for Cloudflare Pages.
 
-- Publishing to GitHub
-- Deploying to Vercel, Netlify, or VPS
-- Environment variable configuration
-- Database migrations
-- CI/CD with GitHub Actions
-- Monitoring and rollback procedures
+### 🌟 Recommended: Deploy to Cloudflare Pages (Free)
 
-### Quick Deploy to Vercel
+**Complete guide:** [docs/CLOUDFLARE_DEPLOYMENT.md](docs/CLOUDFLARE_DEPLOYMENT.md)
 
-```bash
-# Install Vercel CLI
-npm i -g vercel
+**Quick steps:**
+1. Go to https://dash.cloudflare.com/
+2. Create Pages project → Connect to GitHub
+3. Select repository: `danribes/mystic-ecom`
+4. Add environment variables (see guide)
+5. Deploy! 🚀
 
-# Deploy
-vercel --prod
-```
+**Your site will be live at:** `https://mystic-ecom.pages.dev`
+
+### Alternative Hosting Options
+
+See **[docs/HOSTING_OPTIONS.md](docs/HOSTING_OPTIONS.md)** for other options:
+- Netlify (already configured)
+- Vercel
+- Hostinger VPS
+- Cost comparisons and setup guides
 
 ## 🗂️ Database Schema
 
