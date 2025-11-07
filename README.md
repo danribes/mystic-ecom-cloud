@@ -1,4 +1,4 @@
-# Spirituality E-Commerce Platform
+# Spiritual E-Commerce Platform
 
 A production-ready, multilingual e-commerce platform for spiritual courses, live events, and digital products. Built with Astro, TypeScript, PostgreSQL, and Redis, featuring comprehensive security, performance optimization, and Stripe payment integration.
 
