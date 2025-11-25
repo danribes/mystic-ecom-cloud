@@ -50,49 +50,72 @@ declare global {
  * Priority: URL prefix > URL parameter > Cookie > Accept-Language > Default
  */
 export const i18nMiddleware: MiddlewareHandler = async ({ request, cookies, locals, url }, next) => {
-  // Step 1: Extract locale from URL path (e.g., /es/courses)
-  const { locale: pathLocale, path: cleanPath } = extractLocaleFromPath(url.pathname);
+  try {
+    // Step 1: Extract locale from URL path (e.g., /es/courses)
+    const { locale: pathLocale, path: cleanPath } = extractLocaleFromPath(url.pathname);
 
-  // Step 2: Get locale from cookie
-  const cookieLocale = cookies.get(LOCALE_COOKIE_NAME)?.value;
+    // Step 2: Get locale from cookie
+    const cookieLocale = cookies.get(LOCALE_COOKIE_NAME)?.value;
 
-  // Step 3: Get Accept-Language header
-  const acceptLanguage = request.headers.get('accept-language') || undefined;
+    // Step 3: Get Accept-Language header
+    const acceptLanguage = request.headers.get('accept-language') || undefined;
 
-  // Step 4: Detect locale with priority order
-  let detectedLocale: Locale;
+    // Step 4: Detect locale with priority order
+    let detectedLocale: Locale;
 
-  if (pathLocale !== DEFAULT_LOCALE) {
-    // URL path has explicit locale prefix (e.g., /es/courses)
-    detectedLocale = pathLocale;
-  } else {
-    // No URL prefix, check other sources
-    detectedLocale = getLocaleFromRequest(url, cookieLocale, acceptLanguage);
+    if (pathLocale !== DEFAULT_LOCALE) {
+      // URL path has explicit locale prefix (e.g., /es/courses)
+      detectedLocale = pathLocale;
+    } else {
+      // No URL prefix, check other sources
+      detectedLocale = getLocaleFromRequest(url, cookieLocale, acceptLanguage);
+    }
+
+    // Step 5: Add locale to request context
+    locals.locale = detectedLocale;
+    locals.defaultLocale = DEFAULT_LOCALE;
+
+    // Step 6: Persist locale in cookie if changed or not set
+    const currentCookieLocale = cookies.get(LOCALE_COOKIE_NAME)?.value;
+    if (currentCookieLocale !== detectedLocale) {
+      try {
+        cookies.set(LOCALE_COOKIE_NAME, detectedLocale, {
+          path: '/',
+          maxAge: LOCALE_COOKIE_MAX_AGE,
+          httpOnly: false, // Allow JavaScript access for client-side language switching
+          sameSite: 'lax',
+          // Use environment detection that works in all environments
+          secure: process.env.NODE_ENV === 'production' || process.env.CF_PAGES === '1',
+        });
+      } catch (cookieError) {
+        // Cookie setting failed, but don't block the request
+        console.warn('[i18n] Failed to set locale cookie:', cookieError);
+      }
+    }
+
+    // Step 7: Continue to next middleware/route
+    const response = await next();
+
+    // Step 8: Add Content-Language header to response (WCAG 3.1.1)
+    try {
+      response.headers.set('Content-Language', detectedLocale);
+    } catch (headerError) {
+      // Header setting failed, but don't block the response
+      console.warn('[i18n] Failed to set Content-Language header:', headerError);
+    }
+
+    return response;
+  } catch (error) {
+    // If i18n middleware fails, log error but continue with defaults
+    console.error('[i18n] Middleware error:', error);
+
+    // Set default locale
+    locals.locale = DEFAULT_LOCALE;
+    locals.defaultLocale = DEFAULT_LOCALE;
+
+    // Continue to next middleware
+    return await next();
   }
-
-  // Step 5: Add locale to request context
-  locals.locale = detectedLocale;
-  locals.defaultLocale = DEFAULT_LOCALE;
-
-  // Step 6: Persist locale in cookie if changed or not set
-  const currentCookieLocale = cookies.get(LOCALE_COOKIE_NAME)?.value;
-  if (currentCookieLocale !== detectedLocale) {
-    cookies.set(LOCALE_COOKIE_NAME, detectedLocale, {
-      path: '/',
-      maxAge: LOCALE_COOKIE_MAX_AGE,
-      httpOnly: false, // Allow JavaScript access for client-side language switching
-      sameSite: 'lax',
-      secure: import.meta.env.PROD, // HTTPS only in production
-    });
-  }
-
-  // Step 7: Continue to next middleware/route
-  const response = await next();
-
-  // Step 8: Add Content-Language header to response (WCAG 3.1.1)
-  response.headers.set('Content-Language', detectedLocale);
-
-  return response;
 };
 
 /**
