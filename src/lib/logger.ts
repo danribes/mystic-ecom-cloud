@@ -29,6 +29,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const isDevelopment = () => NODE_ENV === 'development';
 const isTest = () => NODE_ENV === 'test';
 const isProduction = () => NODE_ENV === 'production';
+const isCloudflarePages = () => process.env.CF_PAGES === '1' || process.env.CLOUDFLARE_PAGES === '1';
 
 /**
  * List of sensitive field names that should never be logged
@@ -168,6 +169,10 @@ export function sanitize(
 
 /**
  * Create the Pino logger instance
+ *
+ * NOTE: Cloudflare Pages/Workers doesn't support pino-pretty transport
+ * because it requires Node.js APIs that aren't available in the Workers runtime.
+ * We disable the transport in Cloudflare environments and use plain JSON output.
  */
 const logger = pino({
   level: (() => {
@@ -176,8 +181,9 @@ const logger = pino({
     return process.env.LOG_LEVEL || 'info'; // Configurable in production
   })(),
 
-  // Pretty print in development, JSON in production
-  transport: isDevelopment()
+  // Pretty print in development ONLY if not in Cloudflare Pages
+  // pino-pretty doesn't work in Cloudflare Workers environment
+  transport: isDevelopment() && !isCloudflarePages()
     ? {
         target: 'pino-pretty',
         options: {
