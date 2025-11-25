@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
-import tailwind from '@astrojs/tailwind';
 
 // Cloudflare Pages Configuration
 // https://astro.build/config
@@ -12,9 +11,7 @@ export default defineConfig({
     mode: 'directory',
   }),
   integrations: [
-    tailwind({
-      applyBaseStyles: false, // Keep our custom global.css
-    }),
+    // Tailwind temporarily disabled for initial deployment
   ],
   server: {
     port: 4321,
