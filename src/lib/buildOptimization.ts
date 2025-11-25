@@ -8,6 +8,7 @@
  * - Build statistics
  *
  * Part of T144: Minify and bundle assets for production
+ * Cloudflare Workers compatible - uses Web Crypto API
  */
 
 export interface AssetInfo {

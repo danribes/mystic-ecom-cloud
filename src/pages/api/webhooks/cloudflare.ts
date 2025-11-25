@@ -65,6 +65,7 @@ function timingSafeEqual(a: string, b: string): boolean {
  *
  * Cloudflare signs webhooks using HMAC-SHA256 with your webhook secret.
  * The signature is sent in the Webhook-Signature header.
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  */
 async function verifyWebhookSignature(
   payload: string,

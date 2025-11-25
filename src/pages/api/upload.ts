@@ -60,6 +60,7 @@ function hasUploadPermission(request: Request): boolean {
 
 /**
  * Generate unique filename
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  */
 function generateFilename(originalName: string): string {
   const ext = getFileExtension(originalName);

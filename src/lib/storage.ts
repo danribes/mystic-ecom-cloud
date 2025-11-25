@@ -160,6 +160,7 @@ function getS3Client(): S3Client {
 
 /**
  * Generate a unique file key
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  */
 function generateFileKey(fileName: string, folder?: string): string {
   const uuid = generateUUID();

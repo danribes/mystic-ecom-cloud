@@ -40,6 +40,7 @@ export interface PasswordResetToken {
 
 /**
  * Generate a cryptographically secure reset token
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  *
  * @returns {string} Base64URL encoded random token (32 bytes)
  */
