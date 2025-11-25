@@ -170,48 +170,72 @@ export function sanitize(
 /**
  * Create the Pino logger instance
  *
- * NOTE: Cloudflare Pages/Workers doesn't support pino-pretty transport
- * because it requires Node.js APIs that aren't available in the Workers runtime.
- * We disable the transport in Cloudflare environments and use plain JSON output.
+ * NOTE: Cloudflare Pages/Workers doesn't fully support pino
+ * because it requires Node.js APIs (streams, etc.) that aren't available
+ * in the Workers runtime. We wrap initialization in try-catch and fall
+ * back to console logging if pino fails.
  */
-const logger = pino({
-  level: (() => {
-    if (isTest()) return 'silent'; // No logs in tests
-    if (isDevelopment()) return 'debug'; // Verbose in development
-    return process.env.LOG_LEVEL || 'info'; // Configurable in production
-  })(),
+let logger: pino.Logger;
+let useFallbackLogger = false;
 
-  // Pretty print in development ONLY if not in Cloudflare Pages
-  // pino-pretty doesn't work in Cloudflare Workers environment
-  transport: isDevelopment() && !isCloudflarePages()
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss',
-          ignore: 'pid,hostname',
-          singleLine: false,
-        },
-      }
-    : undefined,
+try {
+  logger = pino({
+    level: (() => {
+      if (isTest()) return 'silent'; // No logs in tests
+      if (isDevelopment()) return 'debug'; // Verbose in development
+      return process.env.LOG_LEVEL || 'info'; // Configurable in production
+    })(),
 
-  // Base fields included in all logs
-  base: {
-    env: process.env.NODE_ENV || 'development',
-  },
+    // Pretty print in development ONLY if not in Cloudflare Pages
+    // pino-pretty doesn't work in Cloudflare Workers environment
+    transport: isDevelopment() && !isCloudflarePages()
+      ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss',
+            ignore: 'pid,hostname',
+            singleLine: false,
+          },
+        }
+      : undefined,
 
-  // Redact sensitive fields at the Pino level (defense in depth)
-  redact: {
-    paths: SENSITIVE_FIELDS,
-    censor: '[REDACTED]',
-  },
+    // Base fields included in all logs
+    base: {
+      env: process.env.NODE_ENV || 'development',
+    },
 
-  // Serialize errors properly
-  serializers: {
-    err: pino.stdSerializers.err,
-    error: pino.stdSerializers.err,
-  },
-});
+    // Redact sensitive fields at the Pino level (defense in depth)
+    redact: {
+      paths: SENSITIVE_FIELDS,
+      censor: '[REDACTED]',
+    },
+
+    // Serialize errors properly
+    serializers: {
+      err: pino.stdSerializers.err,
+      error: pino.stdSerializers.err,
+    },
+  });
+} catch (error) {
+  // Pino initialization failed (likely Cloudflare Workers environment)
+  // Fall back to console-based logging
+  useFallbackLogger = true;
+  console.warn('[Logger] Pino initialization failed, using console fallback:', error);
+
+  // Create a minimal pino-compatible logger using console
+  logger = {
+    debug: console.debug.bind(console),
+    info: console.log.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+    fatal: console.error.bind(console),
+    trace: console.trace.bind(console),
+    silent: () => {},
+    child: () => logger,
+    level: 'info',
+  } as unknown as pino.Logger;
+}
 
 /**
  * Enhanced logger with sanitization
