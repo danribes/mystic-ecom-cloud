@@ -6,7 +6,7 @@ import tailwind from '@astrojs/tailwind';
 // Cloudflare Pages Configuration
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://mystic-ecom.pages.dev', // Update with your Cloudflare Pages URL
+  site: 'https://mystic-international.com', // Custom domain
   output: 'server',
   adapter: cloudflare({
     mode: 'directory',
