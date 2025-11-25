@@ -27,38 +27,69 @@ const config: RedisClientOptions = {
 
 // Client instance
 let client: RedisClientType | null = null;
+let connectionFailed = false;
+
+/**
+ * Check if Redis is configured
+ */
+function isRedisConfigured(): boolean {
+  return !!process.env.REDIS_URL && process.env.REDIS_URL !== 'redis://localhost:6379';
+}
 
 /**
  * Get or create Redis client
+ * Returns null if Redis is not configured or connection fails
  */
-export async function getRedisClient(): Promise<RedisClientType> {
+export async function getRedisClient(): Promise<RedisClientType | null> {
+  // If connection previously failed or Redis not configured, return null
+  if (connectionFailed || !isRedisConfigured()) {
+    if (!isRedisConfigured()) {
+      console.warn('[Redis] REDIS_URL not configured - Redis features disabled');
+    }
+    return null;
+  }
+
   if (!client) {
-    client = createClient(config) as RedisClientType;
+    try {
+      client = createClient(config) as RedisClientType;
 
-    // Handle errors
-    client.on('error', (err) => {
-      console.error('[Redis] Client error:', err);
-    });
+      // Handle errors
+      client.on('error', (err) => {
+        console.error('[Redis] Client error:', err);
+        connectionFailed = true;
+      });
 
-    // Handle connection events
-    client.on('connect', () => {
-      console.log('[Redis] Client connecting...');
-    });
+      // Handle connection events
+      client.on('connect', () => {
+        console.log('[Redis] Client connecting...');
+      });
 
-    client.on('ready', () => {
-      console.log('[Redis] Client ready');
-    });
+      client.on('ready', () => {
+        console.log('[Redis] Client ready');
+        connectionFailed = false; // Reset flag on successful connection
+      });
 
-    client.on('reconnecting', () => {
-      console.log('[Redis] Client reconnecting...');
-    });
+      client.on('reconnecting', () => {
+        console.log('[Redis] Client reconnecting...');
+      });
 
-    client.on('end', () => {
-      console.log('[Redis] Client connection closed');
-    });
+      client.on('end', () => {
+        console.log('[Redis] Client connection closed');
+      });
 
-    // Connect
-    await client.connect();
+      // Connect with timeout
+      await Promise.race([
+        client.connect(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+        )
+      ]);
+    } catch (error) {
+      console.error('[Redis] Failed to connect:', error);
+      connectionFailed = true;
+      client = null;
+      return null;
+    }
   }
 
   return client;
@@ -73,6 +104,7 @@ export async function set(
   expirationSeconds?: number
 ): Promise<void> {
   const redis = await getRedisClient();
+  if (!redis) return; // Gracefully skip if Redis unavailable
 
   if (expirationSeconds) {
     await redis.setEx(key, expirationSeconds, value);
@@ -86,6 +118,7 @@ export async function set(
  */
 export async function get(key: string): Promise<string | null> {
   const redis = await getRedisClient();
+  if (!redis) return null; // Return null if Redis unavailable
   return await redis.get(key);
 }
 
@@ -94,6 +127,7 @@ export async function get(key: string): Promise<string | null> {
  */
 export async function del(...keys: string[]): Promise<number> {
   const redis = await getRedisClient();
+  if (!redis) return 0; // Return 0 if Redis unavailable
   return await redis.del(keys);
 }
 
@@ -102,6 +136,7 @@ export async function del(...keys: string[]): Promise<number> {
  */
 export async function exists(key: string): Promise<boolean> {
   const redis = await getRedisClient();
+  if (!redis) return false; // Return false if Redis unavailable
   const count = await redis.exists(key);
   return count > 0;
 }
@@ -111,6 +146,7 @@ export async function exists(key: string): Promise<boolean> {
  */
 export async function expire(key: string, seconds: number): Promise<boolean> {
   const redis = await getRedisClient();
+  if (!redis) return false; // Return false if Redis unavailable
   return await redis.expire(key, seconds);
 }
 
@@ -119,6 +155,7 @@ export async function expire(key: string, seconds: number): Promise<boolean> {
  */
 export async function ttl(key: string): Promise<number> {
   const redis = await getRedisClient();
+  if (!redis) return -1; // Return -1 if Redis unavailable
   return await redis.ttl(key);
 }
 
@@ -153,6 +190,7 @@ export async function getJSON<T = any>(key: string): Promise<T | null> {
  */
 export async function incr(key: string): Promise<number> {
   const redis = await getRedisClient();
+  if (!redis) return 0; // Return 0 if Redis unavailable
   return await redis.incr(key);
 }
 
@@ -161,6 +199,7 @@ export async function incr(key: string): Promise<number> {
  */
 export async function decr(key: string): Promise<number> {
   const redis = await getRedisClient();
+  if (!redis) return 0; // Return 0 if Redis unavailable
   return await redis.decr(key);
 }
 
@@ -169,6 +208,7 @@ export async function decr(key: string): Promise<number> {
  */
 export async function keys(pattern: string): Promise<string[]> {
   const redis = await getRedisClient();
+  if (!redis) return []; // Return empty array if Redis unavailable
   return await redis.keys(pattern);
 }
 
@@ -198,6 +238,7 @@ export async function closeRedis(): Promise<void> {
 export async function checkConnection(): Promise<boolean> {
   try {
     const redis = await getRedisClient();
+    if (!redis) return false; // Return false if Redis unavailable
     const pong = await redis.ping();
     return pong === 'PONG';
   } catch (error) {
@@ -398,6 +439,10 @@ export async function getOrSet<T = any>(
 export async function flushAllCache(): Promise<boolean> {
   try {
     const redis = await getRedisClient();
+    if (!redis) {
+      console.warn('[Cache] Redis not available - cannot flush cache');
+      return false;
+    }
     await redis.flushDb();
     console.log('[Cache] FLUSH: All caches cleared');
     return true;
@@ -419,6 +464,14 @@ export async function getCacheStats(): Promise<{
 }> {
   try {
     const redis = await getRedisClient();
+    if (!redis) {
+      console.warn('[Cache] Redis not available - returning empty stats');
+      return {
+        totalKeys: 0,
+        keysByNamespace: {},
+      };
+    }
+
     const allKeys = await redis.keys('*');
     const totalKeys = allKeys.length;
 
