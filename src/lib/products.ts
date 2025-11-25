@@ -15,39 +15,6 @@ import {
   CacheTTL,
 } from './redis';
 
-// Web Crypto API compatible HMAC functions
-async function createHmacSignature(secret: string, data: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(secret);
-  const dataBytes = encoder.encode(data);
-
-  const key = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signature = await crypto.subtle.sign('HMAC', key, dataBytes);
-  const bytes = new Uint8Array(signature);
-  // Convert to base64url
-  const base64 = btoa(String.fromCharCode(...bytes));
-  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-// Timing-safe comparison
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
-}
-
 export interface DigitalProduct {
   id: string;
   title: string;
@@ -76,6 +43,56 @@ export interface DownloadLink {
   url: string;
   token: string;
   expires: number;
+}
+
+/**
+ * Helper: Generate HMAC-SHA256 using Web Crypto API
+ * (Cloudflare Workers compatible - no Node.js crypto module)
+ */
+async function generateHmac(message: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const messageData = encoder.encode(message);
+
+  // Import key for HMAC
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  // Generate HMAC
+  const signature = await crypto.subtle.sign('HMAC', key, messageData);
+
+  // Convert to base64url
+  const bytes = new Uint8Array(signature);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+/**
+ * Helper: Constant-time string comparison
+ * (Cloudflare Workers compatible - no Node.js crypto.timingSafeEqual)
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+
+  return result === 0;
 }
 
 /**
@@ -194,8 +211,10 @@ export async function getProducts(options: {
 
   const pool = getPool();
   if (!pool) {
-    throw new Error('Database not configured');
+    console.warn('[Products] Database not available - returning empty array');
+    return [];
   }
+
   const result = await pool.query(query, params);
   const products = result.rows;
 
@@ -342,6 +361,7 @@ export async function getUserPurchasedProducts(userId: string): Promise<Array<Di
 
 /**
  * Generate a secure, time-limited download link
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  */
 export async function generateDownloadLink(
   productId: string,
@@ -360,11 +380,11 @@ export async function generateDownloadLink(
   if (!secret) {
     throw new Error(
       'DOWNLOAD_TOKEN_SECRET environment variable is required. ' +
-      'Generate a secure random secret with: openssl rand -hex 32'
+      'Generate a secure random secret: openssl rand -hex 32'
     );
   }
 
-  const token = await createHmacSignature(secret, payload);
+  const token = await generateHmac(payload, secret);
 
   const url = `/api/products/download/${productId}?token=${token}&order=${orderId}&expires=${expires}`;
 
@@ -377,6 +397,7 @@ export async function generateDownloadLink(
 
 /**
  * Verify a download token
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  */
 export async function verifyDownloadToken(
   productId: string,
@@ -398,11 +419,11 @@ export async function verifyDownloadToken(
   if (!secret) {
     throw new Error(
       'DOWNLOAD_TOKEN_SECRET environment variable is required. ' +
-      'Generate a secure random secret with: openssl rand -hex 32'
+      'Generate a secure random secret: openssl rand -hex 32'
     );
   }
 
-  const expectedToken = await createHmacSignature(secret, payload);
+  const expectedToken = await generateHmac(payload, secret);
 
   // Compare tokens (timing-safe comparison)
   return timingSafeEqual(token, expectedToken);
