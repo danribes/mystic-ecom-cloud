@@ -66,6 +66,16 @@ async function checkDatabase(): Promise<ServiceStatus> {
   try {
     const pool = getPool();
 
+    // Check if database is configured
+    if (!pool) {
+      const responseTime = Date.now() - startTime;
+      return {
+        status: 'down',
+        responseTime,
+        error: 'Database not configured (DATABASE_URL missing)',
+      };
+    }
+
     // Run a simple query to verify connection
     await pool.query('SELECT 1 as health_check');
 
@@ -117,6 +127,16 @@ async function checkRedis(): Promise<ServiceStatus> {
 
   try {
     const redis = await getRedisClient();
+
+    // Check if Redis is configured
+    if (!redis) {
+      const responseTime = Date.now() - startTime;
+      return {
+        status: 'down',
+        responseTime,
+        error: 'Redis not configured (REDIS_URL missing)',
+      };
+    }
 
     // Ping Redis to verify connection
     await redis.ping();
