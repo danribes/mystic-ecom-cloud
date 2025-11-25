@@ -25,68 +25,92 @@ export function initSentry(): void {
 
   // Only initialize in production or if explicitly configured
   if (dsn && (environment === 'production' || process.env.SENTRY_ENABLED === 'true')) {
-    Sentry.init({
-      dsn,
-      environment,
+    try {
+      // Build integrations array with fallback for compatibility
+      const integrations: any[] = [];
 
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
-      // In production, you may want to reduce this to 0.1 (10%) or lower
-      tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
-
-      // Set sampling rate for profiling
-      profilesSampleRate: environment === 'production' ? 0.1 : 1.0,
-
-      // Release tracking
-      release: process.env.npm_package_version,
-
-      // Ignore common errors
-      ignoreErrors: [
-        // Browser extensions
-        'top.GLOBALS',
-        'chrome-extension://',
-        'moz-extension://',
-
-        // Network errors
-        'Network request failed',
-        'NetworkError',
-        'Failed to fetch',
-
-        // User cancelled actions
-        'AbortError',
-        'The user aborted a request',
-      ],
-
-      // Before send hook to filter/modify events
-      beforeSend(event, hint) {
-        // Don't send events in development unless explicitly enabled
-        if (environment === 'development' && process.env.SENTRY_ENABLED !== 'true') {
-          return null;
+      // Try to add Http integration if available (compatibility with different Sentry versions)
+      try {
+        if (Sentry.Integrations && typeof Sentry.Integrations.Http === 'function') {
+          integrations.push(new Sentry.Integrations.Http({ tracing: true }));
         }
+      } catch (err) {
+        console.warn('[Sentry] Http integration not available:', err);
+      }
 
-        // Filter out sensitive data from URLs
-        if (event.request?.url) {
-          event.request.url = filterSensitiveData(event.request.url);
+      // Try to add Express integration if available
+      try {
+        if (Sentry.Integrations && typeof Sentry.Integrations.Express === 'function') {
+          integrations.push(new Sentry.Integrations.Express({ app: undefined }));
         }
+      } catch (err) {
+        console.warn('[Sentry] Express integration not available:', err);
+      }
 
-        // Filter sensitive data from breadcrumbs
-        if (event.breadcrumbs) {
-          event.breadcrumbs = event.breadcrumbs.map(breadcrumb => ({
-            ...breadcrumb,
-            data: breadcrumb.data ? filterSensitiveObject(breadcrumb.data) : undefined,
-          }));
-        }
+      Sentry.init({
+        dsn,
+        environment,
 
-        return event;
-      },
+        // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
+        // In production, you may want to reduce this to 0.1 (10%) or lower
+        tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
 
-      // Integrations
-      integrations: [
-        new Sentry.Integrations.Http({ tracing: true }),
-        new Sentry.Integrations.Express({ app: undefined }),
-      ],
-    });
+        // Set sampling rate for profiling
+        profilesSampleRate: environment === 'production' ? 0.1 : 1.0,
 
-    console.log(`✅ Sentry initialized in ${environment} mode`);
+        // Release tracking
+        release: process.env.npm_package_version,
+
+        // Ignore common errors
+        ignoreErrors: [
+          // Browser extensions
+          'top.GLOBALS',
+          'chrome-extension://',
+          'moz-extension://',
+
+          // Network errors
+          'Network request failed',
+          'NetworkError',
+          'Failed to fetch',
+
+          // User cancelled actions
+          'AbortError',
+          'The user aborted a request',
+        ],
+
+        // Before send hook to filter/modify events
+        beforeSend(event, hint) {
+          // Don't send events in development unless explicitly enabled
+          if (environment === 'development' && process.env.SENTRY_ENABLED !== 'true') {
+            return null;
+          }
+
+          // Filter out sensitive data from URLs
+          if (event.request?.url) {
+            event.request.url = filterSensitiveData(event.request.url);
+          }
+
+          // Filter sensitive data from breadcrumbs
+          if (event.breadcrumbs) {
+            event.breadcrumbs = event.breadcrumbs.map(breadcrumb => ({
+              ...breadcrumb,
+              data: breadcrumb.data ? filterSensitiveObject(breadcrumb.data) : undefined,
+            }));
+          }
+
+          return event;
+        },
+
+        // Integrations (only if available)
+        ...(integrations.length > 0 && { integrations }),
+      });
+
+      console.log(`✅ Sentry initialized in ${environment} mode`);
+    } catch (error) {
+      // Gracefully handle Sentry initialization errors
+      console.warn('[Sentry] Failed to initialize:', error);
+      console.log('ℹ️  Application will continue without Sentry error tracking');
+    }
   } else {
     console.log(`ℹ️  Sentry not initialized (environment: ${environment}, DSN configured: ${!!dsn})`);
   }
@@ -159,11 +183,24 @@ export function addBreadcrumb(breadcrumb: {
  * @param name - Transaction name
  * @param op - Operation type
  */
-export function startTransaction(name: string, op: string): Sentry.Transaction {
-  return Sentry.startTransaction({
-    name,
-    op,
-  });
+export function startTransaction(name: string, op: string): any {
+  try {
+    // Try the new API first (Sentry v7+)
+    if (typeof (Sentry as any).startSpan === 'function') {
+      return (Sentry as any).startSpan({ name, op }, (span: any) => span);
+    }
+
+    // Fall back to deprecated API (Sentry v6)
+    if (typeof (Sentry as any).startTransaction === 'function') {
+      return (Sentry as any).startTransaction({ name, op });
+    }
+
+    console.warn('[Sentry] startTransaction/startSpan not available');
+    return null;
+  } catch (error) {
+    console.warn('[Sentry] Error starting transaction:', error);
+    return null;
+  }
 }
 
 /**
