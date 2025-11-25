@@ -20,7 +20,8 @@
  * ```
  */
 
-import pino from 'pino';
+// Temporarily disable pino import for Cloudflare Workers compatibility
+// import pino from 'pino';
 
 /**
  * Environment detection (independent of config to avoid circular dependencies)
@@ -168,74 +169,38 @@ export function sanitize(
 }
 
 /**
- * Create the Pino logger instance
+ * Simple logger for Cloudflare Workers
  *
- * NOTE: Cloudflare Pages/Workers doesn't fully support pino
- * because it requires Node.js APIs (streams, etc.) that aren't available
- * in the Workers runtime. We wrap initialization in try-catch and fall
- * back to console logging if pino fails.
+ * TEMPORARY FIX: Completely bypass pino to eliminate it as error source.
+ * Using simple console-based logging for Cloudflare Workers compatibility.
  */
-let logger: pino.Logger;
-let useFallbackLogger = false;
-
-try {
-  logger = pino({
-    level: (() => {
-      if (isTest()) return 'silent'; // No logs in tests
-      if (isDevelopment()) return 'debug'; // Verbose in development
-      return process.env.LOG_LEVEL || 'info'; // Configurable in production
-    })(),
-
-    // Pretty print in development ONLY if not in Cloudflare Pages
-    // pino-pretty doesn't work in Cloudflare Workers environment
-    transport: isDevelopment() && !isCloudflarePages()
-      ? {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'HH:MM:ss',
-            ignore: 'pid,hostname',
-            singleLine: false,
-          },
-        }
-      : undefined,
-
-    // Base fields included in all logs
-    base: {
-      env: process.env.NODE_ENV || 'development',
-    },
-
-    // Redact sensitive fields at the Pino level (defense in depth)
-    redact: {
-      paths: SENSITIVE_FIELDS,
-      censor: '[REDACTED]',
-    },
-
-    // Serialize errors properly
-    serializers: {
-      err: pino.stdSerializers.err,
-      error: pino.stdSerializers.err,
-    },
-  });
-} catch (error) {
-  // Pino initialization failed (likely Cloudflare Workers environment)
-  // Fall back to console-based logging
-  useFallbackLogger = true;
-  console.warn('[Logger] Pino initialization failed, using console fallback:', error);
-
-  // Create a minimal pino-compatible logger using console
-  logger = {
-    debug: console.debug.bind(console),
-    info: console.log.bind(console),
-    warn: console.warn.bind(console),
-    error: console.error.bind(console),
-    fatal: console.error.bind(console),
-    trace: console.trace.bind(console),
-    silent: () => {},
-    child: () => logger,
-    level: 'info',
-  } as unknown as pino.Logger;
-}
+const logger = {
+  debug: (msg: string, data?: unknown) => {
+    if (isDevelopment()) {
+      console.debug(`[DEBUG] ${msg}`, data ? JSON.stringify(sanitize(data)) : '');
+    }
+  },
+  info: (msg: string, data?: unknown) => {
+    console.log(`[INFO] ${msg}`, data ? JSON.stringify(sanitize(data)) : '');
+  },
+  warn: (msg: string, data?: unknown) => {
+    console.warn(`[WARN] ${msg}`, data ? JSON.stringify(sanitize(data)) : '');
+  },
+  error: (msg: string, data?: unknown) => {
+    console.error(`[ERROR] ${msg}`, data ? JSON.stringify(sanitize(data)) : '');
+  },
+  fatal: (msg: string, data?: unknown) => {
+    console.error(`[FATAL] ${msg}`, data ? JSON.stringify(sanitize(data)) : '');
+  },
+  trace: (msg: string, data?: unknown) => {
+    if (isDevelopment()) {
+      console.trace(`[TRACE] ${msg}`, data ? JSON.stringify(sanitize(data)) : '');
+    }
+  },
+  silent: () => {},
+  child: (bindings: Record<string, unknown>) => logger,
+  level: 'info',
+};
 
 /**
  * Enhanced logger with sanitization
