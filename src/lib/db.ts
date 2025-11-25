@@ -31,6 +31,14 @@ const config: PoolConfig = {
 
 // Create pool instance
 let pool: Pool | null = null;
+let connectionFailed = false;
+
+/**
+ * Check if database is configured
+ */
+function isDatabaseConfigured(): boolean {
+  return !!process.env.DATABASE_URL;
+}
 
 /**
  * Connection pool statistics (T211)
@@ -74,48 +82,72 @@ let isRecovering = false;
 
 /**
  * Get or create database connection pool
+ * Returns null if DATABASE_URL is not configured
  */
-export function getPool(): Pool {
+export function getPool(): Pool | null {
+  // Check if database is configured
+  if (!isDatabaseConfigured()) {
+    if (pool === null && !connectionFailed) {
+      logger.warn('[DB] DATABASE_URL not configured - Database features disabled');
+      connectionFailed = true; // Prevent repeated warnings
+    }
+    return null;
+  }
+
+  // If previous connection failed, don't retry
+  if (connectionFailed) {
+    return null;
+  }
+
   if (!pool) {
-    pool = new Pool(config);
-    poolStats.startTime = new Date();
+    try {
+      pool = new Pool(config);
+      poolStats.startTime = new Date();
 
-    // Handle pool errors with auto-recovery (T211)
-    pool.on('error', async (err) => {
-      logger.error(`Unexpected database pool error: ${err.message}`, { error: err });
-      poolStats.errors++;
-      poolStats.lastError = new Date();
+      // Handle pool errors with auto-recovery (T211)
+      pool.on('error', async (err) => {
+        logger.error(`Unexpected database pool error: ${err.message}`, { error: err });
+        poolStats.errors++;
+        poolStats.lastError = new Date();
 
-      // Attempt auto-recovery
-      if (!isRecovering && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        await attemptRecovery();
-      } else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        logger.error(`Max reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached, exiting...`);
-        process.exit(-1);
-      }
-    });
+        // Attempt auto-recovery (but don't exit on failure)
+        if (!isRecovering && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          await attemptRecovery();
+        } else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+          logger.error(`Max reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached`);
+          connectionFailed = true;
+          // Don't call process.exit() - let the app continue without database
+        }
+      });
 
-    // Monitor pool events (T211)
-    pool.on('connect', () => {
-      poolStats.totalConnections++;
-      logger.debug('[DB] New client connected to pool');
+      // Monitor pool events (T211)
+      pool.on('connect', () => {
+        poolStats.totalConnections++;
+        logger.debug('[DB] New client connected to pool');
 
-      // Reset reconnect attempts on successful connection
-      reconnectAttempts = 0;
-      isRecovering = false;
-    });
+        // Reset reconnect attempts on successful connection
+        reconnectAttempts = 0;
+        isRecovering = false;
+        connectionFailed = false;
+      });
 
-    pool.on('acquire', () => {
-      logger.debug('[DB] Client acquired from pool');
-    });
+      pool.on('acquire', () => {
+        logger.debug('[DB] Client acquired from pool');
+      });
 
-    pool.on('remove', () => {
-      poolStats.totalConnections--;
-      logger.debug('[DB] Client removed from pool');
-    });
+      pool.on('remove', () => {
+        poolStats.totalConnections--;
+        logger.debug('[DB] Client removed from pool');
+      });
 
-    // Start health check monitoring (T211)
-    startHealthCheckMonitoring();
+      // Start health check monitoring (T211)
+      startHealthCheckMonitoring();
+    } catch (error) {
+      logger.error(`[DB] Failed to create pool: ${error instanceof Error ? error.message : String(error)}`);
+      connectionFailed = true;
+      pool = null;
+      return null;
+    }
   }
 
   return pool;
@@ -212,6 +244,13 @@ export async function query<T extends QueryResultRow = DatabaseRow>(
   params?: SqlParams
 ): Promise<QueryResult<T>> {
   const pool = getPool();
+
+  // Return empty result if pool unavailable
+  if (!pool) {
+    logger.warn('[DB] Query attempted but database not available');
+    return { rows: [], rowCount: 0, command: '', oid: 0, fields: [] } as QueryResult<T>;
+  }
+
   const start = Date.now();
 
   try {
@@ -247,20 +286,30 @@ export async function query<T extends QueryResultRow = DatabaseRow>(
 
 /**
  * Get a client from the pool for transactions
+ * Returns null if database not available
  */
-export async function getClient() {
+export async function getClient(): Promise<PoolClient | null> {
   const pool = getPool();
+  if (!pool) {
+    logger.warn('[DB] getClient() called but database not available');
+    return null;
+  }
   return await pool.connect();
 }
 
 /**
  * Execute a transaction with automatic rollback on error
  * T209: Properly typed callback parameter
+ * Throws error if database not available
  */
 export async function transaction<T>(
   callback: TransactionCallback<T>
 ): Promise<T> {
   const client = await getClient();
+
+  if (!client) {
+    throw new Error('[DB] Transaction attempted but database not available');
+  }
 
   try {
     await client.query('BEGIN');
@@ -395,5 +444,6 @@ export function logPoolStatus(): void {
   });
 }
 
-// Export pool instance for direct access if needed
-export default getPool();
+// Export getPool function for direct access
+// Note: Don't call getPool() here - let it be called lazily when needed
+export { getPool as default };
