@@ -45,7 +45,8 @@ export interface SessionData {
 }
 
 /**
- * Generate a secure session ID
+ * Generate a secure session ID using Web Crypto API
+ * (Cloudflare Workers compatible - no Node.js crypto module)
  */
 function generateSessionId(): string {
   const bytes = getRandomBytes(32);
