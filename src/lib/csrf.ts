@@ -54,10 +54,27 @@ const CSRF_TOKEN_MAX_AGE = 60 * 60 * 2; // 2 hours
 
 /**
  * Generate a cryptographically secure CSRF token
+ * (Cloudflare Workers compatible - uses Web Crypto API)
  */
 export function generateCSRFToken(): string {
+<<<<<<< HEAD
   const bytes = getRandomBytes(CSRF_TOKEN_LENGTH);
   return toBase64Url(bytes);
+=======
+  // Use Web Crypto API which is available in Cloudflare Workers
+  const array = new Uint8Array(CSRF_TOKEN_LENGTH);
+  crypto.getRandomValues(array);
+
+  // Convert to base64url encoding
+  let binary = '';
+  for (let i = 0; i < array.byteLength; i++) {
+    binary += String.fromCharCode(array[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+>>>>>>> c56670b (Fix csrf.ts and verification.ts for Cloudflare Workers compatibility)
 }
 
 /**
