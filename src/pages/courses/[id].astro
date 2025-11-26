@@ -285,33 +285,35 @@ let existingReview = null;
 if (session && course) {
   try {
     const pool = getPool();
-    // Check if user has purchased the course (completed order with this course)
-    const purchaseResult = await pool.query(
-      `SELECT 1 FROM order_items oi
-       JOIN orders o ON oi.order_id = o.id
-       WHERE o.user_id = $1 AND oi.course_id = $2 AND o.status = 'completed'
-       LIMIT 1`,
-      [session.userId, course.id]
-    );
-    hasPurchased = purchaseResult.rows.length > 0;
+    if (pool) {
+      // Check if user has purchased the course (completed order with this course)
+      const purchaseResult = await pool.query(
+        `SELECT 1 FROM order_items oi
+         JOIN orders o ON oi.order_id = o.id
+         WHERE o.user_id = $1 AND oi.course_id = $2 AND o.status = 'completed'
+         LIMIT 1`,
+        [session.userId, course.id]
+      );
+      hasPurchased = purchaseResult.rows.length > 0;
 
-    // Check if user has already reviewed this course
-    const reviewResult = await pool.query(
-      `SELECT id, rating, comment, is_approved
-       FROM reviews
-       WHERE user_id = $1 AND course_id = $2
-       LIMIT 1`,
-      [session.userId, course.id]
-    );
+      // Check if user has already reviewed this course
+      const reviewResult = await pool.query(
+        `SELECT id, rating, comment, is_approved
+         FROM reviews
+         WHERE user_id = $1 AND course_id = $2
+         LIMIT 1`,
+        [session.userId, course.id]
+      );
 
-    if (reviewResult.rows.length > 0) {
-      const review = reviewResult.rows[0];
-      existingReview = {
-        id: review.id,
-        rating: review.rating,
-        comment: review.comment,
-        isApproved: review.is_approved,
-      };
+      if (reviewResult.rows.length > 0) {
+        const review = reviewResult.rows[0];
+        existingReview = {
+          id: review.id,
+          rating: review.rating,
+          comment: review.comment,
+          isApproved: review.is_approved,
+        };
+      }
     }
   } catch (err) {
     console.error('Error checking purchase/review status:', err);
@@ -332,12 +334,14 @@ if (course && course.previewVideoUrl && !hasPurchased) {
 }
 
 // Fetch review statistics and reviews list
-const reviewService = new ReviewService(getPool());
 let reviewStats = null;
 let reviewsData = null;
+const pool = getPool();
 
-if (course) {
+if (course && pool) {
   try {
+    const reviewService = new ReviewService(pool);
+
     // Get review statistics
     reviewStats = await reviewService.getCourseReviewStats(course.id);
 

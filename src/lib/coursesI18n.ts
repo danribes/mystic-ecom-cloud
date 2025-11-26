@@ -5,7 +5,7 @@
  * Uses the multilingual schema from T167 and i18nContent helpers.
  */
 
-import pool from './db';
+import { getPool } from './db';
 import type { Locale } from '../i18n';
 import { getSQLCoalesce } from './i18nContent';
 
@@ -103,6 +103,12 @@ export async function getLocalizedCourseById(
   `;
 
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[T168] Database not available for getLocalizedCourseById');
+      return null;
+    }
+
     const result = await pool.query(query, [id, locale]);
 
     if (result.rows.length === 0) {
@@ -194,6 +200,12 @@ export async function getLocalizedCourseBySlug(
   `;
 
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[T168] Database not available for getLocalizedCourseBySlug');
+      return null;
+    }
+
     const result = await pool.query(query, [slug, locale]);
 
     if (result.rows.length === 0) {
@@ -333,6 +345,12 @@ export async function getLocalizedCourses(
   params.push(offset);
 
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[T168] Database not available for getLocalizedCourses');
+      return { items: [], total: 0, hasMore: false };
+    }
+
     const result = await pool.query(query, params);
     const hasMore = result.rows.length > limit;
     const items = (hasMore ? result.rows.slice(0, limit) : result.rows).map(row => ({

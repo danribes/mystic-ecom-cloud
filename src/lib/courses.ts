@@ -5,8 +5,8 @@
  * T212: Added caching layer for performance optimization
  */
 
-import pool from './db';
-import type { PoolClient } from 'pg';
+import { getPool } from './db';
+import type { Pool, PoolClient } from 'pg';
 import {
   generateCacheKey,
   getCached,
@@ -155,6 +155,12 @@ export async function getCourses(filters: GetCoursesFilters = {}): Promise<GetCo
   params.push(offset);
 
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[courses] Database not available for getCourses');
+      return { items: [], total: 0, hasMore: false };
+    }
+
     const result = await pool.query(query, params);
     const hasMore = result.rows.length > limit;
     const items = hasMore ? result.rows.slice(0, limit) : result.rows;
@@ -197,8 +203,8 @@ export async function getCourses(filters: GetCoursesFilters = {}): Promise<GetCo
 
     if (search && search.trim()) {
       countQuery += ` AND (
-        c.title ILIKE $${countParamIndex} OR 
-        c.description ILIKE $${countParamIndex} OR 
+        c.title ILIKE $${countParamIndex} OR
+        c.description ILIKE $${countParamIndex} OR
         c.instructor ILIKE $${countParamIndex}
       )`;
       countParams.push(`%${search.trim()}%`);
@@ -259,6 +265,12 @@ export async function getCourseById(id: number): Promise<Course | null> {
 
   // Cache miss - fetch from database
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[courses] Database not available for getCourseById');
+      return null;
+    }
+
     const query = `
       SELECT
         c.*,
@@ -299,6 +311,12 @@ export async function getCourseBySlug(slug: string): Promise<Course | null> {
 
   // Cache miss - fetch from database
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[courses] Database not available for getCourseBySlug');
+      return null;
+    }
+
     const query = `
       SELECT
         c.*,
@@ -327,7 +345,12 @@ export async function getCourseBySlug(slug: string): Promise<Course | null> {
  * Enroll a user in a course
  */
 export async function enrollUser(userId: number, courseId: number, client?: PoolClient): Promise<void> {
+  const pool = getPool();
   const db = client || pool;
+
+  if (!db) {
+    throw new Error('[courses] Database not available for enrollUser');
+  }
 
   try {
     // Check if already enrolled
@@ -356,6 +379,12 @@ export async function enrollUser(userId: number, courseId: number, client?: Pool
  */
 export async function isUserEnrolled(userId: number, courseId: number): Promise<boolean> {
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[courses] Database not available for isUserEnrolled');
+      return false;
+    }
+
     const query = 'SELECT id FROM course_enrollments WHERE user_id = $1 AND course_id = $2';
     const result = await pool.query(query, [userId, courseId]);
 
@@ -371,8 +400,14 @@ export async function isUserEnrolled(userId: number, courseId: number): Promise<
  */
 export async function getUserEnrolledCourses(userId: number): Promise<Course[]> {
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[courses] Database not available for getUserEnrolledCourses');
+      return [];
+    }
+
     const query = `
-      SELECT 
+      SELECT
         c.*,
         ce.enrolled_at,
         ce.progress,
@@ -399,6 +434,12 @@ export async function getUserEnrolledCourses(userId: number): Promise<Course[]> 
  */
 export async function getCategories(): Promise<string[]> {
   try {
+    const pool = getPool();
+    if (!pool) {
+      console.warn('[courses] Database not available for getCategories');
+      return [];
+    }
+
     const query = `
       SELECT DISTINCT category
       FROM courses
