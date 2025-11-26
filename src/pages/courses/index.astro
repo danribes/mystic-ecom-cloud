@@ -62,7 +62,12 @@ try {
 }
 
 // Fetch available categories for filter
-const categories = await getCategories();
+let categories: string[] = [];
+try {
+  categories = await getCategories();
+} catch (err) {
+  console.error('Error fetching categories:', err);
+}
 
 // Calculate pagination
 const currentPage = page;
