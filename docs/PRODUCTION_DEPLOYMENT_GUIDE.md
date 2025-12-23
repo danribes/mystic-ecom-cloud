@@ -87,7 +87,6 @@ This guide provides step-by-step instructions for deploying the Spirituality E-C
 
 **Alternatives:**
 - Vercel (Astro-optimized)
-- Netlify (Good for static sites)
 - VPS (DigitalOcean, Linode) - Full control
 
 ---
@@ -455,15 +454,6 @@ vercel env add DATABASE_URL production
 
 # Or in Dashboard:
 # Settings → Environment Variables
-```
-
-**Netlify:**
-```bash
-# Using CLI
-netlify env:set DATABASE_URL "postgresql://..."
-
-# Or in Dashboard:
-# Site Settings → Environment Variables
 ```
 
 ---

@@ -462,7 +462,6 @@ npm run build:prod
 
 ### Alternative Hosting Options
 
-- **Netlify**: Already configured (`netlify.toml`)
 - **Vercel**: Compatible with Astro SSR
 - **VPS/Dedicated**: Docker Compose deployment
 

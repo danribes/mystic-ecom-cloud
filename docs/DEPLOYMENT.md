@@ -210,44 +210,7 @@ vercel --prod
 
 ---
 
-### Option 2: Deploy to Netlify
-
-#### Prerequisites
-- Netlify account (https://netlify.com)
-- Netlify CLI: `npm i -g netlify-cli`
-
-#### Steps
-
-```bash
-# Login to Netlify
-netlify login
-
-# Initialize site
-netlify init
-
-# Deploy
-netlify deploy --prod
-```
-
-#### Configure in netlify.toml
-
-```toml
-[build]
-  command = "npm run build"
-  publish = "dist"
-
-[build.environment]
-  NODE_VERSION = "20"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-```
-
----
-
-### Option 3: Deploy to VPS (DigitalOcean, Linode, etc.)
+### Option 2: Deploy to VPS (DigitalOcean, Linode, etc.)
 
 #### Prerequisites
 - VPS with Ubuntu/Debian

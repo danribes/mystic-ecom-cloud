@@ -766,8 +766,8 @@ wrangler pages secret put DATABASE_URL
 vercel env add DATABASE_URL
 # Enter new database URL
 
-# Netlify:
-netlify env:set DATABASE_URL $NEW_DATABASE_URL
+# Cloudflare Pages:
+# Update DATABASE_URL in Cloudflare Pages Dashboard → Settings → Environment Variables
 
 # Trigger redeployment
 git commit --allow-empty -m "Trigger redeploy after database recovery"
