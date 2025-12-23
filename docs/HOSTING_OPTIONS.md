@@ -9,7 +9,6 @@ This guide covers deploying your Astro application to different hosting provider
 | Provider | Best For | Free Tier | Setup Difficulty | SSR Support |
 |----------|----------|-----------|------------------|-------------|
 | **Cloudflare Pages** | Performance, global CDN | ✅ Generous | ⭐ Easy | ✅ Yes |
-| **Netlify** | Quick deploys, previews | ✅ Good | ⭐ Easy | ✅ Yes |
 | **Vercel** | Next.js ecosystem | ✅ Good | ⭐ Easy | ✅ Yes |
 | **Hostinger VPS** | Full control, cheap | ❌ Paid (~$4/mo) | ⭐⭐⭐ Medium | ✅ Yes |
 
@@ -101,27 +100,7 @@ npm run build
 
 ---
 
-## Option 2: Netlify
-
-Already configured! See main [DEPLOYMENT.md](DEPLOYMENT.md) for full guide.
-
-### Quick Deploy to Netlify:
-
-```bash
-# Using the Netlify config (already set)
-cp astro.config.mjs astro.config.netlify.mjs
-cp astro.config.netlify.mjs astro.config.mjs
-
-# Deploy
-netlify login
-netlify deploy --prod
-```
-
-Or deploy via website: https://app.netlify.com/
-
----
-
-## Option 3: Vercel
+## Option 2: Vercel
 
 ### Setup for Vercel
 
@@ -364,7 +343,7 @@ pm2 monit  # Application monitoring
 ## Recommended Hosting by Use Case
 
 ### For Development/Testing
-→ **Netlify** or **Cloudflare Pages** (free, easy, fast deploys)
+→ **Cloudflare Pages** (free, easy, fast deploys)
 
 ### For Production (Small-Medium Business)
 → **Cloudflare Pages** (free, global CDN, excellent performance)
@@ -403,7 +382,6 @@ Since your app needs PostgreSQL and Redis, here are options:
 | Setup | Cost | Includes |
 |-------|------|----------|
 | **Cloudflare + Neon + Upstash** | **$0** | Free tiers |
-| **Netlify + Supabase** | **$0** | Free tiers |
 | **Hostinger VPS (all-in-one)** | **$8** | VPS, DB, Redis |
 | **Railway (all-in-one)** | **$5** | Hosting, DB, Redis |
 | **Vercel + managed services** | **$20-40** | Pro hosting, DB, Redis |
@@ -431,7 +409,7 @@ Since your app needs PostgreSQL and Redis, here are options:
 ## Getting Help
 
 - **Cloudflare:** https://developers.cloudflare.com/pages/
-- **Netlify:** https://docs.netlify.com/
+- **Vercel:** https://vercel.com/docs
 - **Hostinger:** https://www.hostinger.com/tutorials/
 - **Astro Docs:** https://docs.astro.build/en/guides/deploy/
 

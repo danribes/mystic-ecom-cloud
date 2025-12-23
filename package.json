@@ -44,7 +44,6 @@
   "dependencies": {
     "@astrojs/check": "^0.9.5",
     "@astrojs/cloudflare": "^12.6.10",
-    "@astrojs/netlify": "^6.6.0",
     "@astrojs/node": "^9.0.2",
     "@aws-sdk/client-s3": "^3.922.0",
     "@aws-sdk/s3-request-presigner": "^3.922.0",

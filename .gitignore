@@ -56,5 +56,5 @@ playwright/.cache/
 *~
 .DS_Store
 
-# Local Netlify folder
-.netlify
+# Local Cloudflare folder
+.wrangler
