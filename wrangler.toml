@@ -10,7 +10,8 @@ pages_build_output_dir = "dist"
 # Node.js compatibility for server-side functions
 compatibility_flags = ["nodejs_compat"]
 
-# Environment variables (for local development only)
-# Production environment variables should be set in Cloudflare Pages dashboard
+# Environment variables
+# Sensitive values (API keys, database URLs) should be added as Secrets in Cloudflare Pages Dashboard
 [vars]
 NODE_ENV = "production"
+BCRYPT_ROUNDS = "10"
