@@ -1,5 +1,13 @@
 {
 	"mcpServers": {
+		"cloudflare": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@cloudflare/mcp-server-cloudflare"
+			]
+		},
 		"task-master-ai": {
 			"type": "stdio",
 			"command": "npx",
