@@ -30,15 +30,19 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .min(1, 'DATABASE_URL is required')
-    .url('DATABASE_URL must be a valid PostgreSQL connection URL')
-    .startsWith('postgres://', 'DATABASE_URL must be a PostgreSQL URL'),
+    .refine(
+      (val) => val.startsWith('postgres://') || val.startsWith('postgresql://'),
+      'DATABASE_URL must be a PostgreSQL URL (postgres:// or postgresql://)'
+    ),
 
   // Redis Configuration (REQUIRED)
   REDIS_URL: z
     .string()
     .min(1, 'REDIS_URL is required')
-    .url('REDIS_URL must be a valid Redis connection URL')
-    .startsWith('redis://', 'REDIS_URL must be a Redis URL'),
+    .refine(
+      (val) => val.startsWith('redis://') || val.startsWith('rediss://'),
+      'REDIS_URL must be a Redis URL (redis:// or rediss:// for TLS)'
+    ),
 
   // Authentication & Session (REQUIRED)
   SESSION_SECRET: z
