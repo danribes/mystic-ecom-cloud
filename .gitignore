@@ -58,3 +58,6 @@ playwright/.cache/
 
 # Local Cloudflare folder
 .wrangler
+
+# MCP server configuration (contains API tokens)
+.mcp.json
