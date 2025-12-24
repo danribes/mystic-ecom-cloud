@@ -8,7 +8,7 @@
 				"@cloudflare/mcp-server-cloudflare"
 			],
 			"env": {
-				"CLOUDFLARE_API_TOKEN": "sP7PT4hW3csefe-sZa4ZMJKu9doA_fY01RtBCrdu"
+				"CLOUDFLARE_API_TOKEN": "STbeyxhFNRXAZzQ3gy_n9iLyU_RDUf3paxLqE6Dz"
 			}
 		},
 		"task-master-ai": {
