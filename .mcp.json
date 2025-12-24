@@ -6,7 +6,10 @@
 			"args": [
 				"-y",
 				"@cloudflare/mcp-server-cloudflare"
-			]
+			],
+			"env": {
+				"CLOUDFLARE_API_TOKEN": "sP7PT4hW3csefe-sZa4ZMJKu9doA_fY01RtBCrdu"
+			}
 		},
 		"task-master-ai": {
 			"type": "stdio",
