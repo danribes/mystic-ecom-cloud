@@ -1,9 +1,9 @@
 /**
  * WhatsApp Service - T073-T074
- * 
- * WhatsApp notification service using Twilio API for sending order confirmations,
- * event bookings, and admin notifications.
- * 
+ *
+ * WhatsApp notification service using Twilio REST API via fetch().
+ * Cloudflare Workers compatible - does not use the Twilio SDK.
+ *
  * Features:
  * - Order confirmation messages to customers
  * - Event booking confirmations to customers
@@ -12,33 +12,11 @@
  * - Error handling and logging
  */
 
-import twilio from 'twilio';
 import { logError } from './errors';
 
-// Initialize Twilio client
-let twilioClient: ReturnType<typeof twilio> | null = null;
-
-function getTwilioClient() {
-  // Always check current env vars (don't cache when not configured)
-  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
-    return null;
-  }
-  
-  if (!twilioClient) {
-    twilioClient = twilio(
-      process.env.TWILIO_ACCOUNT_SID,
-      process.env.TWILIO_AUTH_TOKEN
-    );
-  }
-  return twilioClient;
-}
-
-// Reset client (useful for testing)
-export function resetTwilioClient() {
-  twilioClient = null;
-}
-
 // WhatsApp configuration
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
 const ADMIN_WHATSAPP = process.env.TWILIO_ADMIN_WHATSAPP || process.env.ADMIN_WHATSAPP;
 
@@ -99,46 +77,67 @@ export interface AdminNotificationData {
 function formatWhatsAppNumber(phone: string): string {
   // Remove any existing "whatsapp:" prefix
   let cleanPhone = phone.replace(/^whatsapp:/i, '').trim();
-  
+
   // Ensure it starts with +
   if (!cleanPhone.startsWith('+')) {
     cleanPhone = '+' + cleanPhone;
   }
-  
+
   return `whatsapp:${cleanPhone}`;
 }
 
 /**
- * Send WhatsApp message using Twilio
+ * Send WhatsApp message using Twilio REST API
  */
 async function sendWhatsAppMessage(
   to: string,
   body: string
 ): Promise<WhatsAppResult> {
   try {
-    const client = getTwilioClient();
-    
-    if (!client) {
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
       console.warn('[WHATSAPP] Twilio not configured, message not sent');
-      return { 
-        success: false, 
-        error: 'WhatsApp service not configured' 
+      return {
+        success: false,
+        error: 'WhatsApp service not configured',
       };
     }
 
     const formattedTo = formatWhatsAppNumber(to);
-    
-    const message = await client.messages.create({
-      from: WHATSAPP_FROM,
-      to: formattedTo,
-      body,
-    });
+    const formattedFrom = WHATSAPP_FROM.startsWith('whatsapp:')
+      ? WHATSAPP_FROM
+      : `whatsapp:${WHATSAPP_FROM}`;
 
-    console.log(`[WHATSAPP] Sent to ${formattedTo} (SID: ${message.sid})`);
-    
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          To: formattedTo,
+          From: formattedFrom,
+          Body: body,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('[WHATSAPP] Twilio API error:', response.status, errorData);
+      return {
+        success: false,
+        error: `Twilio API error: ${response.status}`,
+      };
+    }
+
+    const result = await response.json() as { sid: string };
+    console.log(`[WHATSAPP] Sent to ${formattedTo} (SID: ${result.sid})`);
+
     return {
       success: true,
-      messageId: message.sid,
+      messageId: result.sid,
     };
   } catch (error) {
     logError(error, { context: 'sendWhatsAppMessage', to });
@@ -149,6 +148,11 @@ async function sendWhatsAppMessage(
   }
 }
 
+// Reset client (no-op in fetch-based implementation, kept for compatibility)
+export function resetTwilioClient() {
+  // No-op - fetch-based implementation doesn't cache clients
+}
+
 /**
  * Generate order confirmation WhatsApp message
  */
@@ -157,14 +161,14 @@ function generateOrderWhatsAppMessage(data: OrderWhatsAppData): string {
     .map((item, index) => `${index + 1}. ${item.title} - $${item.price.toFixed(2)}`)
     .join('\n');
 
-  const dashboardLink = data.dashboardUrl 
+  const dashboardLink = data.dashboardUrl
     ? `\n\n🔗 Access your purchases:\n${data.dashboardUrl}`
     : '';
 
   return `
 🎉 *Order Confirmed!*
 
-Hi ${data.customerName}! 
+Hi ${data.customerName}!
 
 Thank you for your order.
 
@@ -266,12 +270,12 @@ export async function sendAdminOrderNotification(
   data: AdminNotificationData
 ): Promise<WhatsAppResult> {
   const adminWhatsApp = process.env.ADMIN_WHATSAPP || process.env.TWILIO_ADMIN_WHATSAPP;
-  
+
   if (!adminWhatsApp) {
     console.warn('[WHATSAPP] Admin WhatsApp number not configured');
-    return { 
-      success: false, 
-      error: 'Admin WhatsApp not configured' 
+    return {
+      success: false,
+      error: 'Admin WhatsApp not configured',
     };
   }
 
@@ -304,7 +308,7 @@ export async function sendOrderNotifications(
   adminWhatsapp: { success: boolean; messageId?: string; error?: string };
 }> {
   const { sendOrderConfirmationEmail } = await import('./email');
-  
+
   // Send email
   const emailResult = await sendOrderConfirmationEmail(emailData);
 
@@ -315,7 +319,7 @@ export async function sendOrderNotifications(
       orderId: emailData.orderId,
       customerName: emailData.customerName,
       customerPhone: whatsappData.customerPhone,
-      items: emailData.items.map(item => ({
+      items: emailData.items.map((item) => ({
         title: item.title,
         price: item.price * (item.quantity || 1),
       })),
@@ -364,7 +368,7 @@ export async function sendEventBookingNotifications(
   whatsapp: { success: boolean; messageId?: string; error?: string };
 }> {
   const { sendEventBookingEmail } = await import('./email');
-  
+
   // Send email
   const emailResult = await sendEventBookingEmail(emailData);
 
