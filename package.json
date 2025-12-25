@@ -39,7 +39,9 @@
     "uat:status": "tsx src/scripts/uat.ts status",
     "deploy:validate": "tsx src/scripts/deploy-validate.ts",
     "deploy:validate:quick": "tsx src/scripts/deploy-validate.ts --quick",
-    "deploy:validate:report": "tsx src/scripts/deploy-validate.ts --report"
+    "deploy:validate:report": "tsx src/scripts/deploy-validate.ts --report",
+    "db:setup": "node scripts/setup-database.js",
+    "db:test": "node -e \"require('pg').Pool && console.log('pg module OK')\""
   },
   "dependencies": {
     "@astrojs/check": "^0.9.5",
