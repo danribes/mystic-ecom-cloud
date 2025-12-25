@@ -103,7 +103,10 @@ export async function query<T = DatabaseRow>(
   const start = Date.now();
 
   try {
-    const result = await sqlFn(text, params as unknown[]);
+    // Use .query() for parameterized queries (Neon serverless API)
+    const result = params && params.length > 0
+      ? await sqlFn.query(text, params as unknown[])
+      : await sqlFn.query(text);
     const duration = Date.now() - start;
 
     // Update statistics (T211)
