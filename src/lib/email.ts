@@ -15,13 +15,29 @@
 import { Resend } from 'resend';
 import { logError } from './errors';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-initialized Resend client for Cloudflare Workers compatibility
+// Environment variables may not be available at module load time
+let resendClient: Resend | null = null;
 
-// Email configuration
-const FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@spiritualityplatform.com';
-const FROM_NAME = process.env.EMAIL_FROM_NAME || 'Spirituality Platform';
-const REPLY_TO = process.env.EMAIL_REPLY_TO || FROM_EMAIL;
+function getResend(): Resend | null {
+  if (!resendClient && process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
+
+// Lazy email configuration getters
+function getFromEmail(): string {
+  return process.env.EMAIL_FROM || 'noreply@spiritualityplatform.com';
+}
+
+function getFromName(): string {
+  return process.env.EMAIL_FROM_NAME || 'Spirituality Platform';
+}
+
+function getReplyTo(): string {
+  return process.env.EMAIL_REPLY_TO || getFromEmail();
+}
 
 /**
  * Email templates interface
@@ -93,21 +109,22 @@ async function sendEmailInternal(
   text?: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    const resend = getResend();
+    if (!resend) {
       console.warn('[EMAIL] RESEND_API_KEY not configured, email not sent');
-      return { 
-        success: false, 
-        error: 'Email service not configured' 
+      return {
+        success: false,
+        error: 'Email service not configured'
       };
     }
 
     const result = await resend.emails.send({
-      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      from: `${getFromName()} <${getFromEmail()}>`,
       to,
       subject,
       html,
       text,
-      replyTo: REPLY_TO,
+      replyTo: getReplyTo(),
     });
 
     console.log(`[EMAIL] Sent to ${to}: ${subject} (ID: ${result.data?.id})`);
@@ -305,7 +322,7 @@ function generateOrderConfirmationEmail(data: OrderConfirmationData): EmailTempl
 
   // Plain text version
   const text = `
-Order Confirmation - ${FROM_NAME}
+Order Confirmation - ${getFromName()}
 
 Hi ${data.customerName},
 
@@ -471,7 +488,7 @@ function generateEventBookingEmail(data: EventBookingData): EmailTemplate {
   `;
 
   const text = `
-Event Booking Confirmation - ${FROM_NAME}
+Event Booking Confirmation - ${getFromName()}
 
 Hi ${data.customerName},
 
@@ -648,7 +665,7 @@ The Spirituality Platform Team
   `.trim();
 
   return {
-    subject: `Welcome to ${FROM_NAME}!`,
+    subject: `Welcome to ${getFromName()}!`,
     html,
     text,
   };
@@ -1122,7 +1139,7 @@ function generatePasswordResetEmail(data: PasswordResetData): EmailTemplate {
                 <p style="margin: 0; color: #991b1b; font-size: 14px; line-height: 1.6;">
                   🚨 <strong>Didn't request a password reset?</strong>
                   <br />
-                  If you didn't make this request, please ignore this email and contact our support team immediately at ${REPLY_TO}. Your account security is important to us.
+                  If you didn't make this request, please ignore this email and contact our support team immediately at ${getReplyTo()}. Your account security is important to us.
                 </p>
               </div>
 
@@ -1174,7 +1191,7 @@ IMPORTANT SECURITY INFORMATION:
 - Your password will remain unchanged until you create a new one
 
 Didn't request a password reset?
-If you didn't make this request, please ignore this email and contact our support team immediately at ${REPLY_TO}. Your account security is important to us.
+If you didn't make this request, please ignore this email and contact our support team immediately at ${getReplyTo()}. Your account security is important to us.
 
 If you have any questions or need assistance, feel free to reply to this email.
 
