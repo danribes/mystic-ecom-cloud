@@ -1,98 +1,42 @@
 /**
  * Redis Client
- * 
+ *
  * Redis client configuration for caching and session management.
- * Uses redis package with automatic reconnection and error handling.
+ * Uses @upstash/redis for Cloudflare Workers compatibility (HTTP-based).
  */
 
-import { createClient, type RedisClientType, type RedisClientOptions } from 'redis';
+import { Redis } from '@upstash/redis';
 
-// Redis configuration
-const config: RedisClientOptions = {
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-  socket: {
-    reconnectStrategy: (retries: number) => {
-      // Exponential backoff: 100ms, 200ms, 400ms, 800ms, up to 3000ms
-      const delay = Math.min(retries * 100, 3000);
-      console.log(`[Redis] Reconnecting in ${delay}ms (attempt ${retries})`);
-      return delay;
-    },
-    connectTimeout: parseInt(process.env.REDIS_CONNECT_TIMEOUT || '10000', 10),
-  },
-  // Enable legacy mode for backward compatibility if needed
-  ...(process.env.REDIS_LEGACY_MODE === 'true' && {
-    legacyMode: true,
-  }),
-};
+// Create Redis client using Upstash REST API
+let redis: Redis | null = null;
 
-// Client instance
-let client: RedisClientType | null = null;
-let connectionFailed = false;
+function getRedis(): Redis | null {
+  if (!redis && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  }
+  return redis;
+}
 
 /**
  * Check if Redis is configured
  */
 function isRedisConfigured(): boolean {
-  return !!process.env.REDIS_URL && process.env.REDIS_URL !== 'redis://localhost:6379';
+  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 }
 
 /**
  * Get or create Redis client
- * Returns null if Redis is not configured or connection fails
+ * Returns null if Redis is not configured
  */
-export async function getRedisClient(): Promise<RedisClientType | null> {
-  // If connection previously failed or Redis not configured, return null
-  if (connectionFailed || !isRedisConfigured()) {
-    if (!isRedisConfigured()) {
-      console.warn('[Redis] REDIS_URL not configured - Redis features disabled');
-    }
+export async function getRedisClient(): Promise<Redis | null> {
+  if (!isRedisConfigured()) {
+    console.warn('[Redis] UPSTASH_REDIS_REST_URL/TOKEN not configured - Redis features disabled');
     return null;
   }
-
-  if (!client) {
-    try {
-      client = createClient(config) as RedisClientType;
-
-      // Handle errors
-      client.on('error', (err) => {
-        console.error('[Redis] Client error:', err);
-        connectionFailed = true;
-      });
-
-      // Handle connection events
-      client.on('connect', () => {
-        console.log('[Redis] Client connecting...');
-      });
-
-      client.on('ready', () => {
-        console.log('[Redis] Client ready');
-        connectionFailed = false; // Reset flag on successful connection
-      });
-
-      client.on('reconnecting', () => {
-        console.log('[Redis] Client reconnecting...');
-      });
-
-      client.on('end', () => {
-        console.log('[Redis] Client connection closed');
-      });
-
-      // Connect with timeout
-      await Promise.race([
-        client.connect(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
-        )
-      ]);
-    } catch (error) {
-      console.error('[Redis] Failed to connect:', error);
-      connectionFailed = true;
-      client = null;
-      return null;
-    }
-  }
-
-  return client;
+  return getRedis();
 }
 
 /**
@@ -223,12 +167,12 @@ export async function delPattern(pattern: string): Promise<number> {
 
 /**
  * Close Redis connection (useful for graceful shutdown)
+ * Note: Upstash Redis is HTTP-based, no persistent connection to close
  */
 export async function closeRedis(): Promise<void> {
-  if (client) {
-    await client.quit();
-    client = null;
-    console.log('[Redis] Client closed');
+  if (redis) {
+    redis = null;
+    console.log('[Redis] Client reference cleared (HTTP-based, no connection to close)');
   }
 }
 
@@ -513,6 +457,6 @@ export async function getCacheStats(): Promise<{
   }
 }
 
-// Export client for advanced usage
-export { client };
+// Export redis instance for advanced usage
+export { redis };
 export default getRedisClient;
