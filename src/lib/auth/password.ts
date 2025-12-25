@@ -5,7 +5,7 @@
  * Uses configurable salt rounds for security vs. performance balance.
  */
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Get salt rounds from environment or use secure default (10)
 const SALT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
