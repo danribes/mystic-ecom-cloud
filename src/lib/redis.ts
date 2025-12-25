@@ -6,16 +6,16 @@
  */
 
 import { Redis } from '@upstash/redis';
+import { getEnv } from './env';
 
 // Create Redis client using Upstash REST API
 let redis: Redis | null = null;
 
 function getRedis(): Redis | null {
-  if (!redis && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
+  const url = getEnv('UPSTASH_REDIS_REST_URL');
+  const token = getEnv('UPSTASH_REDIS_REST_TOKEN');
+  if (!redis && url && token) {
+    redis = new Redis({ url, token });
   }
   return redis;
 }
@@ -24,7 +24,7 @@ function getRedis(): Redis | null {
  * Check if Redis is configured
  */
 function isRedisConfigured(): boolean {
-  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  return !!(getEnv('UPSTASH_REDIS_REST_URL') && getEnv('UPSTASH_REDIS_REST_TOKEN'));
 }
 
 /**

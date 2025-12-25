@@ -1,19 +1,20 @@
 /**
  * Authentication Middleware
- * 
+ *
  * Protects routes that require user authentication.
  * Redirects unauthenticated users to login page.
  */
 
 import { defineMiddleware } from 'astro:middleware';
 import { getSessionFromRequest } from '@/lib/auth/session';
+import { initEnv } from '@/lib/env';
 
 /**
  * Auth middleware to protect routes
- * 
+ *
  * Usage in pages:
  * export const prerender = false; // Required for SSR
- * 
+ *
  * const session = await getSessionFromRequest(Astro.cookies);
  * if (!session) {
  *   return Astro.redirect('/login');
@@ -23,6 +24,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   try {
     const { url, cookies, redirect, locals } = context;
 
+    // Initialize environment variables from Cloudflare runtime
+    // This makes secrets available to library code via getEnv()
+    const runtime = (locals as any).runtime;
+    if (runtime?.env) {
+      initEnv(runtime.env);
+    }
+
     // Skip middleware for public routes
     const publicPaths = [
       '/',
@@ -31,6 +39,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       '/forgot-password',
       '/reset-password',
       '/api/health',
+      '/api/debug-env',
     ];
 
     // Check if current path is public

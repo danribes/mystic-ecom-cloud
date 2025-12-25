@@ -13,13 +13,15 @@
 
 import { neon } from '@neondatabase/serverless';
 import type { SqlParams, TransactionCallback, DatabaseRow } from '@/types/database';
+import { getEnv } from './env';
 
 // Use Neon serverless for Cloudflare Workers compatibility
 let sql: ReturnType<typeof neon> | null = null;
 
 function getSQL() {
-  if (!sql && process.env.DATABASE_URL) {
-    sql = neon(process.env.DATABASE_URL);
+  const dbUrl = getEnv('DATABASE_URL');
+  if (!sql && dbUrl) {
+    sql = neon(dbUrl);
   }
   return sql;
 }
@@ -28,7 +30,7 @@ function getSQL() {
  * Check if database is configured
  */
 function isDatabaseConfigured(): boolean {
-  return !!process.env.DATABASE_URL;
+  return !!getEnv('DATABASE_URL');
 }
 
 /**
@@ -108,7 +110,7 @@ export async function query<T = DatabaseRow>(
     poolStats.totalQueries++;
 
     // Track slow queries
-    const slowQueryThreshold = parseInt(process.env.DB_SLOW_QUERY_THRESHOLD || '1000', 10);
+    const slowQueryThreshold = parseInt(getEnv('DB_SLOW_QUERY_THRESHOLD') || '1000', 10);
     if (duration > slowQueryThreshold) {
       poolStats.slowQueries++;
       console.warn(`[DB] Slow query (${duration}ms): ${text.substring(0, 100)}`);
