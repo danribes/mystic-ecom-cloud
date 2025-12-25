@@ -15,9 +15,33 @@
  * 5. Attacker cannot read cookies due to Same-Origin Policy
  */
 
-import crypto from 'crypto';
 import type { AstroCookies, APIContext } from 'astro';
 import { getCSRFCookieOptions, validateCookieSecurity } from './cookieConfig';
+
+// Web Crypto API compatible random bytes generator
+function getRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+// Convert Uint8Array to base64url string
+function toBase64Url(bytes: Uint8Array): string {
+  const base64 = btoa(String.fromCharCode(...bytes));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// Timing-safe comparison using Web Crypto compatible approach
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
 
 /**
  * CSRF token configuration
@@ -32,7 +56,8 @@ const CSRF_TOKEN_MAX_AGE = 60 * 60 * 2; // 2 hours
  * Generate a cryptographically secure CSRF token
  */
 export function generateCSRFToken(): string {
-  return crypto.randomBytes(CSRF_TOKEN_LENGTH).toString('base64url');
+  const bytes = getRandomBytes(CSRF_TOKEN_LENGTH);
+  return toBase64Url(bytes);
 }
 
 /**
@@ -150,12 +175,9 @@ export async function validateCSRFToken(
     return false;
   }
 
-  // Use crypto.timingSafeEqual for constant-time comparison
-  const cookieBuffer = Buffer.from(cookieToken, 'utf8');
-  const requestBuffer = Buffer.from(requestToken, 'utf8');
-
+  // Use timing-safe comparison for constant-time comparison
   try {
-    return crypto.timingSafeEqual(cookieBuffer, requestBuffer);
+    return timingSafeEqual(cookieToken, requestToken);
   } catch (error) {
     console.warn('[CSRF] Token comparison failed:', error);
     return false;

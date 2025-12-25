@@ -14,11 +14,38 @@
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { randomUUID } from 'crypto';
-import { writeFile, unlink, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
 import { ValidationError } from './errors';
+
+// Generate UUID using Web Crypto API (Cloudflare Workers compatible)
+function generateUUID(): string {
+  // Use crypto.randomUUID if available (modern browsers/Workers)
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older environments
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant 10
+  const hex = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+// Get file extension from filename (path.extname replacement)
+function getFileExtension(fileName: string): string {
+  const lastDot = fileName.lastIndexOf('.');
+  return lastDot > 0 ? fileName.slice(lastDot) : '';
+}
+
+// Get base name without extension (path.basename replacement)
+function getBaseName(fileName: string, ext?: string): string {
+  // Remove any path separators
+  const name = fileName.split('/').pop()?.split('\\').pop() || fileName;
+  if (ext && name.endsWith(ext)) {
+    return name.slice(0, -ext.length);
+  }
+  return name;
+}
 
 // ==================== Types ====================
 
@@ -135,11 +162,11 @@ function getS3Client(): S3Client {
  * Generate a unique file key
  */
 function generateFileKey(fileName: string, folder?: string): string {
-  const uuid = randomUUID();
-  const ext = path.extname(fileName);
-  const sanitizedName = path.basename(fileName, ext).replace(/[^a-zA-Z0-9-_]/g, '-');
+  const uuid = generateUUID();
+  const ext = getFileExtension(fileName);
+  const sanitizedName = getBaseName(fileName, ext).replace(/[^a-zA-Z0-9-_]/g, '-');
   const key = `${sanitizedName}-${uuid}${ext}`;
-  
+
   return folder ? `${folder}/${key}` : key;
 }
 
@@ -188,65 +215,105 @@ function getFileBuffer(file: FileInput | Buffer): Buffer {
 
 /**
  * Ensure local storage directory exists
+ * Note: Local storage is not supported in Cloudflare Workers
  */
 async function ensureLocalStorageDir(folder?: string): Promise<string> {
-  const basePath = path.resolve(getLocalStoragePath());
-  const fullPath = folder ? path.join(basePath, folder) : basePath;
-  
-  if (!existsSync(fullPath)) {
-    await mkdir(fullPath, { recursive: true });
+  // Dynamically import fs/path modules (only works in Node.js, not Workers)
+  try {
+    const { existsSync } = await import('fs');
+    const { mkdir } = await import('fs/promises');
+    const path = await import('path');
+
+    const basePath = path.resolve(getLocalStoragePath());
+    const fullPath = folder ? path.join(basePath, folder) : basePath;
+
+    if (!existsSync(fullPath)) {
+      await mkdir(fullPath, { recursive: true });
+    }
+
+    return fullPath;
+  } catch (error) {
+    throw new Error(
+      'Local storage is not available in this environment. ' +
+      'Use S3 or R2 storage by setting STORAGE_PROVIDER=s3 or STORAGE_PROVIDER=r2'
+    );
   }
-  
-  return fullPath;
 }
 
 // ==================== Local Storage Implementation ====================
 
 async function uploadToLocal(options: UploadOptions): Promise<UploadResult> {
   const { file, fileName, contentType, folder, maxSizeMB = DEFAULT_MAX_SIZE_MB } = options;
-  
+
   // Validation
   const size = getFileSize(file);
   validateFileSize(size, maxSizeMB);
-  
+
   if (contentType) {
     validateFileType(contentType);
   }
-  
+
   // Generate unique key
   const actualFileName = fileName || (!(file instanceof Buffer) ? (file as FileInput).originalName : 'file');
   const key = generateFileKey(actualFileName, folder);
-  
-  // Ensure directory exists
-  const storageDir = await ensureLocalStorageDir(folder);
-  const filePath = path.join(storageDir, path.basename(key));
-  
-  // Write file
-  const buffer = getFileBuffer(file);
-  await writeFile(filePath, buffer);
-  
-  // Generate public URL
-  const relativePath = folder ? `${folder}/${path.basename(key)}` : path.basename(key);
-  const url = `${getPublicUrl()}/uploads/${relativePath}`;
-  
-  return {
-    url,
-    key,
-    size,
-    contentType: contentType || 'application/octet-stream',
-  };
+
+  // Dynamically import fs/path modules (only works in Node.js, not Workers)
+  try {
+    const { writeFile } = await import('fs/promises');
+    const path = await import('path');
+
+    // Ensure directory exists
+    const storageDir = await ensureLocalStorageDir(folder);
+    const filePath = path.join(storageDir, path.basename(key));
+
+    // Write file
+    const buffer = getFileBuffer(file);
+    await writeFile(filePath, buffer);
+
+    // Generate public URL
+    const keyBaseName = getBaseName(key);
+    const relativePath = folder ? `${folder}/${keyBaseName}` : keyBaseName;
+    const url = `${getPublicUrl()}/uploads/${relativePath}`;
+
+    return {
+      url,
+      key,
+      size,
+      contentType: contentType || 'application/octet-stream',
+    };
+  } catch (error) {
+    throw new Error(
+      'Local storage is not available in this environment. ' +
+      'Use S3 or R2 storage by setting STORAGE_PROVIDER=s3 or STORAGE_PROVIDER=r2'
+    );
+  }
 }
 
 async function deleteFromLocal(key: string): Promise<void> {
-  const filePath = path.join(path.resolve(getLocalStoragePath()), key);
-  
+  // Dynamically import fs/path modules (only works in Node.js, not Workers)
   try {
-    await unlink(filePath);
-  } catch (error: any) {
-    if (error.code !== 'ENOENT') {
-      throw error;
+    const { unlink } = await import('fs/promises');
+    const path = await import('path');
+
+    const filePath = path.join(path.resolve(getLocalStoragePath()), key);
+
+    try {
+      await unlink(filePath);
+    } catch (unlinkError: any) {
+      if (unlinkError.code !== 'ENOENT') {
+        throw unlinkError;
+      }
+      // File doesn't exist, which is fine for delete operation
     }
-    // File doesn't exist, which is fine for delete operation
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      // File doesn't exist, fine for delete
+      return;
+    }
+    throw new Error(
+      'Local storage is not available in this environment. ' +
+      'Use S3 or R2 storage by setting STORAGE_PROVIDER=s3 or STORAGE_PROVIDER=r2'
+    );
   }
 }
 

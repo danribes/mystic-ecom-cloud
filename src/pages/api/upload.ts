@@ -11,21 +11,33 @@
  */
 
 import type { APIRoute } from 'astro';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
 import { rateLimit, RateLimitProfiles } from '@/lib/ratelimit';
 import { withCSRF } from '@/lib/csrf';
 
 // ==================== Configuration ====================
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm'];
 const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'application/zip'];
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_DOCUMENT_TYPES];
+
+// ==================== Web Crypto API Helper Functions ====================
+
+function getRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+function toHex(bytes: Uint8Array): string {
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getFileExtension(fileName: string): string {
+  const lastDot = fileName.lastIndexOf('.');
+  return lastDot > 0 ? fileName.slice(lastDot) : '';
+}
 
 // ==================== Helper Functions ====================
 
@@ -50,23 +62,10 @@ function hasUploadPermission(request: Request): boolean {
  * Generate unique filename
  */
 function generateFilename(originalName: string): string {
-  const ext = path.extname(originalName);
+  const ext = getFileExtension(originalName);
   const timestamp = Date.now();
-  const random = crypto.randomBytes(8).toString('hex');
+  const random = toHex(getRandomBytes(8));
   return `${timestamp}-${random}${ext}`;
-}
-
-/**
- * Ensure upload directory exists
- */
-async function ensureUploadDir(subdir?: string): Promise<string> {
-  const targetDir = subdir ? path.join(UPLOAD_DIR, subdir) : UPLOAD_DIR;
-  
-  if (!existsSync(targetDir)) {
-    await mkdir(targetDir, { recursive: true });
-  }
-  
-  return targetDir;
 }
 
 /**
@@ -189,37 +188,64 @@ const postHandler: APIRoute = async (context) => {
 
     // Get file category for subdirectory organization
     const category = getFileCategory(file.type);
-    const uploadDir = await ensureUploadDir(category);
 
     // Generate unique filename
     const filename = generateFilename(file.name);
-    const filepath = path.join(uploadDir, filename);
 
-    // Convert file to buffer and save
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await writeFile(filepath, buffer);
+    // Try to use local storage (only works in Node.js, not Workers)
+    try {
+      const { writeFile, mkdir } = await import('fs/promises');
+      const { existsSync } = await import('fs');
+      const path = await import('path');
 
-    // Generate public URL
-    const publicUrl = `/uploads/${category}/${filename}`;
+      const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
+      const targetDir = category ? path.join(UPLOAD_DIR, category) : UPLOAD_DIR;
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          url: publicUrl,
-          filename: filename,
-          originalName: file.name,
-          size: file.size,
-          type: file.type,
-          category: category,
-        },
-      }),
-      {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' },
+      if (!existsSync(targetDir)) {
+        await mkdir(targetDir, { recursive: true });
       }
-    );
+
+      const filepath = path.join(targetDir, filename);
+
+      // Convert file to buffer and save
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await writeFile(filepath, buffer);
+
+      // Generate public URL
+      const publicUrl = `/uploads/${category}/${filename}`;
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            url: publicUrl,
+            filename: filename,
+            originalName: file.name,
+            size: file.size,
+            type: file.type,
+            category: category,
+          },
+        }),
+        {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    } catch (fsError) {
+      // Local filesystem not available (Cloudflare Workers)
+      // Return error suggesting to use S3/R2 storage
+      return new Response(
+        JSON.stringify({
+          error: 'Local file storage not available in this environment',
+          message: 'Configure S3 or R2 storage by setting STORAGE_PROVIDER environment variable',
+        }),
+        {
+          status: 501,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
   } catch (error) {
     console.error('Error uploading file:', error);
 

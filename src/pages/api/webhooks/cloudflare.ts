@@ -26,9 +26,39 @@
 import type { APIRoute } from 'astro';
 import { getPool } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import { createHmac } from 'crypto';
 import { sendVideoReadyEmail, sendVideoFailedEmail } from '@/lib/email';
 import type { VideoReadyData, VideoFailedData } from '@/lib/email';
+
+// Web Crypto API compatible HMAC function
+async function computeHmacSha256(secret: string, data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const dataBytes = encoder.encode(data);
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', key, dataBytes);
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Timing-safe comparison
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
 
 /**
  * Verify Cloudflare webhook signature
@@ -36,11 +66,11 @@ import type { VideoReadyData, VideoFailedData } from '@/lib/email';
  * Cloudflare signs webhooks using HMAC-SHA256 with your webhook secret.
  * The signature is sent in the Webhook-Signature header.
  */
-function verifyWebhookSignature(
+async function verifyWebhookSignature(
   payload: string,
   signature: string | null,
   secret: string
-): boolean {
+): Promise<boolean> {
   if (!signature) {
     return false;
   }
@@ -56,13 +86,11 @@ function verifyWebhookSignature(
 
     const expectedSignature = signaturePart.substring(3); // Remove 'v1='
 
-    // Compute HMAC-SHA256 signature
-    const hmac = createHmac('sha256', secret);
-    hmac.update(payload);
-    const computedSignature = hmac.digest('hex');
+    // Compute HMAC-SHA256 signature using Web Crypto API
+    const computedSignature = await computeHmacSha256(secret, payload);
 
     // Compare signatures using timing-safe comparison
-    return computedSignature === expectedSignature;
+    return timingSafeEqual(computedSignature, expectedSignature);
   } catch (error) {
     logger.error('Webhook signature verification error:', error as Error);
     return false;
@@ -85,7 +113,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (webhookSecret) {
       const signature = request.headers.get('Webhook-Signature');
 
-      if (!verifyWebhookSignature(body, signature, webhookSecret)) {
+      if (!(await verifyWebhookSignature(body, signature, webhookSecret))) {
         logger.warn('Invalid webhook signature - rejecting request');
         return new Response(
           JSON.stringify({ error: 'Invalid signature' }),

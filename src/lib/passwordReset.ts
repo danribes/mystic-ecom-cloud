@@ -10,9 +10,21 @@
  * Security Task: T203
  */
 
-import crypto from 'crypto';
 import { getPool } from './db';
 import type { Pool } from 'pg';
+
+// Web Crypto API compatible random bytes generator
+function getRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+// Convert Uint8Array to base64url string
+function toBase64Url(bytes: Uint8Array): string {
+  const base64 = btoa(String.fromCharCode(...bytes));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
 
 /**
  * Password reset token record
@@ -32,7 +44,8 @@ export interface PasswordResetToken {
  * @returns {string} Base64URL encoded random token (32 bytes)
  */
 export function generateResetToken(): string {
-  return crypto.randomBytes(32).toString('base64url');
+  const bytes = getRandomBytes(32);
+  return toBase64Url(bytes);
 }
 
 /**
