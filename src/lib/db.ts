@@ -59,10 +59,26 @@ let poolStats: PoolStats = {
 };
 
 /**
- * Get pool (returns null in serverless mode)
+ * Pool-like interface for compatibility with existing code
  */
-export function getPool(): null {
-  return null;
+interface PoolLike {
+  query: <T = DatabaseRow>(text: string, params?: SqlParams) => Promise<{ rows: T[]; rowCount: number | null }>;
+}
+
+/**
+ * Get pool-like object for database access
+ * Returns a shim that wraps the Neon serverless client
+ */
+export function getPool(): PoolLike | null {
+  if (!isDatabaseConfigured()) {
+    return null;
+  }
+
+  return {
+    query: async <T = DatabaseRow>(text: string, params?: SqlParams) => {
+      return query<T>(text, params);
+    }
+  };
 }
 
 /**

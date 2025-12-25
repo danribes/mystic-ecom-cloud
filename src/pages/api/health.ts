@@ -24,7 +24,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { getPool } from '../../lib/db';
+import { checkConnection } from '../../lib/db';
 import { getRedisClient } from '../../lib/redis';
 import { captureException, addBreadcrumb } from '../../lib/sentry';
 
@@ -64,22 +64,17 @@ async function checkDatabase(): Promise<ServiceStatus> {
   const startTime = Date.now();
 
   try {
-    const pool = getPool();
+    // Check database connection by running a simple query
+    const isHealthy = await checkConnection();
+    const responseTime = Date.now() - startTime;
 
-    // Check if database is configured
-    if (!pool) {
-      const responseTime = Date.now() - startTime;
+    if (!isHealthy) {
       return {
         status: 'down',
         responseTime,
-        error: 'Database not configured (DATABASE_URL missing)',
+        error: 'Database not configured or connection failed',
       };
     }
-
-    // Run a simple query to verify connection
-    await pool.query('SELECT 1 as health_check');
-
-    const responseTime = Date.now() - startTime;
 
     addBreadcrumb({
       message: 'Database health check passed',
