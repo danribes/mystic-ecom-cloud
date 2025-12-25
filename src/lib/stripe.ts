@@ -12,20 +12,27 @@ import Stripe from 'stripe';
 import type { Order } from '@/types';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 
-// Initialize Stripe with secret key
-// SECURITY: Fail fast if secret key is not configured
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-if (!stripeSecretKey) {
-  throw new Error(
-    'STRIPE_SECRET_KEY environment variable is required. ' +
-    'Get your key from https://dashboard.stripe.com/apikeys'
-  );
+// Lazy-initialized Stripe client for Cloudflare Workers compatibility
+// Environment variables may not be available at module load time
+let stripeClient: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!stripeClient) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error(
+        'STRIPE_SECRET_KEY environment variable is required. ' +
+        'Get your key from https://dashboard.stripe.com/apikeys'
+      );
+    }
+    stripeClient = new Stripe(stripeSecretKey, {
+      apiVersion: '2025-02-24.acacia',
+      typescript: true,
+    });
+  }
+  return stripeClient;
 }
 
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2025-02-24.acacia',
-  typescript: true,
-});
 
 /**
  * Get Stripe publishable key for client-side
@@ -105,7 +112,7 @@ export async function createCheckoutSession(
     }
 
     // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
@@ -155,7 +162,7 @@ export function validateWebhook(
   }
 
   try {
-    const event = stripe.webhooks.constructEvent(
+    const event = getStripe().webhooks.constructEvent(
       payload,
       signature,
       webhookSecret
@@ -285,7 +292,7 @@ export async function createPaymentIntent(
       throw new ValidationError('Amount must be greater than zero');
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount,
       currency,
       automatic_payment_methods: {
@@ -320,7 +327,7 @@ export async function getPaymentIntent(
       throw new ValidationError('Payment Intent ID is required');
     }
 
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
     return paymentIntent;
   } catch (error) {
     if (error instanceof Stripe.errors.StripeError) {
@@ -363,7 +370,7 @@ export async function createRefund(
       refundParams.reason = reason;
     }
 
-    const refund = await stripe.refunds.create(refundParams);
+    const refund = await getStripe().refunds.create(refundParams);
     return refund;
   } catch (error) {
     if (error instanceof Stripe.errors.StripeError) {
@@ -387,7 +394,7 @@ export async function getCheckoutSession(
       throw new ValidationError('Session ID is required');
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
     return session;
   } catch (error) {
     if (error instanceof Stripe.errors.StripeError) {
@@ -414,7 +421,7 @@ export async function listPaymentMethods(
       throw new ValidationError('Customer ID is required');
     }
 
-    const paymentMethods = await stripe.paymentMethods.list({
+    const paymentMethods = await getStripe().paymentMethods.list({
       customer: customerId,
       type: 'card',
     });
@@ -429,6 +436,6 @@ export async function listPaymentMethods(
 }
 
 /**
- * Export Stripe client for advanced usage
+ * Export Stripe client getter for advanced usage
  */
-export { stripe };
+export { getStripe };
