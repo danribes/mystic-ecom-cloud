@@ -6,7 +6,6 @@
  */
 
 import { getPool } from './db';
-import crypto from 'crypto';
 import {
   generateCacheKey,
   getCached,
@@ -15,6 +14,39 @@ import {
   CacheNamespace,
   CacheTTL,
 } from './redis';
+
+// Web Crypto API compatible HMAC functions
+async function createHmacSignature(secret: string, data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const dataBytes = encoder.encode(data);
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', key, dataBytes);
+  const bytes = new Uint8Array(signature);
+  // Convert to base64url
+  const base64 = btoa(String.fromCharCode(...bytes));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// Timing-safe comparison
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
 
 const pool = getPool();
 
@@ -293,14 +325,14 @@ export async function getUserPurchasedProducts(userId: string): Promise<Array<Di
 /**
  * Generate a secure, time-limited download link
  */
-export function generateDownloadLink(
+export async function generateDownloadLink(
   productId: string,
   orderId: string,
   userId: string,
   expiresInMinutes: number = 15
-): DownloadLink {
+): Promise<DownloadLink> {
   const expires = Date.now() + (expiresInMinutes * 60 * 1000);
-  
+
   // Create a token that includes the product, order, user, and expiry
   const payload = `${productId}:${orderId}:${userId}:${expires}`;
 
@@ -310,17 +342,14 @@ export function generateDownloadLink(
   if (!secret) {
     throw new Error(
       'DOWNLOAD_TOKEN_SECRET environment variable is required. ' +
-      'Generate a secure random secret with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+      'Generate a secure random secret with: openssl rand -hex 32'
     );
   }
 
-  const token = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('base64url');
-  
+  const token = await createHmacSignature(secret, payload);
+
   const url = `/api/products/download/${productId}?token=${token}&order=${orderId}&expires=${expires}`;
-  
+
   return {
     url,
     token,
@@ -331,18 +360,18 @@ export function generateDownloadLink(
 /**
  * Verify a download token
  */
-export function verifyDownloadToken(
+export async function verifyDownloadToken(
   productId: string,
   orderId: string,
   userId: string,
   token: string,
   expires: number
-): boolean {
+): Promise<boolean> {
   // Check if token is expired
   if (Date.now() > expires) {
     return false;
   }
-  
+
   // Recreate the expected token
   const payload = `${productId}:${orderId}:${userId}:${expires}`;
 
@@ -351,20 +380,14 @@ export function verifyDownloadToken(
   if (!secret) {
     throw new Error(
       'DOWNLOAD_TOKEN_SECRET environment variable is required. ' +
-      'Generate a secure random secret with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+      'Generate a secure random secret with: openssl rand -hex 32'
     );
   }
 
-  const expectedToken = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('base64url');
-  
+  const expectedToken = await createHmacSignature(secret, payload);
+
   // Compare tokens (timing-safe comparison)
-  return crypto.timingSafeEqual(
-    Buffer.from(token),
-    Buffer.from(expectedToken)
-  );
+  return timingSafeEqual(token, expectedToken);
 }
 
 /**

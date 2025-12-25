@@ -11,10 +11,21 @@
  * - Strict SameSite for admin sessions
  */
 
-import { randomBytes } from 'crypto';
 import type { AstroCookies } from 'astro';
 import { getJSON, setJSON, del, expire, ttl } from '@/lib/redis';
 import { getSessionCookieOptions, validateCookieSecurity } from '@/lib/cookieConfig';
+
+// Web Crypto API compatible random bytes generator
+function getRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+// Convert Uint8Array to hex string
+function toHex(bytes: Uint8Array): string {
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 // Session configuration
 const SESSION_PREFIX = 'session:';
@@ -37,7 +48,8 @@ export interface SessionData {
  * Generate a secure session ID
  */
 function generateSessionId(): string {
-  return randomBytes(32).toString('hex');
+  const bytes = getRandomBytes(32);
+  return toHex(bytes);
 }
 
 /**

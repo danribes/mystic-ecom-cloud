@@ -10,8 +10,6 @@
  * Part of T144: Minify and bundle assets for production
  */
 
-import { createHash } from 'crypto';
-
 export interface AssetInfo {
   path: string;
   size: number;
@@ -42,13 +40,15 @@ export function getAssetType(path: string): AssetInfo['type'] {
 }
 
 /**
- * Generates hash for cache busting
+ * Generates hash for cache busting (Web Crypto API compatible)
  */
-export function generateAssetHash(content: string | Buffer): string {
-  return createHash('sha256')
-    .update(content)
-    .digest('hex')
-    .substring(0, 8);
+export async function generateAssetHash(content: string | ArrayBuffer): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = typeof content === 'string' ? encoder.encode(content) : content;
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex.substring(0, 8);
 }
 
 /**

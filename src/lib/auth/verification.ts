@@ -1,16 +1,27 @@
 /**
  * Email Verification Utilities
- * 
+ *
  * Generate and validate email verification tokens
  */
 
-import crypto from 'node:crypto';
+// Web Crypto API compatible random bytes generator
+function getRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+// Convert Uint8Array to hex string
+function toHex(bytes: Uint8Array): string {
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 /**
  * Generate a secure random verification token
  */
 export function generateVerificationToken(): string {
-  return crypto.randomBytes(32).toString('hex');
+  const bytes = getRandomBytes(32);
+  return toHex(bytes);
 }
 
 /**

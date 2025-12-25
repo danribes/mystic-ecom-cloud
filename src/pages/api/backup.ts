@@ -12,15 +12,36 @@
  */
 
 import type { APIRoute } from 'astro';
-import {
-  createBackup,
-  listBackups,
-  getBackupStats,
-  deleteBackup,
-  cleanupOldBackups,
-  checkPgDumpAvailable,
-} from '../../lib/backup';
 import { captureException, addBreadcrumb } from '../../lib/sentry';
+
+// Dynamic import for backup functions (not available in Cloudflare Workers)
+type BackupModule = typeof import('../../lib/backup');
+let backupModule: BackupModule | null = null;
+
+async function getBackupModule(): Promise<BackupModule | null> {
+  if (backupModule) return backupModule;
+  try {
+    backupModule = await import('../../lib/backup');
+    return backupModule;
+  } catch (error) {
+    console.warn('Backup module not available in this environment:', error);
+    return null;
+  }
+}
+
+function notAvailableResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: 'Backup functionality is not available in Cloudflare Workers',
+      message: 'Database backups require pg_dump and file system access, which are not available in serverless environments. Use the CLI tools or a dedicated backup service instead.',
+    }),
+    {
+      status: 501,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+}
 
 /**
  * Format bytes to human-readable string
@@ -69,6 +90,12 @@ export const GET: APIRoute = async ({ request, url }) => {
       );
     }
 
+    // Try to load backup module
+    const backup = await getBackupModule();
+    if (!backup) {
+      return notAvailableResponse();
+    }
+
     const action = url.searchParams.get('action');
 
     // Get statistics
@@ -79,7 +106,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         level: 'info',
       });
 
-      const stats = await getBackupStats();
+      const stats = await backup.getBackupStats();
 
       return new Response(
         JSON.stringify({
@@ -118,7 +145,7 @@ export const GET: APIRoute = async ({ request, url }) => {
       level: 'info',
     });
 
-    const backups = await listBackups();
+    const backups = await backup.listBackups();
 
     const backupsWithFormatted = backups.map((backup) => ({
       ...backup,
@@ -180,6 +207,12 @@ export const POST: APIRoute = async ({ request, url }) => {
       );
     }
 
+    // Try to load backup module
+    const backup = await getBackupModule();
+    if (!backup) {
+      return notAvailableResponse();
+    }
+
     const action = url.searchParams.get('action');
 
     // Cleanup old backups
@@ -190,7 +223,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         level: 'info',
       });
 
-      const deletedCount = await cleanupOldBackups();
+      const deletedCount = await backup.cleanupOldBackups();
 
       return new Response(
         JSON.stringify({
@@ -206,7 +239,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
 
     // Check if pg_dump is available
-    const pgDumpAvailable = await checkPgDumpAvailable();
+    const pgDumpAvailable = await backup.checkPgDumpAvailable();
     if (!pgDumpAvailable) {
       return new Response(
         JSON.stringify({
@@ -227,7 +260,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       level: 'info',
     });
 
-    const result = await createBackup();
+    const result = await backup.createBackup();
 
     if (result.success) {
       return new Response(
@@ -300,6 +333,12 @@ export const DELETE: APIRoute = async ({ request, url }) => {
       );
     }
 
+    // Try to load backup module
+    const backup = await getBackupModule();
+    if (!backup) {
+      return notAvailableResponse();
+    }
+
     const filename = url.searchParams.get('filename');
 
     if (!filename) {
@@ -322,7 +361,7 @@ export const DELETE: APIRoute = async ({ request, url }) => {
       data: { filename },
     });
 
-    const success = await deleteBackup(filename);
+    const success = await backup.deleteBackup(filename);
 
     if (success) {
       return new Response(
