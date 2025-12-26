@@ -1,7 +1,7 @@
 ---
 /**
  * EventFilters Component
- * 
+ *
  * Reusable filter sidebar for event catalog with location,
  * date range, time frame, price range, and capacity filters.
  * Supports instant filtering for quick exploration.
@@ -45,22 +45,22 @@ const hasActiveFilters =
   currentAvailability !== 'all';
 ---
 
-<aside class="bg-white rounded-lg shadow-md p-6 sticky top-4 w-full lg:w-64">
-  <form id="event-filters" action="/events" method="GET" class="space-y-6">
-    
+<aside class="sticky top-4 w-full rounded-lg border border-border bg-background p-lg lg:w-64">
+  <form id="event-filters" action="/events" method="GET" class="space-y-lg">
+
     <!-- Location Section -->
     <div>
-      <h2 class="text-lg font-semibold mb-3 text-gray-900">Location</h2>
-      
+      <h2 class="mb-sm text-lg font-semibold text-text">Location</h2>
+
       <!-- Country Filter -->
-      <div class="mb-3">
-        <label for="country" class="block text-sm font-medium text-gray-700 mb-1">
+      <div class="mb-sm">
+        <label for="country" class="mb-xs block text-sm font-medium text-text-light">
           Country
         </label>
         <select
           id="country"
           name="country"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
           <option value="">All Countries</option>
           {countries.map((country) => (
@@ -73,13 +73,13 @@ const hasActiveFilters =
 
       <!-- City Filter -->
       <div>
-        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="city" class="mb-xs block text-sm font-medium text-text-light">
           City
         </label>
         <select
           id="city"
           name="city"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
           <option value="">All Cities</option>
           {cities.map((city) => (
@@ -92,72 +92,79 @@ const hasActiveFilters =
     </div>
 
     <!-- Time Frame Filter -->
-    <div>
-      <h2 class="text-lg font-semibold mb-3 text-gray-900">Time Frame</h2>
-      
-      <label class="flex items-center mb-2 cursor-pointer">
-        <input
-          type="radio"
-          name="timeFrame"
-          value="all"
-          checked={currentTimeFrame === 'all'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">All Events</span>
-      </label>
+    <div class="border-t border-border pt-lg">
+      <h2 class="mb-sm text-lg font-semibold text-text">Time Frame</h2>
 
-      <label class="flex items-center mb-2 cursor-pointer">
-        <input
-          type="radio"
-          name="timeFrame"
-          value="upcoming"
-          checked={currentTimeFrame === 'upcoming'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">Upcoming Only</span>
-      </label>
+      <div class="space-y-xs">
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="timeFrame"
+            value="all"
+            checked={currentTimeFrame === 'all'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">All Events</span>
+        </label>
 
-      <label class="flex items-center mb-2 cursor-pointer">
-        <input
-          type="radio"
-          name="timeFrame"
-          value="this-week"
-          checked={currentTimeFrame === 'this-week'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">This Week</span>
-      </label>
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="timeFrame"
+            value="upcoming"
+            checked={currentTimeFrame === 'upcoming'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">Upcoming Only</span>
+        </label>
 
-      <label class="flex items-center mb-2 cursor-pointer">
-        <input
-          type="radio"
-          name="timeFrame"
-          value="this-month"
-          checked={currentTimeFrame === 'this-month'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">This Month</span>
-      </label>
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="timeFrame"
+            value="this-week"
+            checked={currentTimeFrame === 'this-week'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">This Week</span>
+        </label>
 
-      <label class="flex items-center cursor-pointer">
-        <input
-          type="radio"
-          name="timeFrame"
-          value="custom"
-          checked={currentTimeFrame === 'custom'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">Custom Range</span>
-      </label>
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="timeFrame"
+            value="this-month"
+            checked={currentTimeFrame === 'this-month'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">This Month</span>
+        </label>
+
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="timeFrame"
+            value="custom"
+            checked={currentTimeFrame === 'custom'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">Custom Range</span>
+        </label>
+      </div>
     </div>
 
     <!-- Custom Date Range (shown when custom timeFrame selected) -->
-    <div id="custom-date-range" class={currentTimeFrame === 'custom' ? '' : 'hidden'}>
-      <h2 class="text-lg font-semibold mb-3 text-gray-900">Date Range</h2>
-      
-      <div class="space-y-3">
+    <div id="custom-date-range" class:list={[currentTimeFrame === 'custom' ? '' : 'hidden']}>
+      <h2 class="mb-sm text-lg font-semibold text-text">Date Range</h2>
+
+      <div class="space-y-sm">
         <div>
-          <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="startDate" class="mb-xs block text-sm font-medium text-text-light">
             From
           </label>
           <input
@@ -165,12 +172,12 @@ const hasActiveFilters =
             id="startDate"
             name="startDate"
             value={currentStartDate}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
         <div>
-          <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="endDate" class="mb-xs block text-sm font-medium text-text-light">
             To
           </label>
           <input
@@ -178,19 +185,19 @@ const hasActiveFilters =
             id="endDate"
             name="endDate"
             value={currentEndDate}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
     </div>
 
     <!-- Price Range Filter -->
-    <div>
-      <h2 class="text-lg font-semibold mb-3 text-gray-900">Price Range</h2>
-      
-      <div class="space-y-3">
+    <div class="border-t border-border pt-lg">
+      <h2 class="mb-sm text-lg font-semibold text-text">Price Range</h2>
+
+      <div class="space-y-sm">
         <div>
-          <label for="minPrice" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="minPrice" class="mb-xs block text-sm font-medium text-text-light">
             Minimum ($)
           </label>
           <input
@@ -201,12 +208,12 @@ const hasActiveFilters =
             min="0"
             step="0.01"
             placeholder="0"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
         <div>
-          <label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="maxPrice" class="mb-xs block text-sm font-medium text-text-light">
             Maximum ($)
           </label>
           <input
@@ -217,54 +224,59 @@ const hasActiveFilters =
             min="0"
             step="0.01"
             placeholder="No limit"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
     </div>
 
     <!-- Availability Filter -->
-    <div>
-      <h2 class="text-lg font-semibold mb-3 text-gray-900">Availability</h2>
-      
-      <label class="flex items-center mb-2 cursor-pointer">
-        <input
-          type="radio"
-          name="availability"
-          value="all"
-          checked={currentAvailability === 'all'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">All Events</span>
-      </label>
+    <div class="border-t border-border pt-lg">
+      <h2 class="mb-sm text-lg font-semibold text-text">Availability</h2>
 
-      <label class="flex items-center mb-2 cursor-pointer">
-        <input
-          type="radio"
-          name="availability"
-          value="available"
-          checked={currentAvailability === 'available'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">Spots Available</span>
-      </label>
+      <div class="space-y-xs">
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="availability"
+            value="all"
+            checked={currentAvailability === 'all'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">All Events</span>
+        </label>
 
-      <label class="flex items-center cursor-pointer">
-        <input
-          type="radio"
-          name="availability"
-          value="limited"
-          checked={currentAvailability === 'limited'}
-          class="mr-2 text-blue-600 focus:ring-blue-500"
-        />
-        <span class="text-sm text-gray-700">Limited Spots (< 20%)</span>
-      </label>
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="availability"
+            value="available"
+            checked={currentAvailability === 'available'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">Spots Available</span>
+        </label>
+
+        <label class="filter-label">
+          <input
+            type="radio"
+            name="availability"
+            value="limited"
+            checked={currentAvailability === 'limited'}
+            class="filter-radio"
+          />
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light">Limited Spots (&lt; 20%)</span>
+        </label>
+      </div>
     </div>
 
     <!-- Apply Filters Button -->
     <button
       type="submit"
-      class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200"
+      class="w-full rounded-md bg-primary px-md py-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
     >
       Apply Filters
     </button>
@@ -273,13 +285,72 @@ const hasActiveFilters =
     {hasActiveFilters && (
       <a
         href="/events"
-        class="block text-center text-sm text-gray-600 hover:text-gray-800 mt-3 underline"
+        class="mt-sm block text-center text-sm text-text-light underline hover:text-text"
       >
         Clear all filters
       </a>
     )}
   </form>
 </aside>
+
+<style>
+  /* Custom radio button styling - overrides global min-size */
+  .filter-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    min-height: auto;
+  }
+
+  .filter-radio {
+    /* Hide the actual radio but keep it accessible */
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .filter-radio-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    border: 2px solid var(--color-border-dark);
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .filter-radio:checked + .filter-radio-custom {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+  }
+
+  .filter-radio:checked + .filter-radio-custom::after {
+    content: '';
+    display: block;
+    width: 0.375rem;
+    height: 0.375rem;
+    background-color: white;
+    border-radius: 50%;
+  }
+
+  .filter-radio:focus-visible + .filter-radio-custom {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .filter-label:hover .filter-radio-custom {
+    border-color: var(--color-primary);
+  }
+</style>
 
 <script>
   // Auto-submit form when radio buttons or select dropdowns change (instant filtering)
