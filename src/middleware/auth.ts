@@ -45,6 +45,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       '/shop',
       '/about',
       '/cart',
+      '/checkout',
       '/products',
     ];
 
@@ -96,7 +97,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     console.error('[auth] Middleware error:', error);
 
     // For public paths, continue anyway
-    const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health', '/courses', '/events', '/shop', '/about', '/cart', '/products'];
+    const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health', '/courses', '/events', '/shop', '/about', '/cart', '/checkout', '/products'];
     const isPublicPath = publicPaths.some((path) => {
       if (path === '/') {
         return context.url.pathname === path;
