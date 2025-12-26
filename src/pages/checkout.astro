@@ -1,13 +1,17 @@
 ---
 /**
  * Checkout Page
- * 
+ *
  * Review order and proceed to Stripe payment
  * First page built with Tailwind CSS!
  */
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import type { Cart, CartItem } from '@/types';
+
+// Check user authentication
+const user = Astro.locals.user;
+const isLoggedIn = !!user;
 
 // For now, use mock data from sessionStorage (until API is fully integrated)
 // In production, this would fetch from: GET /api/cart
@@ -85,6 +89,41 @@ const TAX_RATE = 0.08; // 8% tax
               </a>
             </div>
           </div>
+
+          <!-- Guest Registration Prompt -->
+          {!isLoggedIn && (
+            <div class="mb-xl rounded-lg border-2 border-primary/20 bg-primary/5 p-lg">
+              <div class="flex items-start gap-md">
+                <span class="text-2xl">✨</span>
+                <div class="flex-1">
+                  <h3 class="mb-sm text-lg font-semibold text-text">Create an account for a better experience</h3>
+                  <ul class="mb-md space-y-xs text-sm text-text-light">
+                    <li>• Track your orders and purchases</li>
+                    <li>• Access your courses anytime</li>
+                    <li>• Save your billing information</li>
+                    <li>• Get exclusive member discounts</li>
+                  </ul>
+                  <div class="flex flex-wrap gap-sm">
+                    <a
+                      href="/register?redirect=/checkout"
+                      class="inline-block rounded-md bg-primary px-lg py-sm font-medium text-white transition-all duration-fast hover:bg-primary-dark"
+                    >
+                      Create Account
+                    </a>
+                    <a
+                      href="/login?redirect=/checkout"
+                      class="inline-block rounded-md border border-border px-lg py-sm font-medium text-text transition-all duration-fast hover:bg-surface"
+                    >
+                      Sign In
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-md text-xs text-text-lighter">
+                Or continue as a guest below. You can create an account later.
+              </p>
+            </div>
+          )}
 
           <!-- Billing Information -->
           <div class="rounded-lg bg-white p-lg shadow-md">
