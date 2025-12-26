@@ -1,55 +1,57 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  darkMode: 'media', // Enable dark mode based on system preference
   theme: {
     extend: {
       colors: {
-        // Spiritual Theme Colors
+        // Use CSS variables for dark mode support
         primary: {
-          DEFAULT: '#7c3aed',
-          light: '#a78bfa',
-          dark: '#5b21b6',
+          DEFAULT: 'var(--color-primary)',
+          light: 'var(--color-primary-light)',
+          dark: 'var(--color-primary-dark)',
         },
         secondary: {
-          DEFAULT: '#ec4899',
-          light: '#f9a8d4',
-          dark: '#be185d',
+          DEFAULT: 'var(--color-secondary)',
+          light: 'var(--color-secondary-light)',
+          dark: 'var(--color-secondary-dark)',
         },
         accent: {
-          DEFAULT: '#f59e0b',
-          light: '#fcd34d',
-          dark: '#d97706',
+          DEFAULT: 'var(--color-accent)',
+          light: 'var(--color-accent-light)',
+          dark: 'var(--color-accent-dark)',
         },
-        // Neutrals
+        // Neutrals - using CSS variables for dark mode
+        background: 'var(--color-background)',
         surface: {
-          DEFAULT: '#f9fafb',
-          dark: '#f3f4f6',
+          DEFAULT: 'var(--color-surface)',
+          dark: 'var(--color-surface-dark)',
         },
         text: {
-          DEFAULT: '#111827',
-          light: '#6b7280',
-          lighter: '#9ca3af',
+          DEFAULT: 'var(--color-text)',
+          light: 'var(--color-text-light)',
+          lighter: 'var(--color-text-lighter)',
         },
         border: {
-          DEFAULT: '#e5e7eb',
-          dark: '#d1d5db',
+          DEFAULT: 'var(--color-border)',
+          dark: 'var(--color-border-dark)',
         },
         // Semantic Colors
         success: {
-          DEFAULT: '#10b981',
-          light: '#d1fae5',
+          DEFAULT: 'var(--color-success)',
+          light: 'var(--color-success-light)',
         },
         error: {
-          DEFAULT: '#ef4444',
-          light: '#fee2e2',
+          DEFAULT: 'var(--color-error)',
+          light: 'var(--color-error-light)',
         },
         warning: {
-          DEFAULT: '#f59e0b',
-          light: '#fef3c7',
+          DEFAULT: 'var(--color-warning)',
+          light: 'var(--color-warning-light)',
         },
         info: {
-          DEFAULT: '#3b82f6',
-          light: '#dbeafe',
+          DEFAULT: 'var(--color-info)',
+          light: 'var(--color-info-light)',
         },
       },
       fontFamily: {
