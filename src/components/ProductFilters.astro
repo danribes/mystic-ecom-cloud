@@ -1,7 +1,7 @@
 ---
 /**
  * ProductFilters Component
- * 
+ *
  * Advanced filter sidebar for digital products catalog.
  * Supports product type (format), price range, file size, and sorting.
  * Uses instant filtering for better UX on type and sort changes.
@@ -42,48 +42,50 @@ const productTypes = [
 ];
 ---
 
-<aside class="bg-white rounded-lg shadow-md p-6 sticky top-4 w-full lg:w-64">
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-lg font-semibold text-gray-900">Filters</h2>
+<aside class="sticky top-4 w-full rounded-lg border border-border bg-background p-lg lg:w-64">
+  <div class="mb-lg flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-text">Filters</h2>
     {hasActiveFilters && (
       <a
         href="/products"
-        class="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+        class="text-sm text-primary hover:underline"
       >
         Clear all
       </a>
     )}
   </div>
 
-  <form id="product-filters" action="/products" method="GET" class="space-y-6">
-    
+  <form id="product-filters" action="/products" method="GET" class="space-y-lg">
+
     <!-- Product Type (Format) Filter -->
     <div>
-      <h3 class="text-sm font-medium text-gray-900 mb-3">Product Type</h3>
-      <div class="space-y-2">
-        <label class="flex items-center cursor-pointer group">
+      <h3 class="mb-sm text-sm font-medium text-text">Product Type</h3>
+      <div class="space-y-xs">
+        <label class="filter-label group">
           <input
             type="radio"
             name="type"
             value="all"
             checked={currentType === 'all'}
-            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            class="filter-radio"
           />
-          <span class="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
+          <span class="filter-radio-custom"></span>
+          <span class="text-sm text-text-light group-hover:text-text">
             All Products
           </span>
         </label>
 
         {productTypes.map(({ value, label, icon }) => (
-          <label class="flex items-center cursor-pointer group">
+          <label class="filter-label group">
             <input
               type="radio"
               name="type"
               value={value}
               checked={currentType === value}
-              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              class="filter-radio"
             />
-            <span class="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
+            <span class="filter-radio-custom"></span>
+            <span class="text-sm text-text-light group-hover:text-text">
               {icon} {label}
             </span>
           </label>
@@ -92,16 +94,16 @@ const productTypes = [
     </div>
 
     <!-- Price Range Filter -->
-    <div class="pt-6 border-t border-gray-200">
-      <h3 class="text-sm font-medium text-gray-900 mb-3">Price Range</h3>
-      
-      <div class="space-y-3">
+    <div class="border-t border-border pt-lg">
+      <h3 class="mb-sm text-sm font-medium text-text">Price Range</h3>
+
+      <div class="space-y-sm">
         <div>
-          <label for="minPrice" class="block text-xs text-gray-600 mb-1">
+          <label for="minPrice" class="mb-xs block text-xs text-text-light">
             Min Price
           </label>
           <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <span class="absolute left-sm top-1/2 -translate-y-1/2 text-text-light">$</span>
             <input
               type="number"
               id="minPrice"
@@ -110,17 +112,17 @@ const productTypes = [
               min="0"
               step="0.01"
               placeholder="0.00"
-              class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full rounded-md border border-border py-sm pl-6 pr-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </div>
 
         <div>
-          <label for="maxPrice" class="block text-xs text-gray-600 mb-1">
+          <label for="maxPrice" class="mb-xs block text-xs text-text-light">
             Max Price
           </label>
           <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <span class="absolute left-sm top-1/2 -translate-y-1/2 text-text-light">$</span>
             <input
               type="number"
               id="maxPrice"
@@ -129,7 +131,7 @@ const productTypes = [
               min="0"
               step="0.01"
               placeholder="Any"
-              class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full rounded-md border border-border py-sm pl-6 pr-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </div>
@@ -137,12 +139,12 @@ const productTypes = [
     </div>
 
     <!-- File Size Range Filter -->
-    <div class="pt-6 border-t border-gray-200">
-      <h3 class="text-sm font-medium text-gray-900 mb-3">File Size (MB)</h3>
-      
-      <div class="space-y-3">
+    <div class="border-t border-border pt-lg">
+      <h3 class="mb-sm text-sm font-medium text-text">File Size (MB)</h3>
+
+      <div class="space-y-sm">
         <div>
-          <label for="minSize" class="block text-xs text-gray-600 mb-1">
+          <label for="minSize" class="mb-xs block text-xs text-text-light">
             Min Size
           </label>
           <input
@@ -153,12 +155,12 @@ const productTypes = [
             min="0"
             step="1"
             placeholder="0"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
         <div>
-          <label for="maxSize" class="block text-xs text-gray-600 mb-1">
+          <label for="maxSize" class="mb-xs block text-xs text-text-light">
             Max Size
           </label>
           <input
@@ -169,19 +171,19 @@ const productTypes = [
             min="0"
             step="1"
             placeholder="Any"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
     </div>
 
     <!-- Sort By -->
-    <div class="pt-6 border-t border-gray-200">
-      <h3 class="text-sm font-medium text-gray-900 mb-3">Sort By</h3>
+    <div class="border-t border-border pt-lg">
+      <h3 class="mb-sm text-sm font-medium text-text">Sort By</h3>
       <select
         id="sort"
         name="sort"
-        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="w-full rounded-md border border-border px-sm py-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       >
         <option value="newest" selected={currentSort === 'newest'}>
           Newest First
@@ -208,16 +210,75 @@ const productTypes = [
     </div>
 
     <!-- Apply Filters Button -->
-    <div class="pt-6 border-t border-gray-200">
+    <div class="border-t border-border pt-lg">
       <button
         type="submit"
-        class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        class="w-full rounded-md bg-primary px-md py-sm font-medium text-white transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
       >
         Apply Filters
       </button>
     </div>
   </form>
 </aside>
+
+<style>
+  /* Custom radio button styling - overrides global min-size */
+  .filter-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    min-height: auto;
+  }
+
+  .filter-radio {
+    /* Hide the actual radio but keep it accessible */
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .filter-radio-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    border: 2px solid var(--color-border-dark);
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .filter-radio:checked + .filter-radio-custom {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+  }
+
+  .filter-radio:checked + .filter-radio-custom::after {
+    content: '';
+    display: block;
+    width: 0.375rem;
+    height: 0.375rem;
+    background-color: white;
+    border-radius: 50%;
+  }
+
+  .filter-radio:focus-visible + .filter-radio-custom {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .filter-label:hover .filter-radio-custom {
+    border-color: var(--color-primary);
+  }
+</style>
 
 <script>
   // Get form and inputs
