@@ -101,11 +101,11 @@ const durationText = event.duration_hours === 1
   ]}>
     <!-- Date & Time -->
     <div class="flex items-start gap-md">
-      <div class="flex shrink-0 flex-col items-center justify-center rounded-lg bg-primary-light px-md py-sm text-primary">
-        <span class="text-2xl font-bold leading-none">
+      <div class="flex w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary-light/30 px-sm py-sm text-primary">
+        <span class="text-2xl font-bold leading-tight">
           {new Date(event.event_date).getDate()}
         </span>
-        <span class="text-xs font-semibold uppercase leading-none">
+        <span class="text-xs font-semibold uppercase leading-tight">
           {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short' })}
         </span>
       </div>

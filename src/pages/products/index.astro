@@ -102,22 +102,22 @@ const activeFilterCount = [
 const hasActiveFilters = activeFilterCount > 0;
 ---
 
-<BaseLayout 
+<BaseLayout
   title="Digital Products - Spiritual Resources"
   description="Explore our collection of spiritual guides, meditation audio, and transformative video content"
   keywords="digital products, spiritual guides, meditation audio, video content, PDF, ebooks"
 >
-  <main class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <main class="min-h-screen bg-surface py-2xl">
+    <div class="container mx-auto px-md">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+      <div class="mb-2xl">
+        <h1 class="mb-sm text-3xl font-bold text-text md:text-4xl">
           Digital Products
         </h1>
-        <p class="text-lg text-gray-600">
+        <p class="text-lg text-text-light">
           Explore our collection of spiritual guides, meditation audio, and transformative content
           {activeFilterCount > 0 && (
-            <span class="text-gray-500">
+            <span class="text-text-lighter">
               {' '}({activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} applied)
             </span>
           )}
@@ -126,14 +126,14 @@ const hasActiveFilters = activeFilterCount > 0;
 
       <!-- Error Message -->
       {error && (
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-red-800">{error}</p>
+        <div class="mb-lg rounded-lg border border-error/20 bg-error-light p-md">
+          <p class="text-error">{error}</p>
         </div>
       )}
 
       <!-- Search Bar (Top of Page) -->
       {!error && (
-        <div class="mb-6">
+        <div class="mb-lg">
           <form method="GET" action="/products" class="max-w-2xl">
             <div class="relative">
               <input
@@ -141,11 +141,11 @@ const hasActiveFilters = activeFilterCount > 0;
                 name="search"
                 value={search}
                 placeholder="Search products by title or description..."
-                class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full rounded-lg border border-border py-sm pl-md pr-28 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <button
                 type="submit"
-                class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                class="absolute right-sm top-1/2 -translate-y-1/2 rounded-md bg-primary px-md py-xs text-white transition-colors hover:bg-primary-dark"
               >
                 Search
               </button>
@@ -163,88 +163,88 @@ const hasActiveFilters = activeFilterCount > 0;
 
       <!-- Active Filter Pills -->
       {hasActiveFilters && !error && (
-        <div class="mb-6 flex flex-wrap gap-2">
+        <div class="mb-lg flex flex-wrap gap-sm">
           {type !== 'all' && (
-            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
               <span>Type: {type}</span>
               <a
                 href={buildClearFilterUrl('type')}
-                class="hover:text-blue-900"
+                class="hover:text-primary"
                 aria-label="Clear type filter"
               >
                 ×
               </a>
             </span>
           )}
-          
+
           {search && (
-            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
               <span>Search: "{search}"</span>
               <a
                 href={buildClearFilterUrl('search')}
-                class="hover:text-blue-900"
+                class="hover:text-primary"
                 aria-label="Clear search"
               >
                 ×
               </a>
             </span>
           )}
-          
+
           {minPrice && (
-            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
               <span>Min: ${minPrice}</span>
               <a
                 href={buildClearFilterUrl('minPrice')}
-                class="hover:text-blue-900"
+                class="hover:text-primary"
                 aria-label="Clear min price"
               >
                 ×
               </a>
             </span>
           )}
-          
+
           {maxPrice && (
-            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
               <span>Max: ${maxPrice}</span>
               <a
                 href={buildClearFilterUrl('maxPrice')}
-                class="hover:text-blue-900"
+                class="hover:text-primary"
                 aria-label="Clear max price"
               >
                 ×
               </a>
             </span>
           )}
-          
+
           {minSize && (
-            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
               <span>Min Size: {minSize} MB</span>
               <a
                 href={buildClearFilterUrl('minSize')}
-                class="hover:text-blue-900"
+                class="hover:text-primary"
                 aria-label="Clear min size"
               >
                 ×
               </a>
             </span>
           )}
-          
+
           {maxSize && (
-            <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
               <span>Max Size: {maxSize} MB</span>
               <a
                 href={buildClearFilterUrl('maxSize')}
-                class="hover:text-blue-900"
+                class="hover:text-primary"
                 aria-label="Clear max size"
               >
                 ×
               </a>
             </span>
           )}
-          
+
           <a
             href="/products"
-            class="inline-flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+            class="inline-flex items-center px-sm py-xs text-sm text-primary hover:underline"
           >
             Clear all filters
           </a>
@@ -252,7 +252,7 @@ const hasActiveFilters = activeFilterCount > 0;
       )}
 
       <!-- Main Content: Filters Sidebar + Products Grid -->
-      <div class="flex flex-col lg:flex-row gap-8">
+      <div class="flex flex-col gap-2xl lg:flex-row">
         <!-- Filters Sidebar -->
         {!error && (
           <ProductFilters
@@ -268,13 +268,13 @@ const hasActiveFilters = activeFilterCount > 0;
         <!-- Products Section -->
         <div class="flex-1">
           <!-- Results Count -->
-          <div class="mb-6">
-            <p class="text-gray-600">
+          <div class="mb-lg">
+            <p class="text-text-light">
               {products.length === 0 ? (
                 <span>No products found</span>
               ) : (
                 <span>
-                  Showing <strong>{products.length}</strong> {products.length === 1 ? 'product' : 'products'}
+                  Showing <strong class="text-text">{products.length}</strong> {products.length === 1 ? 'product' : 'products'}
                 </span>
               )}
             </p>
@@ -283,7 +283,7 @@ const hasActiveFilters = activeFilterCount > 0;
           <!-- Products Grid -->
           {products.length > 0 ? (
             <>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div class="mb-2xl grid grid-cols-1 gap-xl sm:grid-cols-2 lg:grid-cols-3">
                 {products.map(product => (
                   <ProductCard product={product} />
                 ))}
@@ -291,35 +291,35 @@ const hasActiveFilters = activeFilterCount > 0;
 
               <!-- Pagination -->
               {(hasPrevPage || hasNextPage) && (
-                <nav aria-label="Pagination" class="flex justify-center items-center gap-2">
+                <nav aria-label="Pagination" class="flex items-center justify-center gap-sm">
                   {hasPrevPage ? (
                     <a
                       href={buildPageUrl(page - 1)}
-                      class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                      class="rounded-md border border-border px-md py-sm transition-colors hover:bg-surface"
                       aria-label="Previous page"
                     >
                       ← Previous
                     </a>
                   ) : (
-                    <span class="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-400" aria-disabled="true">
+                    <span class="cursor-not-allowed rounded-md border border-border bg-surface px-md py-sm text-text-lighter" aria-disabled="true">
                       ← Previous
                     </span>
                   )}
 
-                  <span class="px-4 py-2 text-gray-700">
+                  <span class="px-md py-sm text-text">
                     Page {page}
                   </span>
 
                   {hasNextPage ? (
                     <a
                       href={buildPageUrl(page + 1)}
-                      class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                      class="rounded-md border border-border px-md py-sm transition-colors hover:bg-surface"
                       aria-label="Next page"
                     >
                       Next →
                     </a>
                   ) : (
-                    <span class="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-400" aria-disabled="true">
+                    <span class="cursor-not-allowed rounded-md border border-border bg-surface px-md py-sm text-text-lighter" aria-disabled="true">
                       Next →
                     </span>
                   )}
@@ -327,14 +327,14 @@ const hasActiveFilters = activeFilterCount > 0;
               )}
             </>
           ) : (
-            <div class="text-center py-16">
-              <div class="text-6xl mb-4">
+            <div class="py-3xl text-center">
+              <div class="mb-md text-6xl">
                 {hasActiveFilters ? '🔍' : '📦'}
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 mb-2">
+              <h3 class="mb-sm text-xl font-semibold text-text">
                 {hasActiveFilters ? 'No Products Found' : 'No Products Available'}
               </h3>
-              <p class="text-gray-600 mb-6">
+              <p class="mb-lg text-text-light">
                 {hasActiveFilters
                   ? 'Try adjusting your filters to see more results'
                   : 'Check back later for new products'}
@@ -342,7 +342,7 @@ const hasActiveFilters = activeFilterCount > 0;
               {hasActiveFilters && (
                 <a
                   href="/products"
-                  class="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                  class="inline-block rounded-md bg-primary px-xl py-sm font-medium text-white transition-colors hover:bg-primary-dark"
                 >
                   Clear Filters
                 </a>

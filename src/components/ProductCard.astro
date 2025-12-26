@@ -46,90 +46,91 @@ const getTypeLabel = (type: string): string => {
 };
 ---
 
-<div 
-  class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+<article
+  class="flex h-full flex-col overflow-hidden rounded-xl bg-background shadow-md transition-all duration-base hover:-translate-y-1 hover:shadow-xl"
   data-product-slug={product.slug}
   data-product-id={product.id}
 >
   <!-- Product Image -->
-  <a href={`/products/${product.slug}`} class="block">
+  <a href={`/products/${product.slug}`} class="group relative block aspect-video overflow-hidden">
     {product.image_url ? (
-      <img 
-        src={product.image_url} 
+      <img
+        src={product.image_url}
         alt={product.title}
-        class="w-full h-48 object-cover"
+        class="h-full w-full object-cover transition-transform duration-slow group-hover:scale-105"
+        loading="lazy"
       />
     ) : (
-      <div class="w-full h-48 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+      <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-light/30 to-secondary-light/30">
         <span class="text-6xl">{getTypeIcon(product.product_type)}</span>
       </div>
     )}
   </a>
 
   <!-- Product Details -->
-  <div class="p-4">
+  <div class="flex flex-1 flex-col gap-md p-lg">
     <!-- Type Badge -->
-    <div class="mb-2">
-      <span class={`
-        inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-        ${product.product_type === 'pdf' ? 'bg-red-100 text-red-800' : ''}
-        ${product.product_type === 'audio' ? 'bg-blue-100 text-blue-800' : ''}
-        ${product.product_type === 'video' ? 'bg-purple-100 text-purple-800' : ''}
-        ${product.product_type === 'ebook' ? 'bg-green-100 text-green-800' : ''}
-      `}>
+    <div>
+      <span class:list={[
+        'inline-flex items-center gap-xs rounded-full px-sm py-xs text-xs font-medium',
+        product.product_type === 'pdf' ? 'bg-error-light text-error' : '',
+        product.product_type === 'audio' ? 'bg-info-light text-info' : '',
+        product.product_type === 'video' ? 'bg-secondary-light text-secondary-dark' : '',
+        product.product_type === 'ebook' ? 'bg-success-light text-success' : ''
+      ]}>
         {getTypeIcon(product.product_type)} {getTypeLabel(product.product_type)}
       </span>
     </div>
 
     <!-- Title -->
-    <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-      <a href={`/products/${product.slug}`} class="hover:text-indigo-600 transition-colors">
+    <a href={`/products/${product.slug}`} class="group">
+      <h3 class="m-0 text-xl font-bold leading-tight text-text transition-colors duration-base group-hover:text-primary line-clamp-2">
         {product.title}
-      </a>
-    </h3>
+      </h3>
+    </a>
 
     <!-- Description -->
-    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+    <p class="m-0 text-sm leading-relaxed text-text-light line-clamp-2">
       {product.description}
     </p>
 
-    <!-- File Info & Price -->
-    <div class="flex items-center justify-between mt-4">
-      <!-- File Size -->
-      <div class="flex items-center text-sm text-gray-500">
-        <svg 
-          class="w-4 h-4 mr-1" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-            stroke-width="2" 
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        <span>{formatFileSize(product.file_size_mb)}</span>
+    <!-- Footer: File Info, Price & CTA -->
+    <div class="mt-auto flex flex-col gap-md border-t border-border pt-md">
+      <div class="flex items-center justify-between">
+        <!-- File Size -->
+        <div class="flex items-center gap-xs text-sm text-text-light">
+          <svg
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span>{formatFileSize(product.file_size_mb)}</span>
+        </div>
+
+        <!-- Price -->
+        <div class="text-2xl font-bold text-primary">
+          ${Number(product.price).toFixed(2)}
+        </div>
       </div>
 
-      <!-- Price -->
-      <div class="text-xl font-bold text-indigo-600">
-        ${Number(product.price).toFixed(2)}
-      </div>
-    </div>
-
-    <!-- Action Button -->
-    <div class="mt-4">
+      <!-- Action Button -->
       <a
         href={`/products/${product.slug}`}
-        class="block w-full text-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors duration-200"
+        class="block w-full whitespace-nowrap rounded-md bg-primary px-lg py-sm text-center text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
       >
         View Details
       </a>
     </div>
   </div>
-</div>
+</article>
 
 <style>
   .line-clamp-2 {
