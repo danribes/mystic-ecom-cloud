@@ -40,6 +40,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
       '/reset-password',
       '/api/health',
       '/api/debug-env',
+      '/courses',
+      '/events',
+      '/shop',
+      '/about',
+      '/cart',
+      '/products',
     ];
 
     // Check if current path is public
@@ -90,7 +96,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     console.error('[auth] Middleware error:', error);
 
     // For public paths, continue anyway
-    const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health'];
+    const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health', '/courses', '/events', '/shop', '/about', '/cart', '/products'];
     const isPublicPath = publicPaths.some((path) => {
       if (path === '/') {
         return context.url.pathname === path;
