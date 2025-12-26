@@ -123,19 +123,19 @@ const coursePageNumbers = computeCoursePageNumbers();
 ---
 
 <BaseLayout title="Online Courses | Spirituality E-Commerce">
-  <div class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
+  <div class="min-h-screen bg-surface">
+    <div class="container mx-auto px-md py-2xl">
       <!-- Header Section -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+      <div class="mb-2xl">
+        <h1 class="mb-sm text-3xl font-bold text-text">
           Browse Courses
         </h1>
-        <p class="text-gray-600">
+        <p class="text-text-light">
           Discover spiritual and personal development courses to enhance your journey
         </p>
-        
+
         {activeFilterCount > 0 && (
-          <p class="mt-2 text-sm text-gray-700">
+          <p class="mt-sm text-sm text-text">
             <span class="font-medium">{activeFilterCount}</span> {activeFilterCount === 1 ? 'filter' : 'filters'} active
           </p>
         )}
@@ -143,9 +143,9 @@ const coursePageNumbers = computeCoursePageNumbers();
 
       {error ? (
         <!-- Error State -->
-        <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <div class="rounded-lg border border-error/20 bg-error-light p-xl text-center">
           <svg
-            class="w-12 h-12 text-red-400 mx-auto mb-4"
+            class="mx-auto mb-md h-12 w-12 text-error"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -157,12 +157,12 @@ const coursePageNumbers = computeCoursePageNumbers();
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <h2 class="text-xl font-semibold text-red-900 mb-2">Error Loading Courses</h2>
-          <p class="text-red-700">{error}</p>
+          <h2 class="mb-sm text-xl font-semibold text-error">Error Loading Courses</h2>
+          <p class="text-error">{error}</p>
         </div>
       ) : (
         <!-- Main Content: Filters + Course Grid -->
-        <div class="flex flex-col lg:flex-row gap-8">
+        <div class="flex flex-col gap-2xl lg:flex-row">
           <!-- Filter Sidebar -->
           <CourseFilters
             currentCategory={category}
@@ -176,18 +176,18 @@ const coursePageNumbers = computeCoursePageNumbers();
           <!-- Course Grid -->
           <main class="flex-1">
             <!-- Results Header -->
-            <div class="flex justify-between items-center mb-6">
-              <p class="text-sm text-gray-600">
-                {courses.total === 0 ? 'No courses found' : 
+            <div class="mb-lg flex items-center justify-between">
+              <p class="text-sm text-text-light">
+                {courses.total === 0 ? 'No courses found' :
                  `Showing ${offset + 1}-${Math.min(offset + limit, courses.total)} of ${courses.total} ${courses.total === 1 ? 'course' : 'courses'}`}
               </p>
             </div>
 
             {courses.items.length === 0 ? (
               <!-- Empty State -->
-              <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+              <div class="rounded-lg border border-border bg-background p-3xl text-center">
                 <svg
-                  class="w-16 h-16 text-gray-400 mx-auto mb-4"
+                  class="mx-auto mb-md h-16 w-16 text-text-lighter"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -199,15 +199,15 @@ const coursePageNumbers = computeCoursePageNumbers();
                     d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                   />
                 </svg>
-                <h2 class="text-xl font-semibold text-gray-900 mb-2">
+                <h2 class="mb-sm text-xl font-semibold text-text">
                   No Courses Found
                 </h2>
-                <p class="text-gray-600 mb-4">
+                <p class="mb-md text-text-light">
                   Try adjusting your filters to see more results
                 </p>
                 <a
                   href="/courses"
-                  class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  class="inline-block rounded-md bg-primary px-xl py-sm text-white transition-colors hover:bg-primary-dark"
                 >
                   Clear All Filters
                 </a>
@@ -215,7 +215,7 @@ const coursePageNumbers = computeCoursePageNumbers();
             ) : (
               <>
                 <!-- Course Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                <div class="mb-2xl grid grid-cols-1 gap-xl md:grid-cols-2 xl:grid-cols-3">
                   {courses.items.map((course) => (
                     <CourseCard course={course} />
                   ))}
@@ -224,30 +224,30 @@ const coursePageNumbers = computeCoursePageNumbers();
                 <!-- Pagination -->
                 {totalPages > 1 && (
                   <nav
-                    class="flex justify-center items-center gap-2"
+                    class="flex items-center justify-center gap-sm"
                     aria-label="Pagination"
                   >
                     {/* Previous Button */}
                     {hasPrevPage ? (
                       <a
                         href={buildPageUrl(currentPage - 1)}
-                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        class="rounded-md border border-border px-md py-sm text-sm font-medium text-text transition-colors hover:bg-surface"
                       >
                         Previous
                       </a>
                     ) : (
-                      <span class="px-4 py-2 border border-gray-200 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                      <span class="cursor-not-allowed rounded-md border border-border px-md py-sm text-sm font-medium text-text-lighter">
                         Previous
                       </span>
                     )}
 
                     {/* Page Numbers (Desktop) */}
-                    <div class="hidden md:flex gap-1">
+                    <div class="hidden gap-xs md:flex">
                       {coursePageNumbers.map((page) => {
                         if (!page.showPage) {
                           if (page.showEllipsis) {
                             return (
-                              <span class="px-3 py-2 text-gray-500">
+                              <span class="px-sm py-sm text-text-light">
                                 ...
                               </span>
                             );
@@ -258,11 +258,12 @@ const coursePageNumbers = computeCoursePageNumbers();
                         return (
                           <a
                             href={buildPageUrl(page.pageNum)}
-                            class={`px-4 py-2 border rounded-md text-sm font-medium transition-colors ${
+                            class:list={[
+                              'rounded-md border px-md py-sm text-sm font-medium transition-colors',
                               page.pageNum === currentPage
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
+                                ? 'border-primary bg-primary text-white'
+                                : 'border-border text-text hover:bg-surface'
+                            ]}
                             aria-current={page.pageNum === currentPage ? 'page' : undefined}
                           >
                             {page.pageNum}
@@ -272,7 +273,7 @@ const coursePageNumbers = computeCoursePageNumbers();
                     </div>
 
                     {/* Page Indicator (Mobile) */}
-                    <span class="md:hidden px-4 py-2 text-sm text-gray-700">
+                    <span class="px-md py-sm text-sm text-text md:hidden">
                       Page {currentPage} of {totalPages}
                     </span>
 
@@ -280,12 +281,12 @@ const coursePageNumbers = computeCoursePageNumbers();
                     {hasNextPage ? (
                       <a
                         href={buildPageUrl(currentPage + 1)}
-                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        class="rounded-md border border-border px-md py-sm text-sm font-medium text-text transition-colors hover:bg-surface"
                       >
                         Next
                       </a>
                     ) : (
-                      <span class="px-4 py-2 border border-gray-200 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                      <span class="cursor-not-allowed rounded-md border border-border px-md py-sm text-sm font-medium text-text-lighter">
                         Next
                       </span>
                     )}

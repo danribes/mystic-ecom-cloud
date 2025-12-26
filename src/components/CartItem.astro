@@ -38,14 +38,16 @@ const getItemTypeLabel = (type: string): string => {
 const imageSrc = item.itemImageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200';
 ---
 
-<div class="grid grid-cols-[150px_1fr_auto] gap-lg rounded-lg border border-border bg-white p-lg transition-shadow duration-fast hover:shadow-md md:grid-cols-[100px_1fr] lg:grid-cols-[150px_1fr_auto]" data-item-id={item.itemId} data-item-type={item.itemType}>
-  <div class="relative h-[100px] w-[150px] overflow-hidden rounded-md md:h-[75px] md:w-[100px] lg:h-[100px] lg:w-[150px]">
-    <img src={imageSrc} alt={item.itemTitle} class="h-full w-full object-cover" />
+<div class="flex flex-col gap-md rounded-lg border border-border bg-background p-lg transition-shadow duration-fast hover:shadow-md sm:flex-row sm:items-start" data-item-id={item.itemId} data-item-type={item.itemType}>
+  <!-- Image -->
+  <div class="relative h-24 w-full shrink-0 overflow-hidden rounded-md sm:h-20 sm:w-32 lg:h-24 lg:w-36">
+    <img src={imageSrc} alt={item.itemTitle} class="h-full w-full object-cover" loading="lazy" />
     <span class="absolute left-xs top-xs rounded-sm bg-black/70 px-sm py-xs text-xs font-medium text-white">{getItemTypeLabel(item.itemType)}</span>
   </div>
 
-  <div class="flex flex-col gap-sm">
-    <h3 class="m-0 text-lg font-semibold">
+  <!-- Content -->
+  <div class="flex flex-1 flex-col gap-sm">
+    <h3 class="m-0 text-lg font-semibold leading-tight">
       <a href={`/${item.itemType === 'course' ? 'courses' : item.itemType === 'event' ? 'events' : 'products'}/${item.itemSlug || item.itemId}`} class="text-text no-underline transition-colors duration-fast hover:text-primary">
         {item.itemTitle}
       </a>
@@ -53,7 +55,8 @@ const imageSrc = item.itemImageUrl || 'https://images.unsplash.com/photo-1516321
     <p class="m-0 text-sm text-text-light">{formatPrice(item.price)} each</p>
   </div>
 
-  <div class="col-span-full flex flex-col items-end gap-md md:flex-row md:justify-between md:items-center lg:col-auto lg:flex-col lg:items-end">
+  <!-- Actions -->
+  <div class="flex flex-wrap items-center justify-between gap-md sm:flex-col sm:items-end sm:justify-start">
     <div class="flex items-center gap-xs overflow-hidden rounded-md border border-border">
       <button 
         class="flex h-8 w-8 items-center justify-center border-none bg-surface text-lg font-bold text-text transition-colors duration-fast hover:bg-surface-dark disabled:cursor-not-allowed disabled:opacity-50" 
@@ -79,12 +82,12 @@ const imageSrc = item.itemImageUrl || 'https://images.unsplash.com/photo-1516321
       </button>
     </div>
 
-    <div class="flex flex-col items-end gap-xs md:flex-row md:gap-sm lg:flex-col lg:items-end">
+    <div class="flex items-center gap-sm">
       <span class="text-sm text-text-light">Total:</span>
       <span class="text-xl font-bold text-primary">{formatPrice(itemTotal)}</span>
     </div>
 
-    <button class="flex items-center gap-xs rounded-md border border-border bg-white px-md py-sm text-sm font-medium text-error transition-all duration-fast hover:border-error hover:bg-error-light" aria-label="Remove item" data-action="remove">
+    <button class="flex items-center gap-xs rounded-md border border-border bg-background px-md py-sm text-sm font-medium text-error transition-all duration-fast hover:border-error hover:bg-error-light" aria-label="Remove item" data-action="remove">
       <span class="text-base">🗑️</span>
       <span>Remove</span>
     </button>
