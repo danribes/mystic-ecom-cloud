@@ -8,6 +8,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getSessionFromRequest } from '@/lib/auth/session';
 import { initEnv } from '@/lib/env';
+import { extractLocaleFromPath } from '@/i18n';
 
 /**
  * Auth middleware to protect routes
@@ -31,6 +32,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
       initEnv(runtime.env);
     }
 
+    // Extract clean path without locale prefix (e.g., /en/courses -> /courses)
+    const { path: cleanPath } = extractLocaleFromPath(url.pathname);
+
     // Skip middleware for public routes
     const publicPaths = [
       '/',
@@ -49,12 +53,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
       '/products',
     ];
 
-    // Check if current path is public
+    // Check if current path is public (using clean path without locale prefix)
     const isPublicPath = publicPaths.some((path) => {
       if (path === '/') {
-        return url.pathname === path;
+        return cleanPath === path;
       }
-      return url.pathname.startsWith(path);
+      return cleanPath.startsWith(path);
     });
 
     // Allow public static assets
@@ -96,13 +100,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // If auth middleware fails, log error and continue to allow public access
     console.error('[auth] Middleware error:', error);
 
+    // Extract clean path without locale prefix for public path check
+    const { path: cleanPath } = extractLocaleFromPath(context.url.pathname);
+
     // For public paths, continue anyway
     const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health', '/courses', '/events', '/shop', '/about', '/cart', '/checkout', '/products'];
     const isPublicPath = publicPaths.some((path) => {
       if (path === '/') {
-        return context.url.pathname === path;
+        return cleanPath === path;
       }
-      return context.url.pathname.startsWith(path);
+      return cleanPath.startsWith(path);
     });
 
     if (isPublicPath || context.url.pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|css|js|woff|woff2|ttf)$/)) {
