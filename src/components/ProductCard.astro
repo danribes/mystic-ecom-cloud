@@ -5,6 +5,9 @@
  */
 
 import type { DigitalProduct } from '../lib/products';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { t } = useTranslations(Astro.locals);
 
 interface Props {
   product: DigitalProduct;
@@ -126,7 +129,7 @@ const getTypeLabel = (type: string): string => {
         href={`/products/${product.slug}`}
         class="block w-full whitespace-nowrap rounded-md bg-primary px-lg py-sm text-center text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
       >
-        View Details
+        {t('common.viewDetails')}
       </a>
     </div>
   </div>

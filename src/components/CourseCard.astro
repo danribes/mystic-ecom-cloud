@@ -1,12 +1,15 @@
 ---
 /**
  * CourseCard Component
- * 
+ *
  * Displays a course preview card with image, title, instructor, price,
  * rating, and enrollment information. Used in course listings and grids.
  */
 
 import type { Course } from '@/types';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { t } = useTranslations(Astro.locals);
 
 interface Props {
   course: Course;
@@ -92,7 +95,7 @@ const stars = course.avgRating ? renderStars(course.avgRating) : [];
     />
     {course.isFeatured && (
       <span class="absolute right-md top-md rounded-full bg-accent px-md py-xs text-sm font-bold text-white shadow-md">
-        ⭐ Featured
+        ⭐ {t('common.featured')}
       </span>
     )}
     {course.previewVideoUrl && (
@@ -186,7 +189,7 @@ const stars = course.avgRating ? renderStars(course.avgRating) : [];
           <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
-          <span>No reviews yet</span>
+          <span>{t('courses.noReviewsYet')}</span>
         </div>
       )}
 
@@ -194,7 +197,7 @@ const stars = course.avgRating ? renderStars(course.avgRating) : [];
       <div class="flex items-center gap-xs text-sm">
         <span class="text-base">👥</span>
         <span class="font-semibold text-text">{course.enrollmentCount.toLocaleString()}</span>
-        <span class="text-text-light">enrolled</span>
+        <span class="text-text-light">{t('courses.enrolledCount')}</span>
       </div>
 
       <!-- Duration -->
@@ -220,7 +223,7 @@ const stars = course.avgRating ? renderStars(course.avgRating) : [];
     <div class="mt-auto flex items-center justify-between gap-md border-t border-border pt-md">
       <div class="flex items-baseline gap-xs">
         {course.price === 0 ? (
-          <span class="text-2xl font-bold text-success">Free</span>
+          <span class="text-2xl font-bold text-success">{t('common.free')}</span>
         ) : (
           <>
             <span class="text-2xl font-bold text-primary">{formatPrice(course.price)}</span>
@@ -229,7 +232,7 @@ const stars = course.avgRating ? renderStars(course.avgRating) : [];
         )}
       </div>
       <a href={courseUrl} class="whitespace-nowrap rounded-md bg-primary px-lg py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md">
-        Enroll Now
+        {t('courses.enroll')}
       </a>
     </div>
   </div>
