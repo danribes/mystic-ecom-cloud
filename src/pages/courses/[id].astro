@@ -29,7 +29,7 @@ const { id } = Astro.params;
 const session = await getSessionFromRequest(Astro.cookies);
 
 // Get locale from middleware (T168)
-const locale = Astro.locals.locale || 'en';
+const locale = Astro.locals.locale || 'es';
 
 // Fetch localized course from database (T168)
 let course: Course | null = null;

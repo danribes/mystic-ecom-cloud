@@ -18,7 +18,7 @@ import { NotFoundError } from '@/lib/errors';
 const { id } = Astro.params;
 
 // Get locale from middleware (T169)
-const locale = Astro.locals.locale || 'en';
+const locale = Astro.locals.locale || 'es';
 
 if (!id) {
   return Astro.redirect('/events');

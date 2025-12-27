@@ -12,7 +12,7 @@ import { getTranslations } from '../i18n';
 const user = Astro.locals.user;
 const isLoggedIn = !!user;
 const isAdmin = user?.role === 'admin';
-const locale = Astro.locals.locale || 'en';
+const locale = Astro.locals.locale || 'es';
 const t = getTranslations(locale);
 
 const currentPath = Astro.url.pathname;

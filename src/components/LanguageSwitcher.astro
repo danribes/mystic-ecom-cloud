@@ -22,7 +22,7 @@
 
 import { LOCALES, LOCALE_NAMES, type Locale } from '../i18n';
 
-const currentLocale = Astro.locals.locale || 'en';
+const currentLocale = Astro.locals.locale || 'es';
 const currentPath = Astro.url.pathname;
 
 // Remove locale prefix from path to get clean path
@@ -40,10 +40,10 @@ function getCleanPath(pathname: string): string {
 
 const cleanPath = getCleanPath(currentPath);
 
-// Generate URLs for each locale
+// Generate URLs for each locale (Spanish is default, English needs /en/ prefix)
 const localeUrls: Record<Locale, string> = {
-  en: cleanPath || '/',
-  es: `/es${cleanPath || '/'}`,
+  es: cleanPath || '/',
+  en: `/en${cleanPath || '/'}`,
 };
 
 // Language display configuration
