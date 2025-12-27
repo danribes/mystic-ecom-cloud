@@ -1,7 +1,7 @@
 ---
 /**
  * T108: Search Results Page
- * 
+ *
  * Displays search results with filtering, sorting, and pagination.
  * Integrates with T106 Search API endpoint.
  */
@@ -9,6 +9,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FilterSidebar from '../components/FilterSidebar.astro';
 import SearchResult from '../components/SearchResult.astro';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
 
 // Get search parameters from URL
 const url = new URL(Astro.request.url);
@@ -92,18 +95,18 @@ const computeSearchPageNumbers = (): number[] => {
 
 const searchPageNumbers = computeSearchPageNumbers();
 
-const title = query ? `Search results for "${query}"` : 'Search';
+const title = query ? t('search.resultsFor', { query }) : t('search.title');
 ---
 
 <BaseLayout title={title}>
   <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
       <h1 class="mb-2 text-3xl font-bold text-text">
-        {query ? `Results for "${query}"` : 'Search'}
+        {query ? t('search.resultsFor', { query }) : t('search.title')}
       </h1>
       {results && (
         <p class="text-text-light">
-          Found {results.total} result{results.total !== 1 ? 's' : ''}
+          {t('search.showing', { count: results.total })}
           {type && ` in ${type}s`}
         </p>
       )}
@@ -140,16 +143,16 @@ const title = query ? `Search results for "${query}"` : 'Search';
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            <h2 class="mb-2 text-xl font-semibold text-text">Start your search</h2>
+            <h2 class="mb-2 text-xl font-semibold text-text">{t('search.startSearch')}</h2>
             <p class="text-text-light">
-              Enter a search term above to find courses, products, and events.
+              {t('search.startSearchMessage')}
             </p>
           </div>
         )}
 
         {error && (
           <div class="rounded-lg border border-error bg-error/10 p-4 text-error">
-            <p class="font-medium">Error</p>
+            <p class="font-medium">{t('search.error')}</p>
             <p class="text-sm">{error}</p>
           </div>
         )}
@@ -169,9 +172,9 @@ const title = query ? `Search results for "${query}"` : 'Search';
                 d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <h2 class="mb-2 text-xl font-semibold text-text">No results found</h2>
+            <h2 class="mb-2 text-xl font-semibold text-text">{t('search.noResults')}</h2>
             <p class="text-text-light">
-              Try adjusting your search or filters to find what you're looking for.
+              {t('search.noResultsMessage')}
             </p>
           </div>
         )}
@@ -197,13 +200,13 @@ const title = query ? `Search results for "${query}"` : 'Search';
                       href={buildPageUrl(offset - limit)}
                       class="inline-flex items-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
                     >
-                      Previous
+                      {t('pagination.previous')}
                     </a>
                   ) : (
                     <span
                       class="inline-flex items-center rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-text-light"
                     >
-                      Previous
+                      {t('pagination.previous')}
                     </span>
                   )}
 
@@ -212,13 +215,13 @@ const title = query ? `Search results for "${query}"` : 'Search';
                       href={buildPageUrl(offset + limit)}
                       class="ml-3 inline-flex items-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
                     >
-                      Next
+                      {t('pagination.next')}
                     </a>
                   ) : (
                     <span
                       class="ml-3 inline-flex items-center rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-text-light"
                     >
-                      Next
+                      {t('pagination.next')}
                     </span>
                   )}
                 </div>
@@ -226,15 +229,7 @@ const title = query ? `Search results for "${query}"` : 'Search';
                 <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                   <div>
                     <p class="text-sm text-text-light">
-                      Showing{' '}
-                      <span class="font-medium text-text">{offset + 1}</span>
-                      {' '}to{' '}
-                      <span class="font-medium text-text">
-                        {Math.min(offset + limit, results.total)}
-                      </span>
-                      {' '}of{' '}
-                      <span class="font-medium text-text">{results.total}</span>
-                      {' '}results
+                      {t('pagination.showing', { start: offset + 1, end: Math.min(offset + limit, results.total), total: results.total })}
                     </p>
                   </div>
 
@@ -245,7 +240,7 @@ const title = query ? `Search results for "${query}"` : 'Search';
                           href={buildPageUrl(offset - limit)}
                           class="inline-flex items-center rounded-l-lg border border-border bg-background px-2 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
                         >
-                          <span class="sr-only">Previous</span>
+                          <span class="sr-only">{t('pagination.previous')}</span>
                           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fill-rule="evenodd"
@@ -258,7 +253,7 @@ const title = query ? `Search results for "${query}"` : 'Search';
                         <span
                           class="inline-flex items-center rounded-l-lg border border-border bg-surface px-2 py-2 text-sm font-medium text-text-light"
                         >
-                          <span class="sr-only">Previous</span>
+                          <span class="sr-only">{t('pagination.previous')}</span>
                           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fill-rule="evenodd"
@@ -296,7 +291,7 @@ const title = query ? `Search results for "${query}"` : 'Search';
                           href={buildPageUrl(offset + limit)}
                           class="inline-flex items-center rounded-r-lg border border-border bg-background px-2 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
                         >
-                          <span class="sr-only">Next</span>
+                          <span class="sr-only">{t('pagination.next')}</span>
                           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fill-rule="evenodd"
@@ -309,7 +304,7 @@ const title = query ? `Search results for "${query}"` : 'Search';
                         <span
                           class="inline-flex items-center rounded-r-lg border border-border bg-surface px-2 py-2 text-sm font-medium text-text-light"
                         >
-                          <span class="sr-only">Next</span>
+                          <span class="sr-only">{t('pagination.next')}</span>
                           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fill-rule="evenodd"

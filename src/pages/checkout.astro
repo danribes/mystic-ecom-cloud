@@ -8,6 +8,9 @@
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import type { Cart, CartItem } from '@/types';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
 
 // Check user authentication
 const user = Astro.locals.user;
@@ -38,30 +41,30 @@ const TAX_RATE = 0.08; // 8% tax
 ---
 
 <BaseLayout
-  title="Checkout"
-  description="Complete your purchase and access your spiritual learning content"
+  title={t('checkout.title')}
+  description={t('checkout.description')}
 >
-  <div class="min-h-screen bg-surface py-xl">
+  <div class="min-h-screen bg-surface py-xl" data-locale={locale}>
     <div class="mx-auto max-w-6xl px-md">
       <!-- Header -->
       <div class="mb-2xl">
-        <h1 class="text-4xl font-bold text-text mb-sm">Checkout</h1>
-        <p class="text-text-light">Review your order and complete your purchase</p>
+        <h1 class="text-4xl font-bold text-text mb-sm">{t('checkout.title')}</h1>
+        <p class="text-text-light">{t('checkout.description')}</p>
       </div>
 
       <!-- Empty Cart State -->
       <div id="empty-checkout" class="hidden rounded-lg bg-white p-3xl text-center shadow-md">
         <div class="mx-auto max-w-md">
           <span class="mb-lg block text-6xl">🛒</span>
-          <h2 class="mb-md text-2xl font-semibold text-text">Your cart is empty</h2>
+          <h2 class="mb-md text-2xl font-semibold text-text">{t('cart.emptyCart')}</h2>
           <p class="mb-xl text-text-light">
-            Add some courses to your cart before proceeding to checkout.
+            {t('cart.emptyCheckoutMessage')}
           </p>
-          <a 
-            href="/courses" 
+          <a
+            href="/courses"
             class="inline-block rounded-md bg-primary px-xl py-md font-semibold text-white transition-all duration-fast hover:bg-primary-dark hover:shadow-lg"
           >
-            Browse Courses
+            {t('courses.browseCourses')}
           </a>
         </div>
       </div>
@@ -73,19 +76,19 @@ const TAX_RATE = 0.08; // 8% tax
           <!-- Order Items -->
           <div class="mb-xl rounded-lg bg-white p-lg shadow-md">
             <h2 class="mb-lg border-b border-border pb-md text-xl font-semibold text-text">
-              Order Summary
+              {t('cart.orderSummary')}
             </h2>
-            
+
             <div id="order-items" class="space-y-md">
               <!-- Items will be loaded via JavaScript -->
             </div>
 
             <div class="mt-lg border-t border-border pt-md">
-              <a 
-                href="/cart" 
+              <a
+                href="/cart"
                 class="text-primary transition-colors hover:text-primary-dark"
               >
-                ← Back to Cart
+                ← {t('cart.backToCart')}
               </a>
             </div>
           </div>
@@ -96,31 +99,31 @@ const TAX_RATE = 0.08; // 8% tax
               <div class="flex items-start gap-md">
                 <span class="text-2xl">✨</span>
                 <div class="flex-1">
-                  <h3 class="mb-sm text-lg font-semibold text-text">Create an account for a better experience</h3>
+                  <h3 class="mb-sm text-lg font-semibold text-text">{t('checkout.createAccountPrompt')}</h3>
                   <ul class="mb-md space-y-xs text-sm text-text-light">
-                    <li>• Track your orders and purchases</li>
-                    <li>• Access your courses anytime</li>
-                    <li>• Save your billing information</li>
-                    <li>• Get exclusive member discounts</li>
+                    <li>• {t('checkout.createAccountBenefits.trackOrders')}</li>
+                    <li>• {t('checkout.createAccountBenefits.accessCourses')}</li>
+                    <li>• {t('checkout.createAccountBenefits.saveBilling')}</li>
+                    <li>• {t('checkout.createAccountBenefits.memberDiscounts')}</li>
                   </ul>
                   <div class="flex flex-wrap gap-sm">
                     <a
                       href="/register?redirect=/checkout"
                       class="inline-block rounded-md bg-primary px-lg py-sm font-medium text-white transition-all duration-fast hover:bg-primary-dark"
                     >
-                      Create Account
+                      {t('auth.createAccount')}
                     </a>
                     <a
                       href="/login?redirect=/checkout"
                       class="inline-block rounded-md border border-border px-lg py-sm font-medium text-text transition-all duration-fast hover:bg-surface"
                     >
-                      Sign In
+                      {t('auth.signIn')}
                     </a>
                   </div>
                 </div>
               </div>
               <p class="mt-md text-xs text-text-lighter">
-                Or continue as a guest below. You can create an account later.
+                {t('checkout.continueAsGuest')}
               </p>
             </div>
           )}
@@ -128,14 +131,14 @@ const TAX_RATE = 0.08; // 8% tax
           <!-- Billing Information -->
           <div class="rounded-lg bg-white p-lg shadow-md">
             <h2 class="mb-lg border-b border-border pb-md text-xl font-semibold text-text">
-              Billing Information
+              {t('checkout.billingInfo')}
             </h2>
 
             <form id="checkout-form" class="space-y-md">
               <!-- Email -->
               <div>
                 <label for="email" class="mb-xs block text-sm font-medium text-text">
-                  Email Address <span class="text-error">*</span>
+                  {t('checkout.emailAddress')} <span class="text-error">*</span>
                 </label>
                 <input
                   type="email"
@@ -143,10 +146,10 @@ const TAX_RATE = 0.08; // 8% tax
                   name="email"
                   required
                   class="w-full rounded-md border border-border px-md py-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="you@example.com"
+                  placeholder={t('checkout.emailPlaceholder')}
                 />
                 <p class="mt-xs text-xs text-text-light">
-                  Order confirmation will be sent to this email
+                  {t('checkout.emailHelper')}
                 </p>
               </div>
 
@@ -154,7 +157,7 @@ const TAX_RATE = 0.08; // 8% tax
               <div class="grid grid-cols-1 gap-md sm:grid-cols-2">
                 <div>
                   <label for="firstName" class="mb-xs block text-sm font-medium text-text">
-                    First Name <span class="text-error">*</span>
+                    {t('checkout.firstName')} <span class="text-error">*</span>
                   </label>
                   <input
                     type="text"
@@ -166,7 +169,7 @@ const TAX_RATE = 0.08; // 8% tax
                 </div>
                 <div>
                   <label for="lastName" class="mb-xs block text-sm font-medium text-text">
-                    Last Name <span class="text-error">*</span>
+                    {t('checkout.lastName')} <span class="text-error">*</span>
                   </label>
                   <input
                     type="text"
@@ -181,7 +184,7 @@ const TAX_RATE = 0.08; // 8% tax
               <!-- Country -->
               <div>
                 <label for="country" class="mb-xs block text-sm font-medium text-text">
-                  Country <span class="text-error">*</span>
+                  {t('checkout.country')} <span class="text-error">*</span>
                 </label>
                 <select
                   id="country"
@@ -189,7 +192,7 @@ const TAX_RATE = 0.08; // 8% tax
                   required
                   class="w-full rounded-md border border-border px-md py-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
-                  <option value="">Select a country</option>
+                  <option value="">{t('checkout.selectCountry')}</option>
                   <option value="US">United States</option>
                   <option value="CA">Canada</option>
                   <option value="GB">United Kingdom</option>
@@ -217,22 +220,22 @@ const TAX_RATE = 0.08; // 8% tax
         <div class="lg:col-span-1">
           <div class="sticky top-lg rounded-lg bg-white p-lg shadow-md">
             <h2 class="mb-lg border-b border-border pb-md text-xl font-semibold text-text">
-              Payment Summary
+              {t('checkout.paymentSummary')}
             </h2>
 
             <!-- Price Breakdown -->
             <div class="space-y-md mb-lg">
               <div class="flex items-center justify-between text-text">
-                <span>Subtotal</span>
+                <span>{t('cart.subtotal')}</span>
                 <span id="summary-subtotal" class="font-medium">$0.00</span>
               </div>
               <div class="flex items-center justify-between text-text">
-                <span>Tax (8%)</span>
+                <span>{t('cart.tax')} (8%)</span>
                 <span id="summary-tax" class="font-medium">$0.00</span>
               </div>
               <div class="border-t border-border pt-md">
                 <div class="flex items-center justify-between text-lg font-bold text-text">
-                  <span>Total</span>
+                  <span>{t('cart.total')}</span>
                   <span id="summary-total" class="text-primary">$0.00</span>
                 </div>
               </div>
@@ -243,16 +246,18 @@ const TAX_RATE = 0.08; // 8% tax
               id="btn-payment"
               type="button"
               class="mb-md w-full rounded-md bg-primary px-xl py-md font-semibold text-white transition-all duration-fast hover:bg-primary-dark hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+              data-processing-text={t('checkout.processing')}
+              data-default-text={t('checkout.proceedToPayment')}
             >
-              Proceed to Payment
+              {t('checkout.proceedToPayment')}
             </button>
 
             <!-- Security Notice -->
             <div class="flex items-start gap-sm rounded-md bg-surface p-md">
               <span class="text-lg">🔒</span>
               <div class="text-xs text-text-light">
-                <p class="mb-xs font-medium text-text">Secure Checkout</p>
-                <p>Your payment is processed securely through Stripe. We never store your card details.</p>
+                <p class="mb-xs font-medium text-text">{t('checkout.secureCheckout')}</p>
+                <p>{t('checkout.secureCheckoutDesc')}</p>
               </div>
             </div>
 
@@ -260,8 +265,8 @@ const TAX_RATE = 0.08; // 8% tax
             <div class="mt-md flex items-start gap-sm rounded-md bg-success-light p-md">
               <span class="text-lg">✓</span>
               <div class="text-xs text-text">
-                <p class="mb-xs font-medium">30-Day Money Back Guarantee</p>
-                <p class="text-text-light">Not satisfied? Get a full refund within 30 days.</p>
+                <p class="mb-xs font-medium">{t('checkout.moneyBackGuarantee')}</p>
+                <p class="text-text-light">{t('checkout.moneyBackGuaranteeDesc')}</p>
               </div>
             </div>
           </div>
@@ -406,7 +411,7 @@ const TAX_RATE = 0.08; // 8% tax
     const btnPayment = document.getElementById('btn-payment') as HTMLButtonElement;
     if (btnPayment) {
       btnPayment.disabled = true;
-      btnPayment.textContent = 'Processing...';
+      btnPayment.textContent = btnPayment.dataset.processingText || 'Processing...';
     }
 
     try {
@@ -431,7 +436,7 @@ const TAX_RATE = 0.08; // 8% tax
     } finally {
       if (btnPayment) {
         btnPayment.disabled = false;
-        btnPayment.textContent = 'Proceed to Payment';
+        btnPayment.textContent = btnPayment.dataset.defaultText || 'Proceed to Payment';
       }
     }
   }
