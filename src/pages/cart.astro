@@ -1,7 +1,7 @@
 ---
 /**
  * Shopping Cart Page
- * 
+ *
  * Displays cart items with quantities, prices, and totals.
  * Allows quantity updates, item removal, and proceeding to checkout.
  */
@@ -9,6 +9,9 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CartItem from '@/components/CartItem.astro';
 import type { Cart, CartItem as CartItemType } from '@/types';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
 
 // For now, use mock data from sessionStorage (until cart API T042-T044 is implemented)
 // In production, this would fetch from: GET /api/cart
@@ -36,23 +39,23 @@ const TAX_RATE = 0.08; // 8% tax
 ---
 
 <BaseLayout
-  title="Shopping Cart"
-  description="Review your cart and proceed to checkout"
+  title={t('cart.title')}
+  description={t('cart.title')}
 >
-  <div class="cart-page">
+  <div class="cart-page" data-locale={locale} data-confirm-remove={t('cart.confirmRemove')} data-confirm-clear={t('cart.confirmClear')} data-remove-text={t('cart.remove')} data-each-text={t('cart.each')}>
     <div class="mx-auto max-w-[1200px] px-lg py-xl md:px-lg">
       <div class="mb-2xl flex flex-col items-start justify-between gap-md md:flex-row md:items-center">
-        <h1 class="m-0 text-4xl font-bold text-text md:text-4xl">Shopping Cart</h1>
-        <a href="/courses" class="font-medium text-primary no-underline transition-colors duration-fast hover:text-primary-dark">← Continue Shopping</a>
+        <h1 class="m-0 text-4xl font-bold text-text md:text-4xl">{t('cart.title')}</h1>
+        <a href="/courses" class="font-medium text-primary no-underline transition-colors duration-fast hover:text-primary-dark">← {t('cart.continueShopping')}</a>
       </div>
 
       <!-- Empty Cart State -->
       <div class="hidden min-h-[400px] items-center justify-center" id="empty-cart-state">
         <div class="max-w-[500px] text-center">
           <span class="mb-lg block text-[5rem]">🛒</span>
-          <h2 class="mb-md text-3xl text-text">Your cart is empty</h2>
-          <p class="mb-xl leading-relaxed text-text-light">Looks like you haven't added any courses yet. Browse our collection to find something that inspires you!</p>
-          <a href="/courses" class="inline-block rounded-md bg-primary px-2xl py-md text-white no-underline transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-lg">Browse Courses</a>
+          <h2 class="mb-md text-3xl text-text">{t('cart.emptyCart')}</h2>
+          <p class="mb-xl leading-relaxed text-text-light">{t('cart.emptyCartMessage')}</p>
+          <a href="/courses" class="inline-block rounded-md bg-primary px-2xl py-md text-white no-underline transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-lg">{t('courses.browseCourses')}</a>
         </div>
       </div>
 
@@ -62,8 +65,8 @@ const TAX_RATE = 0.08; // 8% tax
           <!-- Cart Items -->
           <div class="min-w-0">
             <h2 class="mb-xl flex items-center justify-between text-2xl font-semibold text-text">
-              <span>Cart Items</span>
-              <span class="text-base font-normal text-text-light" id="cart-item-count">0 items</span>
+              <span>{t('cart.cartItems')}</span>
+              <span class="text-base font-normal text-text-light" id="cart-item-count" data-items-text={t('cart.items')} data-item-text={t('cart.item')}>0 {t('cart.items')}</span>
             </h2>
 
             <div class="flex flex-col gap-lg" id="cart-items-list">
@@ -73,46 +76,46 @@ const TAX_RATE = 0.08; // 8% tax
             <!-- Loading State -->
             <div class="flex flex-col items-center gap-md p-3xl text-text-light" id="loading-state">
               <div class="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-primary"></div>
-              <p>Loading your cart...</p>
+              <p>{t('cart.loadingCart')}</p>
             </div>
           </div>
 
           <!-- Order Summary -->
           <aside class="sticky top-lg">
             <div class="mb-lg rounded-lg border border-border bg-white p-xl">
-              <h2 class="mb-lg text-xl font-semibold text-text">Order Summary</h2>
+              <h2 class="mb-lg text-xl font-semibold text-text">{t('cart.orderSummary')}</h2>
 
               <div class="mb-md flex items-center justify-between text-text">
-                <span class="text-text-light">Subtotal:</span>
+                <span class="text-text-light">{t('cart.subtotal')}:</span>
                 <span class="font-medium" id="summary-subtotal">$0.00</span>
               </div>
 
               <div class="mb-md flex items-center justify-between text-text">
-                <span class="text-text-light">Tax (8%):</span>
+                <span class="text-text-light">{t('cart.tax')} (8%):</span>
                 <span class="font-medium" id="summary-tax">$0.00</span>
               </div>
 
               <div class="my-lg h-px bg-border"></div>
 
               <div class="mb-xl flex items-center justify-between text-xl font-bold text-text">
-                <span>Total:</span>
+                <span>{t('cart.total')}:</span>
                 <span class="text-primary" id="summary-total">$0.00</span>
               </div>
 
               <button class="mb-0 w-full cursor-pointer rounded-md border-none bg-primary px-xl py-md text-lg font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50" id="btn-checkout">
-                Proceed to Checkout
+                {t('cart.proceedToCheckout')}
               </button>
 
               <div class="mt-lg flex items-center justify-center gap-sm text-sm text-text-light">
                 <span class="text-base">🔒</span>
-                <span>Secure checkout powered by Stripe</span>
+                <span>{t('cart.secureCheckout')}</span>
               </div>
             </div>
 
             <!-- Cart Actions -->
             <div class="rounded-lg border border-border bg-surface p-lg">
               <button class="w-full cursor-pointer rounded-md border border-border bg-transparent px-lg py-sm text-base font-medium text-error transition-all duration-fast hover:border-error hover:bg-error-light" id="btn-clear-cart">
-                Clear Cart
+                {t('cart.clearCart')}
               </button>
             </div>
           </aside>
@@ -166,6 +169,7 @@ const TAX_RATE = 0.08; // 8% tax
   // Render cart items
   function renderCartItems(cart: Cart): void {
     const cartItemsList = document.getElementById('cart-items-list');
+    const cartPage = document.querySelector('.cart-page') as HTMLElement;
     if (!cartItemsList) return;
 
     if (cart.items.length === 0) {
@@ -174,6 +178,10 @@ const TAX_RATE = 0.08; // 8% tax
     }
 
     cartItemsList.innerHTML = '';
+
+    // Get translated strings from data attributes
+    const removeText = cartPage?.dataset.removeText || 'Remove';
+    const eachText = cartPage?.dataset.eachText || 'each';
 
     cart.items.forEach((item) => {
       const itemElement = document.createElement('div');
@@ -197,7 +205,7 @@ const TAX_RATE = 0.08; // 8% tax
               ${item.itemTitle}
             </a>
           </h3>
-          <p class="item-price">${formatPrice(item.price)} each</p>
+          <p class="item-price">${formatPrice(item.price)} ${eachText}</p>
         </div>
 
         <div class="item-actions">
@@ -212,9 +220,9 @@ const TAX_RATE = 0.08; // 8% tax
             <span class="total-price">${formatPrice(itemTotal)}</span>
           </div>
 
-          <button class="btn-remove" aria-label="Remove item" data-action="remove">
+          <button class="btn-remove" aria-label="${removeText}" data-action="remove">
             <span class="remove-icon">🗑️</span>
-            <span class="remove-text">Remove</span>
+            <span class="remove-text">${removeText}</span>
           </button>
         </div>
       `;
@@ -226,9 +234,11 @@ const TAX_RATE = 0.08; // 8% tax
     });
 
     // Update item count
-    const itemCountEl = document.getElementById('cart-item-count');
+    const itemCountEl = document.getElementById('cart-item-count') as HTMLElement;
     if (itemCountEl) {
-      itemCountEl.textContent = `${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'items'}`;
+      const itemsText = itemCountEl.dataset.itemsText || 'items';
+      const itemText = itemCountEl.dataset.itemText || 'item';
+      itemCountEl.textContent = `${cart.itemCount} ${cart.itemCount === 1 ? itemText : itemsText}`;
     }
 
     // Attach event listeners to new items
@@ -439,7 +449,9 @@ const TAX_RATE = 0.08; // 8% tax
 
   // Handle remove item
   function handleRemoveItem(itemId: string, itemType: string): void {
-    if (!confirm('Remove this item from your cart?')) return;
+    const cartPage = document.querySelector('.cart-page') as HTMLElement;
+    const confirmMsg = cartPage?.dataset.confirmRemove || 'Remove this item from your cart?';
+    if (!confirm(confirmMsg)) return;
 
     const cart = getCart();
     cart.items = cart.items.filter(i => !(i.itemId === itemId && i.itemType === itemType));
@@ -530,7 +542,9 @@ const TAX_RATE = 0.08; // 8% tax
     const btnClearCart = document.getElementById('btn-clear-cart');
     if (btnClearCart) {
       btnClearCart.addEventListener('click', () => {
-        if (!confirm('Are you sure you want to clear your cart?')) return;
+        const cartPage = document.querySelector('.cart-page') as HTMLElement;
+        const confirmMsg = cartPage?.dataset.confirmClear || 'Are you sure you want to clear your cart?';
+        if (!confirm(confirmMsg)) return;
 
         sessionStorage.removeItem('cartItems');
         sessionStorage.setItem('cartItemCount', '0');
