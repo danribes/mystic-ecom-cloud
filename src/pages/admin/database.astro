@@ -1,0 +1,302 @@
+---
+/**
+ * Admin Database Viewer
+ *
+ * Provides a simple interface to view and manage database tables.
+ * Only accessible to administrators.
+ */
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { query } from '@/lib/db';
+
+// Get list of all tables
+const tablesResult = await query<{ table_name: string }>(
+  `SELECT table_name
+   FROM information_schema.tables
+   WHERE table_schema = 'public'
+   AND table_type = 'BASE TABLE'
+   ORDER BY table_name`
+);
+const tables = tablesResult.rows;
+
+// Get selected table from URL
+const url = new URL(Astro.request.url);
+const selectedTable = url.searchParams.get('table') || 'users';
+const page = parseInt(url.searchParams.get('page') || '1');
+const limit = 20;
+const offset = (page - 1) * limit;
+
+// Get table columns
+let columns: { column_name: string; data_type: string; is_nullable: string }[] = [];
+let tableData: Record<string, unknown>[] = [];
+let totalCount = 0;
+
+if (selectedTable && tables.some(t => t.table_name === selectedTable)) {
+  // Get columns for selected table
+  const columnsResult = await query<{ column_name: string; data_type: string; is_nullable: string }>(
+    `SELECT column_name, data_type, is_nullable
+     FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = $1
+     ORDER BY ordinal_position`,
+    [selectedTable]
+  );
+  columns = columnsResult.rows;
+
+  // Get data from selected table
+  const dataResult = await query<Record<string, unknown>>(
+    `SELECT * FROM "${selectedTable}" ORDER BY
+      CASE WHEN EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = $1 AND column_name = 'created_at')
+        THEN 1 ELSE 0 END DESC,
+      1 DESC
+     LIMIT $2 OFFSET $3`,
+    [selectedTable, limit, offset]
+  );
+  tableData = dataResult.rows;
+
+  // Get total count
+  const countResult = await query<{ count: string }>(
+    `SELECT COUNT(*) as count FROM "${selectedTable}"`
+  );
+  totalCount = parseInt(countResult.rows[0]?.count || '0');
+}
+
+const totalPages = Math.ceil(totalCount / limit);
+
+// Format value for display
+function formatValue(value: unknown, columnType: string): string {
+  if (value === null || value === undefined) {
+    return '<null>';
+  }
+  if (columnType === 'timestamp with time zone' || columnType === 'timestamp without time zone') {
+    return new Date(value as string).toLocaleString();
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'string' && value.length > 100) {
+    return value.substring(0, 100) + '...';
+  }
+  return String(value);
+}
+---
+
+<AdminLayout title="Database" description="View and manage database tables">
+  <div class="space-y-6">
+    <!-- Database Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-blue-100 rounded-lg">
+            <span class="text-2xl">📊</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Tables</p>
+            <p class="text-2xl font-bold text-gray-900">{tables.length}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-green-100 rounded-lg">
+            <span class="text-2xl">📋</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Current Table</p>
+            <p class="text-lg font-bold text-gray-900 truncate">{selectedTable}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-purple-100 rounded-lg">
+            <span class="text-2xl">🔢</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Rows</p>
+            <p class="text-2xl font-bold text-gray-900">{totalCount.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-orange-100 rounded-lg">
+            <span class="text-2xl">📄</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Columns</p>
+            <p class="text-2xl font-bold text-gray-900">{columns.length}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Table List -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+            <h2 class="font-semibold text-gray-900">Tables</h2>
+          </div>
+          <div class="max-h-96 overflow-y-auto">
+            {tables.map((table) => (
+              <a
+                href={`/admin/database?table=${table.table_name}`}
+                class={`block px-4 py-2 text-sm border-b border-gray-50 hover:bg-purple-50 transition-colors ${
+                  selectedTable === table.table_name
+                    ? 'bg-purple-100 text-purple-700 font-medium'
+                    : 'text-gray-700'
+                }`}
+              >
+                <span class="mr-2">📁</span>
+                {table.table_name}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Data -->
+      <div class="lg:col-span-3">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-900">
+              {selectedTable}
+              <span class="text-sm font-normal text-gray-500 ml-2">
+                ({totalCount} rows)
+              </span>
+            </h2>
+            <div class="text-sm text-gray-500">
+              Page {page} of {totalPages || 1}
+            </div>
+          </div>
+
+          <!-- Column Info -->
+          <div class="px-4 py-2 border-b border-gray-100 bg-gray-50/50">
+            <div class="flex flex-wrap gap-2">
+              {columns.map((col) => (
+                <span
+                  class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600"
+                  title={`${col.data_type}${col.is_nullable === 'YES' ? ' (nullable)' : ''}`}
+                >
+                  <span class="font-medium">{col.column_name}</span>
+                  <span class="ml-1 text-gray-400">:{col.data_type.replace('character varying', 'varchar').replace('timestamp with time zone', 'timestamp')}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  {columns.slice(0, 8).map((col) => (
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      {col.column_name}
+                    </th>
+                  ))}
+                  {columns.length > 8 && (
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      +{columns.length - 8} more
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {tableData.length === 0 ? (
+                  <tr>
+                    <td colspan={Math.min(columns.length, 9)} class="px-4 py-8 text-center text-gray-500">
+                      No data found in this table
+                    </td>
+                  </tr>
+                ) : (
+                  tableData.map((row) => (
+                    <tr class="hover:bg-gray-50">
+                      {columns.slice(0, 8).map((col) => (
+                        <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap max-w-xs truncate" title={String(row[col.column_name] || '')}>
+                          {col.column_name === 'password_hash'
+                            ? '••••••••'
+                            : formatValue(row[col.column_name], col.data_type)}
+                        </td>
+                      ))}
+                      {columns.length > 8 && (
+                        <td class="px-4 py-3 text-sm text-gray-400">
+                          ...
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          {totalPages > 1 && (
+            <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+              <div class="text-sm text-gray-500">
+                Showing {offset + 1} to {Math.min(offset + limit, totalCount)} of {totalCount}
+              </div>
+              <div class="flex space-x-2">
+                {page > 1 && (
+                  <a
+                    href={`/admin/database?table=${selectedTable}&page=${page - 1}`}
+                    class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Previous
+                  </a>
+                )}
+                {page < totalPages && (
+                  <a
+                    href={`/admin/database?table=${selectedTable}&page=${page + 1}`}
+                    class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Next
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <!-- Users Table Quick View (for role management) -->
+        {selectedTable === 'users' && (
+          <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <h2 class="font-semibold text-gray-900">Quick Role Reference</h2>
+            </div>
+            <div class="p-4">
+              <p class="text-sm text-gray-600 mb-3">
+                To change a user's role, use the SQL command below in your database console:
+              </p>
+              <div class="bg-gray-900 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                <code>UPDATE users SET role = 'admin' WHERE email = 'user@example.com';</code>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">
+                Available roles: <code class="bg-gray-100 px-1 rounded">user</code>, <code class="bg-gray-100 px-1 rounded">admin</code>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div class="flex items-start space-x-3">
+        <span class="text-2xl">💡</span>
+        <div>
+          <h3 class="font-medium text-blue-900">Database Tips</h3>
+          <ul class="mt-1 text-sm text-blue-700 space-y-1">
+            <li>• This viewer is read-only. Use your database console (Neon, pgAdmin) for modifications.</li>
+            <li>• Password hashes are hidden for security. Users can reset passwords via the login page.</li>
+            <li>• The <code class="bg-blue-100 px-1 rounded">role</code> column in users determines admin access.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

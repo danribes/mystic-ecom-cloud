@@ -15,3 +15,4 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NODE_ENV = "production"
 BCRYPT_ROUNDS = "10"
+# Redis credentials are set as Secrets in Cloudflare Dashboard

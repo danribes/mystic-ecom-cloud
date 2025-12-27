@@ -67,11 +67,17 @@ const adminNavItems = [
     icon: 'analytics',
     description: 'Reports & Insights'
   },
-  { 
-    href: '/admin/settings', 
-    label: 'Settings', 
+  {
+    href: '/admin/settings',
+    label: 'Settings',
     icon: 'settings',
     description: 'System Configuration'
+  },
+  {
+    href: '/admin/database',
+    label: 'Database',
+    icon: 'database',
+    description: 'View Database Tables'
   },
 ];
 
@@ -243,7 +249,8 @@ const quickActions = [
                   item.icon === 'orders' ? '🛒' :
                   item.icon === 'users' ? '👥' :
                   item.icon === 'analytics' ? '📈' :
-                  item.icon === 'settings' ? '⚙️' : '📋'
+                  item.icon === 'settings' ? '⚙️' :
+                  item.icon === 'database' ? '🗄️' : '📋'
                 }</span>
                 <div class="flex-1">
                   <div class="font-medium">{item.label}</div>
