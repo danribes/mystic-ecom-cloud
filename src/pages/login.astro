@@ -142,17 +142,18 @@ const verify = Astro.url.searchParams.get('verify');
 
           <!-- Remember Me & Forgot Password -->
           <div class="flex items-center justify-between">
-            <div class="flex items-center">
+            <label class="remember-me-label flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 id="remember"
                 name="remember"
-                class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                class="remember-checkbox"
               />
-              <label for="remember" class="ml-2 text-sm text-gray-600">
+              <span class="remember-checkbox-custom"></span>
+              <span class="ml-2 text-sm text-gray-600">
                 Remember me
-              </label>
-            </div>
+              </span>
+            </label>
             <a
               href="/forgot-password"
               class="text-sm text-purple-600 hover:text-purple-700"
@@ -199,6 +200,57 @@ const verify = Astro.url.searchParams.get('verify');
       </div>
     </div>
   </div>
+
+  <style>
+    /* Custom checkbox styling to override WCAG min-size rules */
+    .remember-checkbox {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      min-width: 0 !important;
+      min-height: 0 !important;
+    }
+
+    .remember-checkbox-custom {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      min-width: 1rem;
+      min-height: 1rem;
+      border: 2px solid #d1d5db;
+      border-radius: 0.25rem;
+      background-color: white;
+      transition: all 0.15s ease-in-out;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .remember-checkbox:checked + .remember-checkbox-custom {
+      background-color: #9333ea;
+      border-color: #9333ea;
+    }
+
+    .remember-checkbox:checked + .remember-checkbox-custom::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 5px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .remember-checkbox:focus + .remember-checkbox-custom {
+      box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.3);
+    }
+
+    .remember-me-label:hover .remember-checkbox-custom {
+      border-color: #9333ea;
+    }
+  </style>
 
   <!-- Client-side Form Validation -->
   <script>

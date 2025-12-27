@@ -24,6 +24,9 @@ if (!product) {
   return Astro.redirect('/404');
 }
 
+// Check if user is admin
+const isAdmin = Astro.locals.user?.role === 'admin';
+
 // Check if user is logged in and has purchased
 const sessionId = Astro.cookies.get('session')?.value;
 const session = sessionId ? await getSession(sessionId) : null;
@@ -179,9 +182,24 @@ const productSchema = generateProductSchema({
             </div>
 
             <!-- Title -->
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">
-              {product.title}
-            </h1>
+            <div class="flex items-start gap-3 mb-4">
+              <h1 class="text-3xl font-bold text-gray-900">
+                {product.title}
+              </h1>
+              {isAdmin && (
+                <a
+                  href={`/admin/products/${product.id}/edit`}
+                  class="inline-flex items-center gap-1 px-3 py-1 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0 mt-1"
+                  title="Edit Product"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Edit
+                </a>
+              )}
+            </div>
 
             <!-- Price -->
             <div class="text-4xl font-bold text-indigo-600 mb-6">
