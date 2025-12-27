@@ -1,13 +1,16 @@
 ---
 /**
  * Homepage
- * 
+ *
  * Displays featured courses and recent offerings.
  */
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CourseCard from '@/components/CourseCard.astro';
 import type { Course } from '@/types';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { t } = useTranslations(Astro.locals);
 
 // For now, use mock data directly (database not configured)
 // In production, this would fetch from the API
@@ -204,19 +207,18 @@ let recentCourses: Course[] = [
     <div class="container">
       <div class="mx-auto max-w-[800px]">
         <h1 class="mb-lg text-4xl font-bold leading-tight">
-          Transform Your Reality Through<br />
-          <span class="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">Quantum Healing</span>
+          {t('home.heroTitle')}<br />
+          <span class="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">{t('home.heroSubtitle')}</span>
         </h1>
         <p class="mb-2xl text-xl leading-relaxed opacity-95">
-          Unlock your infinite potential with courses designed to elevate your consciousness,
-          heal your energy body, and manifest your highest timeline.
+          {t('home.heroDescription')}
         </p>
         <div class="flex flex-wrap justify-center gap-md">
           <a href="/courses" class="rounded-md bg-primary px-xl py-md text-lg font-semibold text-white transition-all duration-fast hover:-translate-y-1 hover:bg-primary-dark hover:shadow-lg">
-            Browse All Courses
+            {t('home.browseAllCourses')}
           </a>
           <a href="/about" class="rounded-md border-2 border-white bg-transparent px-xl py-md text-lg font-semibold text-white transition-all duration-fast hover:-translate-y-1 hover:bg-white/10 hover:shadow-lg">
-            Learn More
+            {t('home.learnMore')}
           </a>
         </div>
       </div>
@@ -228,9 +230,9 @@ let recentCourses: Course[] = [
     <section class="py-3xl">
       <div class="container">
         <div class="mb-2xl text-center">
-          <h2 class="mb-md text-3xl font-bold text-text">⭐ Featured Courses</h2>
+          <h2 class="mb-md text-3xl font-bold text-text">{t('home.featuredCoursesTitle')}</h2>
           <p class="mx-auto max-w-[600px] text-lg text-text-light">
-            Handpicked transformative experiences to accelerate your spiritual journey
+            {t('home.featuredCoursesDescription')}
           </p>
         </div>
 
@@ -248,9 +250,9 @@ let recentCourses: Course[] = [
     <section class="py-3xl">
       <div class="container">
         <div class="mb-2xl text-center">
-          <h2 class="mb-md text-3xl font-bold text-text">🆕 New Arrivals</h2>
+          <h2 class="mb-md text-3xl font-bold text-text">{t('home.newArrivalsTitle')}</h2>
           <p class="mx-auto max-w-[600px] text-lg text-text-light">
-            Explore our latest courses and expand your spiritual toolkit
+            {t('home.newArrivalsDescription')}
           </p>
         </div>
 
@@ -262,7 +264,7 @@ let recentCourses: Course[] = [
 
         <div class="text-center">
           <a href="/courses" class="inline-block rounded-md bg-primary px-xl py-md font-semibold text-white transition-all duration-fast hover:-translate-y-1 hover:bg-primary-dark hover:shadow-lg">
-            View All Courses →
+            {t('home.viewAllCourses')}
           </a>
         </div>
       </div>
@@ -273,12 +275,12 @@ let recentCourses: Course[] = [
   <section class="bg-gradient-to-br from-primary/10 to-secondary/10 py-3xl text-center">
     <div class="container">
       <div class="mx-auto max-w-[700px]">
-        <h2 class="mb-md text-3xl font-bold text-text">Ready to Begin Your Transformation?</h2>
+        <h2 class="mb-md text-3xl font-bold text-text">{t('home.ctaTitle')}</h2>
         <p class="mb-xl text-lg text-text-light">
-          Join thousands of seekers who have already started their journey to higher consciousness
+          {t('home.ctaDescription')}
         </p>
         <a href="/courses" class="inline-block rounded-md bg-secondary px-xl py-md text-lg font-semibold text-white transition-all duration-fast hover:-translate-y-1 hover:bg-secondary-dark hover:shadow-lg">
-          Start Learning Today
+          {t('home.startLearningToday')}
         </a>
       </div>
     </div>
