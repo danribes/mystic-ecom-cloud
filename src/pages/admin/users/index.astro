@@ -1,0 +1,467 @@
+---
+/**
+ * Admin Users Management Page
+ *
+ * Allows administrators to:
+ * - View all registered users
+ * - Search and filter users
+ * - Change user roles (promote/demote admins)
+ */
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { listUsers, getUserStats } from '@/services/user.service';
+import type { User } from '@/services/user.service';
+
+const title = 'User Management';
+const description = 'Manage users and their roles';
+
+// Get query parameters
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1', 10);
+const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+const search = url.searchParams.get('search') || '';
+const roleFilter = (url.searchParams.get('role') || '') as 'user' | 'admin' | '';
+const sortBy = (url.searchParams.get('sortBy') || 'created_at') as 'name' | 'email' | 'created_at' | 'role';
+const sortOrder = (url.searchParams.get('sortOrder') || 'DESC') as 'ASC' | 'DESC';
+
+// Get current admin user ID
+const currentUserId = Astro.locals.user?.id;
+
+let users: User[] = [];
+let total = 0;
+let totalPages = 0;
+let stats = { totalUsers: 0, totalAdmins: 0, newUsersThisMonth: 0, verifiedUsers: 0 };
+let error: string | null = null;
+
+try {
+  const result = await listUsers({
+    page,
+    limit,
+    search,
+    role: roleFilter,
+    sortBy,
+    sortOrder
+  });
+
+  users = result.users;
+  total = result.total;
+  totalPages = result.totalPages;
+
+  stats = await getUserStats();
+} catch (e) {
+  console.error('Error loading users:', e);
+  error = 'Failed to load users. Please try again.';
+}
+
+// Format date
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(date));
+};
+
+// Build URL with updated params
+const buildUrl = (params: Record<string, string | number>) => {
+  const newUrl = new URL(url);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      newUrl.searchParams.set(key, String(value));
+    } else {
+      newUrl.searchParams.delete(key);
+    }
+  });
+  return newUrl.pathname + newUrl.search;
+};
+---
+
+<AdminLayout title={title} description={description}>
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Total Users</p>
+          <p class="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+        </div>
+        <span class="text-3xl">👥</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Administrators</p>
+          <p class="text-2xl font-bold text-purple-600">{stats.totalAdmins}</p>
+        </div>
+        <span class="text-3xl">🔐</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">New This Month</p>
+          <p class="text-2xl font-bold text-green-600">{stats.newUsersThisMonth}</p>
+        </div>
+        <span class="text-3xl">📈</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Verified Email</p>
+          <p class="text-2xl font-bold text-blue-600">{stats.verifiedUsers}</p>
+        </div>
+        <span class="text-3xl">✅</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  {error && (
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <p class="text-red-800">{error}</p>
+    </div>
+  )}
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <form method="GET" class="flex flex-wrap gap-4 items-end">
+      <div class="flex-1 min-w-[200px]">
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+        <input
+          type="text"
+          id="search"
+          name="search"
+          value={search}
+          placeholder="Search by name or email..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        />
+      </div>
+
+      <div class="w-40">
+        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <select
+          id="role"
+          name="role"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        >
+          <option value="">All Roles</option>
+          <option value="user" selected={roleFilter === 'user'}>Users</option>
+          <option value="admin" selected={roleFilter === 'admin'}>Admins</option>
+        </select>
+      </div>
+
+      <div class="w-40">
+        <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+        <select
+          id="sortBy"
+          name="sortBy"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        >
+          <option value="created_at" selected={sortBy === 'created_at'}>Date Joined</option>
+          <option value="name" selected={sortBy === 'name'}>Name</option>
+          <option value="email" selected={sortBy === 'email'}>Email</option>
+          <option value="role" selected={sortBy === 'role'}>Role</option>
+        </select>
+      </div>
+
+      <div class="w-32">
+        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+        <select
+          id="sortOrder"
+          name="sortOrder"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        >
+          <option value="DESC" selected={sortOrder === 'DESC'}>Newest</option>
+          <option value="ASC" selected={sortOrder === 'ASC'}>Oldest</option>
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+      >
+        Filter
+      </button>
+
+      {(search || roleFilter) && (
+        <a
+          href="/admin/users"
+          class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
+        >
+          Clear
+        </a>
+      )}
+    </form>
+  </div>
+
+  <!-- Users Table -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">
+        Users ({total})
+      </h2>
+    </div>
+
+    {users.length > 0 ? (
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {users.map((user) => (
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                      <span class="text-purple-600 font-semibold">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div class="ml-3">
+                      <div class="text-sm font-medium text-gray-900">{user.name}</div>
+                      <div class="text-sm text-gray-500">{user.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    user.role === 'admin'
+                      ? 'bg-purple-100 text-purple-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {user.role === 'admin' ? '🔐 Admin' : '👤 User'}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    user.email_verified
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {user.email_verified ? '✅ Verified' : '⏳ Pending'}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {formatDate(user.created_at)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  {user.id !== currentUserId ? (
+                    <button
+                      type="button"
+                      data-user-id={user.id}
+                      data-user-name={user.name}
+                      data-current-role={user.role}
+                      class="role-toggle-btn text-purple-600 hover:text-purple-900 font-medium"
+                    >
+                      {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                    </button>
+                  ) : (
+                    <span class="text-gray-400 italic">Current user</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <span class="text-4xl">👥</span>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+        <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filters.</p>
+      </div>
+    )}
+
+    <!-- Pagination -->
+    {totalPages > 1 && (
+      <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-500">
+          Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} users
+        </div>
+        <div class="flex gap-2">
+          {page > 1 && (
+            <a
+              href={buildUrl({ page: page - 1 })}
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
+            >
+              Previous
+            </a>
+          )}
+
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum: number;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (page <= 3) {
+              pageNum = i + 1;
+            } else if (page >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = page - 2 + i;
+            }
+            return pageNum;
+          }).map((pageNum) => (
+            <a
+              href={buildUrl({ page: pageNum })}
+              class={`px-3 py-1 border rounded-md text-sm ${
+                pageNum === page
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {pageNum}
+            </a>
+          ))}
+
+          {page < totalPages && (
+            <a
+              href={buildUrl({ page: page + 1 })}
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
+            >
+              Next
+            </a>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- Role Change Confirmation Modal -->
+  <div id="role-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2" id="modal-title">Change User Role</h3>
+      <p class="text-gray-600 mb-4" id="modal-message">Are you sure you want to change this user's role?</p>
+
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          id="modal-cancel"
+          class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          id="modal-confirm"
+          class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Role toggle functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('role-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const modalCancel = document.getElementById('modal-cancel');
+    const modalConfirm = document.getElementById('modal-confirm');
+
+    let pendingUserId: string | null = null;
+    let pendingNewRole: string | null = null;
+
+    // Add click handlers to all role toggle buttons
+    document.querySelectorAll('.role-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const userId = btn.getAttribute('data-user-id');
+        const userName = btn.getAttribute('data-user-name');
+        const currentRole = btn.getAttribute('data-current-role');
+        const newRole = currentRole === 'admin' ? 'user' : 'admin';
+
+        pendingUserId = userId;
+        pendingNewRole = newRole;
+
+        if (modalTitle && modalMessage) {
+          if (newRole === 'admin') {
+            modalTitle.textContent = 'Promote to Admin';
+            modalMessage.textContent = `Are you sure you want to make "${userName}" an administrator? They will have full access to the admin panel.`;
+          } else {
+            modalTitle.textContent = 'Remove Admin Role';
+            modalMessage.textContent = `Are you sure you want to remove admin privileges from "${userName}"? They will no longer be able to access the admin panel.`;
+          }
+        }
+
+        modal?.classList.remove('hidden');
+        modal?.classList.add('flex');
+      });
+    });
+
+    // Cancel button
+    modalCancel?.addEventListener('click', () => {
+      modal?.classList.add('hidden');
+      modal?.classList.remove('flex');
+      pendingUserId = null;
+      pendingNewRole = null;
+    });
+
+    // Click outside modal to close
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        pendingUserId = null;
+        pendingNewRole = null;
+      }
+    });
+
+    // Confirm button
+    modalConfirm?.addEventListener('click', async () => {
+      if (!pendingUserId || !pendingNewRole) return;
+
+      modalConfirm.textContent = 'Updating...';
+      modalConfirm.setAttribute('disabled', 'true');
+
+      try {
+        const response = await fetch('/api/admin/users/update-role', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: pendingUserId,
+            role: pendingNewRole,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Reload the page to show updated data
+          window.location.reload();
+        } else {
+          alert(data.message || 'Failed to update user role');
+          modal?.classList.add('hidden');
+          modal?.classList.remove('flex');
+        }
+      } catch (error) {
+        console.error('Error updating role:', error);
+        alert('An error occurred. Please try again.');
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+      } finally {
+        modalConfirm.textContent = 'Confirm';
+        modalConfirm.removeAttribute('disabled');
+        pendingUserId = null;
+        pendingNewRole = null;
+      }
+    });
+  });
+</script>
