@@ -1,10 +1,14 @@
 ---
 /**
  * FilterSidebar Component
- * 
+ *
  * Displays filter options for search results.
  * Allows filtering by type, price range, level, product type, and city.
  */
+
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
 
 interface Props {
   currentQuery: string;
@@ -55,13 +59,13 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
 
 <div class="sticky top-4 rounded-lg border border-border bg-surface p-6">
   <div class="mb-4 flex items-center justify-between">
-    <h2 class="text-lg font-semibold text-text">Filters</h2>
+    <h2 class="text-lg font-semibold text-text">{t('search.filters')}</h2>
     {hasActiveFilters && (
       <a
         href={clearFiltersUrl}
         class="text-sm text-primary transition-colors hover:text-primary-dark"
       >
-        Clear all
+        {t('search.clearAll')}
       </a>
     )}
   </div>
@@ -69,7 +73,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
   <form id="search-filters" class="space-y-6">
     <!-- Type Filter -->
     <div class="border-b border-border pb-6">
-      <h3 class="mb-3 text-sm font-medium text-text">Type</h3>
+      <h3 class="mb-3 text-sm font-medium text-text">{t('search.type')}</h3>
       <div class="space-y-2">
         <label class="flex cursor-pointer items-center">
           <input
@@ -79,7 +83,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
             checked={!currentType}
             class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
           />
-          <span class="ml-2 text-sm text-text">All types</span>
+          <span class="ml-2 text-sm text-text">{t('search.allTypes')}</span>
         </label>
         <label class="flex cursor-pointer items-center">
           <input
@@ -89,7 +93,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
             checked={currentType === 'course'}
             class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
           />
-          <span class="ml-2 text-sm text-text">Courses</span>
+          <span class="ml-2 text-sm text-text">{t('nav.courses')}</span>
         </label>
         <label class="flex cursor-pointer items-center">
           <input
@@ -99,7 +103,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
             checked={currentType === 'product'}
             class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
           />
-          <span class="ml-2 text-sm text-text">Digital Products</span>
+          <span class="ml-2 text-sm text-text">{t('search.digitalProducts')}</span>
         </label>
         <label class="flex cursor-pointer items-center">
           <input
@@ -109,18 +113,18 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
             checked={currentType === 'event'}
             class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
           />
-          <span class="ml-2 text-sm text-text">Events</span>
+          <span class="ml-2 text-sm text-text">{t('nav.events')}</span>
         </label>
       </div>
     </div>
 
     <!-- Price Range Filter -->
     <div class="border-b border-border pb-6">
-      <h3 class="mb-3 text-sm font-medium text-text">Price Range</h3>
+      <h3 class="mb-3 text-sm font-medium text-text">{t('search.priceRange')}</h3>
       <div class="space-y-3">
         <div>
           <label for="minPrice" class="mb-1 block text-xs text-text-light">
-            Minimum price ($)
+            {t('search.minimumPrice')}
           </label>
           <input
             type="number"
@@ -135,7 +139,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
         </div>
         <div>
           <label for="maxPrice" class="mb-1 block text-xs text-text-light">
-            Maximum price ($)
+            {t('search.maximumPrice')}
           </label>
           <input
             type="number"
@@ -144,7 +148,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
             value={currentMaxPrice}
             min="0"
             step="1"
-            placeholder="No limit"
+            placeholder={t('search.noLimit')}
             class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text placeholder-text-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -154,7 +158,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
     <!-- Level Filter (for courses) -->
     {(!currentType || currentType === 'course') && (
       <div class="border-b border-border pb-6">
-        <h3 class="mb-3 text-sm font-medium text-text">Course Level</h3>
+        <h3 class="mb-3 text-sm font-medium text-text">{t('search.courseLevel')}</h3>
         <div class="space-y-2">
           <label class="flex cursor-pointer items-center">
             <input
@@ -164,7 +168,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={!currentLevel}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">All levels</span>
+            <span class="ml-2 text-sm text-text">{t('search.allLevels')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -174,7 +178,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentLevel === 'beginner'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">Beginner</span>
+            <span class="ml-2 text-sm text-text">{t('search.beginner')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -184,7 +188,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentLevel === 'intermediate'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">Intermediate</span>
+            <span class="ml-2 text-sm text-text">{t('search.intermediate')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -194,7 +198,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentLevel === 'advanced'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">Advanced</span>
+            <span class="ml-2 text-sm text-text">{t('search.advanced')}</span>
           </label>
         </div>
       </div>
@@ -203,7 +207,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
     <!-- Product Type Filter (for products) -->
     {(!currentType || currentType === 'product') && (
       <div class="border-b border-border pb-6">
-        <h3 class="mb-3 text-sm font-medium text-text">Product Type</h3>
+        <h3 class="mb-3 text-sm font-medium text-text">{t('search.productType')}</h3>
         <div class="space-y-2">
           <label class="flex cursor-pointer items-center">
             <input
@@ -213,7 +217,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={!currentProductType}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">All types</span>
+            <span class="ml-2 text-sm text-text">{t('search.allTypes')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -223,7 +227,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentProductType === 'pdf'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">PDF</span>
+            <span class="ml-2 text-sm text-text">{t('search.pdf')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -233,7 +237,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentProductType === 'audio'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">Audio</span>
+            <span class="ml-2 text-sm text-text">{t('search.audio')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -243,7 +247,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentProductType === 'video'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">Video</span>
+            <span class="ml-2 text-sm text-text">{t('search.video')}</span>
           </label>
           <label class="flex cursor-pointer items-center">
             <input
@@ -253,7 +257,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
               checked={currentProductType === 'ebook'}
               class="h-4 w-4 border-border text-primary focus:ring-2 focus:ring-primary/20"
             />
-            <span class="ml-2 text-sm text-text">eBook</span>
+            <span class="ml-2 text-sm text-text">{t('search.ebook')}</span>
           </label>
         </div>
       </div>
@@ -262,13 +266,13 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
     <!-- City Filter (for events) -->
     {(!currentType || currentType === 'event') && (
       <div class="pb-6">
-        <h3 class="mb-3 text-sm font-medium text-text">City</h3>
+        <h3 class="mb-3 text-sm font-medium text-text">{t('search.city')}</h3>
         <input
           type="text"
           id="city"
           name="city"
           value={currentCity}
-          placeholder="Enter city name"
+          placeholder={t('search.enterCityName')}
           class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text placeholder-text-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
@@ -279,7 +283,7 @@ const clearFiltersUrl = `/search?q=${encodeURIComponent(currentQuery)}`;
       type="submit"
       class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20"
     >
-      Apply Filters
+      {t('search.applyFilters')}
     </button>
   </form>
 </div>

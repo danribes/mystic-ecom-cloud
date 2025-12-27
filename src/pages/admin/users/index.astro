@@ -11,9 +11,12 @@
 import AdminLayout from '@/layouts/AdminLayout.astro';
 import { listUsers, getUserStats } from '@/services/user.service';
 import type { User } from '@/services/user.service';
+import { useTranslations } from '@/lib/pageTranslations';
 
-const title = 'User Management';
-const description = 'Manage users and their roles';
+const { locale, t } = useTranslations(Astro.locals);
+
+const title = t('admin.userManagement');
+const description = t('admin.userManagementDesc');
 
 // Get query parameters
 const url = new URL(Astro.request.url);
@@ -55,7 +58,7 @@ try {
 
 // Format date
 const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -112,7 +115,7 @@ const paginationNumbers = generatePaginationNumbers();
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-600">Total Users</p>
+          <p class="text-sm text-gray-600">{t('admin.totalUsers')}</p>
           <p class="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
         </div>
         <span class="text-3xl">👥</span>
@@ -122,7 +125,7 @@ const paginationNumbers = generatePaginationNumbers();
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-600">Administrators</p>
+          <p class="text-sm text-gray-600">{t('admin.administrators')}</p>
           <p class="text-2xl font-bold text-purple-600">{stats.totalAdmins}</p>
         </div>
         <span class="text-3xl">🔐</span>
@@ -132,7 +135,7 @@ const paginationNumbers = generatePaginationNumbers();
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-600">New This Month</p>
+          <p class="text-sm text-gray-600">{t('admin.newThisMonth')}</p>
           <p class="text-2xl font-bold text-green-600">{stats.newUsersThisMonth}</p>
         </div>
         <span class="text-3xl">📈</span>
@@ -142,7 +145,7 @@ const paginationNumbers = generatePaginationNumbers();
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-600">Verified Email</p>
+          <p class="text-sm text-gray-600">{t('admin.verifiedEmail')}</p>
           <p class="text-2xl font-bold text-blue-600">{stats.verifiedUsers}</p>
         </div>
         <span class="text-3xl">✅</span>
@@ -161,53 +164,53 @@ const paginationNumbers = generatePaginationNumbers();
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
     <form method="GET" class="flex flex-wrap gap-4 items-end">
       <div class="flex-1 min-w-[200px]">
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">{t('common.search')}</label>
         <input
           type="text"
           id="search"
           name="search"
           value={search}
-          placeholder="Search by name or email..."
+          placeholder={t('admin.searchPlaceholder')}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         />
       </div>
 
       <div class="w-40">
-        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">{t('admin.role')}</label>
         <select
           id="role"
           name="role"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
-          <option value="">All Roles</option>
-          <option value="user" selected={roleFilter === 'user'}>Users</option>
-          <option value="admin" selected={roleFilter === 'admin'}>Admins</option>
+          <option value="">{t('admin.allRoles')}</option>
+          <option value="user" selected={roleFilter === 'user'}>{t('admin.users')}</option>
+          <option value="admin" selected={roleFilter === 'admin'}>{t('admin.admins')}</option>
         </select>
       </div>
 
       <div class="w-40">
-        <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+        <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">{t('admin.sortBy')}</label>
         <select
           id="sortBy"
           name="sortBy"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
-          <option value="created_at" selected={sortBy === 'created_at'}>Date Joined</option>
-          <option value="name" selected={sortBy === 'name'}>Name</option>
-          <option value="email" selected={sortBy === 'email'}>Email</option>
-          <option value="role" selected={sortBy === 'role'}>Role</option>
+          <option value="created_at" selected={sortBy === 'created_at'}>{t('admin.dateJoined')}</option>
+          <option value="name" selected={sortBy === 'name'}>{t('admin.name')}</option>
+          <option value="email" selected={sortBy === 'email'}>{t('admin.email')}</option>
+          <option value="role" selected={sortBy === 'role'}>{t('admin.role')}</option>
         </select>
       </div>
 
       <div class="w-32">
-        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-1">{t('admin.order')}</label>
         <select
           id="sortOrder"
           name="sortOrder"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
-          <option value="DESC" selected={sortOrder === 'DESC'}>Newest</option>
-          <option value="ASC" selected={sortOrder === 'ASC'}>Oldest</option>
+          <option value="DESC" selected={sortOrder === 'DESC'}>{t('admin.newest')}</option>
+          <option value="ASC" selected={sortOrder === 'ASC'}>{t('admin.oldest')}</option>
         </select>
       </div>
 
@@ -215,7 +218,7 @@ const paginationNumbers = generatePaginationNumbers();
         type="submit"
         class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
       >
-        Filter
+        {t('admin.filter')}
       </button>
 
       {(search || roleFilter) && (
@@ -223,7 +226,7 @@ const paginationNumbers = generatePaginationNumbers();
           href="/admin/users"
           class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
         >
-          Clear
+          {t('admin.clear')}
         </a>
       )}
     </form>
@@ -233,7 +236,7 @@ const paginationNumbers = generatePaginationNumbers();
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
       <h2 class="text-lg font-semibold text-gray-900">
-        Users ({total})
+        {t('admin.users')} ({total})
       </h2>
     </div>
 
@@ -242,11 +245,11 @@ const paginationNumbers = generatePaginationNumbers();
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.user')}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.role')}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.emailStatus')}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.joined')}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.actions')}</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -271,7 +274,7 @@ const paginationNumbers = generatePaginationNumbers();
                       ? 'bg-purple-100 text-purple-800'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {user.role === 'admin' ? '🔐 Admin' : '👤 User'}
+                    {user.role === 'admin' ? `🔐 ${t('admin.adminBadge')}` : `👤 ${t('admin.userBadge')}`}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -280,7 +283,7 @@ const paginationNumbers = generatePaginationNumbers();
                       ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {user.email_verified ? '✅ Verified' : '⏳ Pending'}
+                    {user.email_verified ? `✅ ${t('admin.verified')}` : `⏳ ${t('admin.pendingVerification')}`}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -295,10 +298,10 @@ const paginationNumbers = generatePaginationNumbers();
                       data-current-role={user.role}
                       class="role-toggle-btn text-purple-600 hover:text-purple-900 font-medium"
                     >
-                      {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                      {user.role === 'admin' ? t('admin.removeAdmin') : t('admin.makeAdmin')}
                     </button>
                   ) : (
-                    <span class="text-gray-400 italic">Current user</span>
+                    <span class="text-gray-400 italic">{t('admin.currentUser')}</span>
                   )}
                 </td>
               </tr>
@@ -309,8 +312,8 @@ const paginationNumbers = generatePaginationNumbers();
     ) : (
       <div class="text-center py-12">
         <span class="text-4xl">👥</span>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No users found</h3>
-        <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filters.</p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{t('admin.noUsersFound')}</h3>
+        <p class="mt-1 text-sm text-gray-500">{t('admin.noUsersMessage')}</p>
       </div>
     )}
 
@@ -318,7 +321,7 @@ const paginationNumbers = generatePaginationNumbers();
     {totalPages > 1 && (
       <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
         <div class="text-sm text-gray-500">
-          Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} users
+          {t('admin.showingRange', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, total), total })}
         </div>
         <div class="flex gap-2">
           {page > 1 && (
@@ -326,7 +329,7 @@ const paginationNumbers = generatePaginationNumbers();
               href={buildUrl({ page: page - 1 })}
               class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
             >
-              Previous
+              {t('common.previous')}
             </a>
           )}
 
@@ -348,7 +351,7 @@ const paginationNumbers = generatePaginationNumbers();
               href={buildUrl({ page: page + 1 })}
               class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
             >
-              Next
+              {t('common.next')}
             </a>
           )}
         </div>
@@ -357,10 +360,19 @@ const paginationNumbers = generatePaginationNumbers();
   </div>
 
   <!-- Role Change Confirmation Modal -->
-  <div id="role-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+  <div
+    id="role-modal"
+    class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center"
+    data-promote-title={t('admin.promoteToAdmin')}
+    data-demote-title={t('admin.removeAdminRole')}
+    data-promote-message={t('admin.promoteMessage', { name: '{{name}}' })}
+    data-demote-message={t('admin.demoteMessage', { name: '{{name}}' })}
+    data-confirm-text={t('admin.confirm')}
+    data-updating-text={t('admin.updating')}
+  >
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-      <h3 class="text-lg font-semibold text-gray-900 mb-2" id="modal-title">Change User Role</h3>
-      <p class="text-gray-600 mb-4" id="modal-message">Are you sure you want to change this user's role?</p>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2" id="modal-title">{t('admin.changeUserRole')}</h3>
+      <p class="text-gray-600 mb-4" id="modal-message"></p>
 
       <div class="flex justify-end gap-3">
         <button
@@ -368,14 +380,14 @@ const paginationNumbers = generatePaginationNumbers();
           id="modal-cancel"
           class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
         >
-          Cancel
+          {t('admin.cancel')}
         </button>
         <button
           type="button"
           id="modal-confirm"
           class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700"
         >
-          Confirm
+          {t('admin.confirm')}
         </button>
       </div>
     </div>
@@ -390,6 +402,14 @@ const paginationNumbers = generatePaginationNumbers();
     const modalMessage = document.getElementById('modal-message');
     const modalCancel = document.getElementById('modal-cancel');
     const modalConfirm = document.getElementById('modal-confirm');
+
+    // Get translated strings from data attributes
+    const promoteTitle = modal?.getAttribute('data-promote-title') || 'Promote to Admin';
+    const demoteTitle = modal?.getAttribute('data-demote-title') || 'Remove Admin Role';
+    const promoteMessage = modal?.getAttribute('data-promote-message') || 'Are you sure you want to make "{{name}}" an administrator?';
+    const demoteMessage = modal?.getAttribute('data-demote-message') || 'Are you sure you want to remove admin privileges from "{{name}}"?';
+    const confirmText = modal?.getAttribute('data-confirm-text') || 'Confirm';
+    const updatingText = modal?.getAttribute('data-updating-text') || 'Updating...';
 
     let pendingUserId: string | null = null;
     let pendingNewRole: string | null = null;
@@ -407,11 +427,11 @@ const paginationNumbers = generatePaginationNumbers();
 
         if (modalTitle && modalMessage) {
           if (newRole === 'admin') {
-            modalTitle.textContent = 'Promote to Admin';
-            modalMessage.textContent = `Are you sure you want to make "${userName}" an administrator? They will have full access to the admin panel.`;
+            modalTitle.textContent = promoteTitle;
+            modalMessage.textContent = promoteMessage.replace('{{name}}', userName || '');
           } else {
-            modalTitle.textContent = 'Remove Admin Role';
-            modalMessage.textContent = `Are you sure you want to remove admin privileges from "${userName}"? They will no longer be able to access the admin panel.`;
+            modalTitle.textContent = demoteTitle;
+            modalMessage.textContent = demoteMessage.replace('{{name}}', userName || '');
           }
         }
 
@@ -442,7 +462,7 @@ const paginationNumbers = generatePaginationNumbers();
     modalConfirm?.addEventListener('click', async () => {
       if (!pendingUserId || !pendingNewRole) return;
 
-      modalConfirm.textContent = 'Updating...';
+      modalConfirm.textContent = updatingText;
       modalConfirm.setAttribute('disabled', 'true');
 
       try {
@@ -473,7 +493,7 @@ const paginationNumbers = generatePaginationNumbers();
         modal?.classList.add('hidden');
         modal?.classList.remove('flex');
       } finally {
-        modalConfirm.textContent = 'Confirm';
+        modalConfirm.textContent = confirmText;
         modalConfirm.removeAttribute('disabled');
         pendingUserId = null;
         pendingNewRole = null;
