@@ -17,9 +17,11 @@ import EventFilters from '@/components/EventFilters.astro';
 import { getEvents } from '@/lib/events';
 import { getLocalizedEvents } from '@/lib/eventsI18n';
 import type { EventFilters as EventFiltersType } from '@/lib/events';
+import { useTranslations } from '@/lib/pageTranslations';
 
 // Get locale from middleware (T169)
 const locale = Astro.locals.locale || 'es';
+const { t } = useTranslations(Astro.locals);
 
 // Extract URL parameters
 const url = new URL(Astro.request.url);
@@ -156,7 +158,7 @@ const eventPageNumbers = computeEventPageNumbers();
 
 // Format date for display
 const formatDate = (dateStr: string): string => {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -178,14 +180,13 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
     
     <!-- Header -->
     <header class="mb-2xl text-center">
-      <h1 class="mb-md text-5xl font-bold text-text">Browse Events</h1>
+      <h1 class="mb-md text-5xl font-bold text-text">{t('events.browseEvents')}</h1>
       <p class="mx-auto max-w-3xl text-lg text-text-light">
-        Discover transformative spiritual events, workshops, and gatherings. 
-        Use our advanced filters to find the perfect event for you.
+        {t('events.browseDescription')}
       </p>
       {activeFilterCount > 0 && (
         <p class="mt-sm text-text-light">
-          {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
+          {activeFilterCount === 1 ? t('events.filterApplied', { count: activeFilterCount }) : t('events.filtersApplied', { count: activeFilterCount })}
         </p>
       )}
     </header>
@@ -219,18 +220,18 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
         <!-- Results Count -->
         {!error && events.length > 0 && (
           <p class="text-text-light mb-lg">
-            Showing {(page - 1) * limit + 1}-{Math.min(page * limit, totalEvents)} of {totalEvents} events
+            {t('events.showingEvents', { start: (page - 1) * limit + 1, end: Math.min(page * limit, totalEvents), total: totalEvents })}
           </p>
         )}
 
         <!-- Active Filters Display -->
         {activeFilterCount > 0 && (
           <div class="mb-lg flex flex-wrap items-center gap-md">
-            <span class="text-sm font-semibold text-text">Active Filters:</span>
-            
+            <span class="text-sm font-semibold text-text">{t('events.activeFilters')}</span>
+
             {country && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                Country: {country}
+                {t('events.country')}: {country}
                 <a 
                   href={buildPageUrl(1).replace(`country=${country}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
@@ -242,8 +243,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {city && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                City: {city}
-                <a 
+                {t('events.city')}: {city}
+                <a
                   href={buildPageUrl(1).replace(`city=${city}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -254,8 +255,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {timeFrame !== 'all' && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                Time: {timeFrame.replace('-', ' ')}
-                <a 
+                {t('events.timeLabel')}: {timeFrame.replace('-', ' ')}
+                <a
                   href={buildPageUrl(1).replace(`timeFrame=${timeFrame}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -266,8 +267,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {startDate && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                From: {formatDate(startDate)}
-                <a 
+                {t('events.from')}: {formatDate(startDate)}
+                <a
                   href={buildPageUrl(1).replace(`startDate=${startDate}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -278,8 +279,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {endDate && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                To: {formatDate(endDate)}
-                <a 
+                {t('events.to')}: {formatDate(endDate)}
+                <a
                   href={buildPageUrl(1).replace(`endDate=${endDate}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -290,8 +291,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {minPrice && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                Min: ${minPrice}
-                <a 
+                {t('events.min')}: ${minPrice}
+                <a
                   href={buildPageUrl(1).replace(`minPrice=${minPrice}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -302,8 +303,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {maxPrice && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                Max: ${maxPrice}
-                <a 
+                {t('events.max')}: ${maxPrice}
+                <a
                   href={buildPageUrl(1).replace(`maxPrice=${maxPrice}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -314,8 +315,8 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
             {availability !== 'all' && (
               <span class="inline-flex items-center gap-xs rounded-full bg-primary-light px-md py-xs text-sm text-primary">
-                Availability: {availability}
-                <a 
+                {t('events.availability')}: {availability}
+                <a
                   href={buildPageUrl(1).replace(`availability=${availability}`, '').replace('&&', '&').replace('?&', '?').replace(/&$/, '')}
                   class="hover:text-primary-dark"
                 >
@@ -330,18 +331,18 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
         {!error && events.length === 0 && (
           <div class="text-center py-2xl bg-surface rounded-xl">
             <div class="text-6xl mb-md">📅</div>
-            <h2 class="text-2xl font-bold mb-md text-text">No Events Found</h2>
+            <h2 class="text-2xl font-bold mb-md text-text">{t('events.noEventsFound')}</h2>
             <p class="text-text-light mb-lg">
               {activeFilterCount > 0
-                ? 'No events match your current filters. Try adjusting your search criteria.'
-                : 'There are no upcoming events scheduled at this time. Check back soon!'}
+                ? t('events.noEventsMatchFilters')
+                : t('events.noUpcomingEvents')}
             </p>
             {activeFilterCount > 0 && (
-              <a 
-                href="/events" 
+              <a
+                href="/events"
                 class="inline-block rounded-md bg-primary px-xl py-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
               >
-                Clear Filters
+                {t('events.clearFilters')}
               </a>
             )}
           </div>
@@ -412,7 +413,7 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
 
                 <!-- Mobile Indicator -->
                 <span class="flex md:hidden text-text-light text-sm">
-                  Page {page} of {totalPages}
+                  {t('pagination.page')} {page} {t('pagination.of')} {totalPages}
                 </span>
 
                 <!-- Next Button -->

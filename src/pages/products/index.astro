@@ -8,6 +8,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import ProductCard from '@/components/ProductCard.astro';
 import ProductFilters from '@/components/ProductFilters.astro';
 import { getProducts } from '@/lib/products';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { t } = useTranslations(Astro.locals);
 
 // Get query parameters for filtering
 const url = new URL(Astro.request.url);
@@ -112,13 +115,13 @@ const hasActiveFilters = activeFilterCount > 0;
       <!-- Header -->
       <div class="mb-2xl">
         <h1 class="mb-sm text-3xl font-bold text-text md:text-4xl">
-          Digital Products
+          {t('products.digitalProducts')}
         </h1>
         <p class="text-lg text-text-light">
-          Explore our collection of spiritual guides, meditation audio, and transformative content
+          {t('products.browseDescription')}
           {activeFilterCount > 0 && (
             <span class="text-text-lighter">
-              {' '}({activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} applied)
+              {' '}({activeFilterCount === 1 ? t('products.filterApplied', { count: activeFilterCount }) : t('products.filtersApplied', { count: activeFilterCount })})
             </span>
           )}
         </p>
@@ -140,14 +143,14 @@ const hasActiveFilters = activeFilterCount > 0;
                 type="text"
                 name="search"
                 value={search}
-                placeholder="Search products by title or description..."
+                placeholder={t('products.searchPlaceholder')}
                 class="w-full rounded-lg border border-border py-sm pl-md pr-28 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <button
                 type="submit"
                 class="absolute right-sm top-1/2 -translate-y-1/2 rounded-md bg-primary px-md py-xs text-white transition-colors hover:bg-primary-dark"
               >
-                Search
+                {t('products.searchLabel')}
               </button>
             </div>
             <!-- Preserve other filters -->
@@ -166,7 +169,7 @@ const hasActiveFilters = activeFilterCount > 0;
         <div class="mb-lg flex flex-wrap gap-sm">
           {type !== 'all' && (
             <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
-              <span>Type: {type}</span>
+              <span>{t('products.typeLabel')}: {type}</span>
               <a
                 href={buildClearFilterUrl('type')}
                 class="hover:text-primary"
@@ -179,7 +182,7 @@ const hasActiveFilters = activeFilterCount > 0;
 
           {search && (
             <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
-              <span>Search: "{search}"</span>
+              <span>{t('products.searchLabel')}: "{search}"</span>
               <a
                 href={buildClearFilterUrl('search')}
                 class="hover:text-primary"
@@ -192,7 +195,7 @@ const hasActiveFilters = activeFilterCount > 0;
 
           {minPrice && (
             <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
-              <span>Min: ${minPrice}</span>
+              <span>{t('search.minPrice')}: ${minPrice}</span>
               <a
                 href={buildClearFilterUrl('minPrice')}
                 class="hover:text-primary"
@@ -205,7 +208,7 @@ const hasActiveFilters = activeFilterCount > 0;
 
           {maxPrice && (
             <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
-              <span>Max: ${maxPrice}</span>
+              <span>{t('search.maxPrice')}: ${maxPrice}</span>
               <a
                 href={buildClearFilterUrl('maxPrice')}
                 class="hover:text-primary"
@@ -218,7 +221,7 @@ const hasActiveFilters = activeFilterCount > 0;
 
           {minSize && (
             <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
-              <span>Min Size: {minSize} MB</span>
+              <span>{t('products.minSize')}: {minSize} MB</span>
               <a
                 href={buildClearFilterUrl('minSize')}
                 class="hover:text-primary"
@@ -231,7 +234,7 @@ const hasActiveFilters = activeFilterCount > 0;
 
           {maxSize && (
             <span class="inline-flex items-center gap-xs rounded-full bg-primary-light/30 px-sm py-xs text-sm text-primary-dark">
-              <span>Max Size: {maxSize} MB</span>
+              <span>{t('products.maxSize')}: {maxSize} MB</span>
               <a
                 href={buildClearFilterUrl('maxSize')}
                 class="hover:text-primary"
@@ -246,7 +249,7 @@ const hasActiveFilters = activeFilterCount > 0;
             href="/products"
             class="inline-flex items-center px-sm py-xs text-sm text-primary hover:underline"
           >
-            Clear all filters
+            {t('products.clearAllFilters')}
           </a>
         </div>
       )}
@@ -271,10 +274,12 @@ const hasActiveFilters = activeFilterCount > 0;
           <div class="mb-lg">
             <p class="text-text-light">
               {products.length === 0 ? (
-                <span>No products found</span>
+                <span>{t('products.noProductsFound')}</span>
               ) : (
                 <span>
-                  Showing <strong class="text-text">{products.length}</strong> {products.length === 1 ? 'product' : 'products'}
+                  {products.length === 1
+                    ? t('products.showingProductSingular', { count: products.length })
+                    : t('products.showingProducts', { count: products.length })}
                 </span>
               )}
             </p>
@@ -298,16 +303,16 @@ const hasActiveFilters = activeFilterCount > 0;
                       class="rounded-md border border-border px-md py-sm transition-colors hover:bg-surface"
                       aria-label="Previous page"
                     >
-                      ← Previous
+                      ← {t('pagination.previous')}
                     </a>
                   ) : (
                     <span class="cursor-not-allowed rounded-md border border-border bg-surface px-md py-sm text-text-lighter" aria-disabled="true">
-                      ← Previous
+                      ← {t('pagination.previous')}
                     </span>
                   )}
 
                   <span class="px-md py-sm text-text">
-                    Page {page}
+                    {t('pagination.page')} {page}
                   </span>
 
                   {hasNextPage ? (
@@ -316,11 +321,11 @@ const hasActiveFilters = activeFilterCount > 0;
                       class="rounded-md border border-border px-md py-sm transition-colors hover:bg-surface"
                       aria-label="Next page"
                     >
-                      Next →
+                      {t('pagination.next')} →
                     </a>
                   ) : (
                     <span class="cursor-not-allowed rounded-md border border-border bg-surface px-md py-sm text-text-lighter" aria-disabled="true">
-                      Next →
+                      {t('pagination.next')} →
                     </span>
                   )}
                 </nav>
@@ -332,19 +337,19 @@ const hasActiveFilters = activeFilterCount > 0;
                 {hasActiveFilters ? '🔍' : '📦'}
               </div>
               <h3 class="mb-sm text-xl font-semibold text-text">
-                {hasActiveFilters ? 'No Products Found' : 'No Products Available'}
+                {hasActiveFilters ? t('products.noProductsFound') : t('products.noProductsAvailable')}
               </h3>
               <p class="mb-lg text-text-light">
                 {hasActiveFilters
-                  ? 'Try adjusting your filters to see more results'
-                  : 'Check back later for new products'}
+                  ? t('products.tryAdjustingFilters')
+                  : t('products.checkBackLater')}
               </p>
               {hasActiveFilters && (
                 <a
                   href="/products"
                   class="inline-block rounded-md bg-primary px-xl py-sm font-medium text-white transition-colors hover:bg-primary-dark"
                 >
-                  Clear Filters
+                  {t('products.clearFilters')}
                 </a>
               )}
             </div>
