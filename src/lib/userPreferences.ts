@@ -12,7 +12,7 @@ import { isValidLocale } from '@/i18n';
  * Get user's preferred language from database
  *
  * @param userId - User ID
- * @returns User's preferred language or 'en' as default
+ * @returns User's preferred language or 'es' as default
  */
 export async function getUserLanguagePreference(userId: string): Promise<Locale> {
   try {
@@ -22,14 +22,14 @@ export async function getUserLanguagePreference(userId: string): Promise<Locale>
     );
 
     if (result.rows.length === 0) {
-      return 'en'; // Default to English if user not found
+      return 'es'; // Default to Spanish if user not found
     }
 
     const preference = result.rows[0].preferred_language;
-    return isValidLocale(preference) ? preference : 'en';
+    return isValidLocale(preference) ? preference : 'es';
   } catch (error) {
     console.error('[getUserLanguagePreference] Error:', error);
-    return 'en'; // Default to English on error
+    return 'es'; // Default to Spanish on error
   }
 }
 
@@ -112,7 +112,7 @@ export async function getUserProfile(userId: string): Promise<{
       name: user.name,
       preferredLanguage: isValidLocale(user.preferred_language)
         ? user.preferred_language
-        : 'en',
+        : 'es',
       whatsapp: user.whatsapp,
       createdAt: user.created_at,
     };

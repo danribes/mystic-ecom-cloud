@@ -14,7 +14,7 @@ import esTranslations from './locales/es.json';
 export type Locale = 'en' | 'es';
 
 // Default locale
-export const DEFAULT_LOCALE: Locale = 'en';
+export const DEFAULT_LOCALE: Locale = 'es';
 
 // All available locales
 export const LOCALES: Locale[] = ['en', 'es'];

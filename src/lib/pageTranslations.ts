@@ -14,7 +14,7 @@ import { t, type Locale } from '@/i18n';
  * @returns A translation function pre-bound to the locale
  *
  * @example
- * const translate = getTranslate(Astro.locals.locale || 'en');
+ * const translate = getTranslate(Astro.locals.locale || 'es');
  * const title = translate('home.heroTitle');
  */
 export function getTranslate(locale: Locale) {
@@ -26,10 +26,10 @@ export function getTranslate(locale: Locale) {
  * Get the locale from Astro.locals with fallback
  *
  * @param locals - Astro.locals object
- * @returns The locale (defaults to 'en')
+ * @returns The locale (defaults to 'es')
  */
 export function getLocale(locals: any): Locale {
-  return (locals?.locale as Locale) || 'en';
+  return (locals?.locale as Locale) || 'es';
 }
 
 /**

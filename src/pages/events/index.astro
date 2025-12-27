@@ -19,7 +19,7 @@ import { getLocalizedEvents } from '@/lib/eventsI18n';
 import type { EventFilters as EventFiltersType } from '@/lib/events';
 
 // Get locale from middleware (T169)
-const locale = Astro.locals.locale || 'en';
+const locale = Astro.locals.locale || 'es';
 
 // Extract URL parameters
 const url = new URL(Astro.request.url);
