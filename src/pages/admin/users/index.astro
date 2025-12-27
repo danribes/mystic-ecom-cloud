@@ -76,6 +76,34 @@ const buildUrl = (params: Record<string, string | number>) => {
   });
   return newUrl.pathname + newUrl.search;
 };
+
+// Generate pagination numbers
+const generatePaginationNumbers = (): number[] => {
+  const numbers: number[] = [];
+  const maxVisible = 5;
+
+  if (totalPages <= maxVisible) {
+    for (let i = 1; i <= totalPages; i++) {
+      numbers.push(i);
+    }
+  } else if (page <= 3) {
+    for (let i = 1; i <= maxVisible; i++) {
+      numbers.push(i);
+    }
+  } else if (page >= totalPages - 2) {
+    for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
+      numbers.push(i);
+    }
+  } else {
+    for (let i = page - 2; i <= page + 2; i++) {
+      numbers.push(i);
+    }
+  }
+
+  return numbers;
+};
+
+const paginationNumbers = generatePaginationNumbers();
 ---
 
 <AdminLayout title={title} description={description}>
@@ -302,19 +330,7 @@ const buildUrl = (params: Record<string, string | number>) => {
             </a>
           )}
 
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            let pageNum: number;
-            if (totalPages <= 5) {
-              pageNum = i + 1;
-            } else if (page <= 3) {
-              pageNum = i + 1;
-            } else if (page >= totalPages - 2) {
-              pageNum = totalPages - 4 + i;
-            } else {
-              pageNum = page - 2 + i;
-            }
-            return pageNum;
-          }).map((pageNum) => (
+          {paginationNumbers.map((pageNum) => (
             <a
               href={buildUrl({ page: pageNum })}
               class={`px-3 py-1 border rounded-md text-sm ${
