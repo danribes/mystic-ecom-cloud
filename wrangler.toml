@@ -15,5 +15,4 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NODE_ENV = "production"
 BCRYPT_ROUNDS = "10"
-UPSTASH_REDIS_REST_URL = "https://central-ghost-36936.upstash.io"
-UPSTASH_REDIS_REST_TOKEN = "AZBIAAIncDE1NmQ3ODdjY2JkZTU0Yjg2OTQ0ZjhkMWRmMjkwMGFiZXAxMzY5MzY"
+# Redis credentials are set as Secrets in Cloudflare Dashboard
