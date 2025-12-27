@@ -8,8 +8,7 @@
  * Features:
  * - Dropdown UI with flag icons
  * - Current language indicator
- * - Cookie-based persistence (via middleware)
- * - URL path preservation during switch
+ * - Cookie-based persistence and page reload
  * - Keyboard accessible (Enter/Space, Escape, Arrow keys)
  * - Click outside to close
  * - Responsive design
@@ -17,34 +16,12 @@
  * Integration:
  * - Uses Astro.locals.locale from T163 middleware
  * - Sets locale cookie for persistence
- * - Redirects to localized URL path
+ * - Reloads page to apply new locale (middleware reads cookie)
  */
 
-import { LOCALES, LOCALE_NAMES, type Locale } from '../i18n';
+import { LOCALE_NAMES, type Locale } from '../i18n';
 
 const currentLocale = Astro.locals.locale || 'es';
-const currentPath = Astro.url.pathname;
-
-// Remove locale prefix from path to get clean path
-function getCleanPath(pathname: string): string {
-  for (const locale of LOCALES) {
-    if (pathname.startsWith(`/${locale}/`)) {
-      return pathname.substring(3); // Remove '/es/'
-    }
-    if (pathname === `/${locale}`) {
-      return '/';
-    }
-  }
-  return pathname;
-}
-
-const cleanPath = getCleanPath(currentPath);
-
-// Generate URLs for each locale (Spanish is default, English needs /en/ prefix)
-const localeUrls: Record<Locale, string> = {
-  es: cleanPath || '/',
-  en: `/en${cleanPath || '/'}`,
-};
 
 // Language display configuration
 const languages = [
@@ -89,20 +66,20 @@ const otherLanguages = languages.filter(lang => lang.code !== currentLocale);
   >
     <div class="p-xs">
       {otherLanguages.map((lang, index) => (
-        <a
-          href={localeUrls[lang.code]}
-          class="flex items-center gap-sm rounded-md px-sm py-sm text-sm text-text transition-colors duration-fast hover:bg-surface hover:text-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+        <button
+          type="button"
+          class="flex w-full items-center gap-sm rounded-md px-sm py-sm text-sm text-text transition-colors duration-fast hover:bg-surface hover:text-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
           role="menuitem"
           tabindex={index === 0 ? 0 : -1}
           data-locale={lang.code}
           data-language-option
         >
           <span class="text-xl leading-none" aria-hidden="true">{lang.flag}</span>
-          <div class="flex flex-col">
+          <div class="flex flex-col text-left">
             <span class="font-medium">{lang.nativeName}</span>
             <span class="text-xs text-text-light">{lang.name}</span>
           </div>
-        </a>
+        </button>
       ))}
     </div>
   </div>
@@ -156,7 +133,7 @@ const otherLanguages = languages.filter(lang => lang.code !== currentLocale);
 
     const toggle = switcher.querySelector('[data-toggle="language-dropdown"]') as HTMLButtonElement;
     const dropdown = switcher.querySelector('[data-dropdown="language-menu"]') as HTMLElement;
-    const options = Array.from(switcher.querySelectorAll('[data-language-option]')) as HTMLAnchorElement[];
+    const options = Array.from(switcher.querySelectorAll('[data-language-option]')) as HTMLButtonElement[];
 
     if (!toggle || !dropdown) return;
 
@@ -206,16 +183,14 @@ const otherLanguages = languages.filter(lang => lang.code !== currentLocale);
     }
 
     /**
-     * Handle language selection
+     * Handle language selection - set cookie and reload page
      */
-    function selectLanguage(event: MouseEvent, locale: string, url: string) {
-      event.preventDefault();
-
+    function selectLanguage(locale: string) {
       // Set cookie for persistence (T163 middleware will read this)
       document.cookie = `locale=${locale}; path=/; max-age=31536000; samesite=lax`;
 
-      // Navigate to localized URL
-      window.location.href = url;
+      // Reload the current page - middleware will detect new locale from cookie
+      window.location.reload();
     }
 
     /**
@@ -267,8 +242,7 @@ const otherLanguages = languages.filter(lang => lang.code !== currentLocale);
           const focused = options[currentFocusIndex];
           if (focused) {
             const locale = focused.dataset.locale!;
-            const url = focused.href;
-            selectLanguage(event as any, locale, url);
+            selectLanguage(locale);
           }
           break;
       }
@@ -290,10 +264,9 @@ const otherLanguages = languages.filter(lang => lang.code !== currentLocale);
 
     // Language option clicks
     options.forEach(option => {
-      option.addEventListener('click', (event) => {
+      option.addEventListener('click', () => {
         const locale = option.dataset.locale!;
-        const url = option.href;
-        selectLanguage(event, locale, url);
+        selectLanguage(locale);
       });
     });
 
