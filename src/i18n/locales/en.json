@@ -26,7 +26,14 @@
     "yes": "Yes",
     "no": "No",
     "all": "All",
-    "none": "None"
+    "none": "None",
+    "viewDetails": "View Details",
+    "featured": "Featured",
+    "free": "Free",
+    "perPerson": "per person",
+    "limitedSpots": "Limited Spots",
+    "spotsAvailable": "{{count}} spots available",
+    "onlySpotsLeft": "Only {{count}} spots left!"
   },
   "nav": {
     "home": "Home",
@@ -73,7 +80,9 @@
     "browseCourses": "Browse Courses",
     "courseDetails": "Course Details",
     "enrolled": "Enrolled",
+    "enrolledCount": "enrolled",
     "enroll": "Enroll Now",
+    "noReviewsYet": "No reviews yet",
     "startCourse": "Start Course",
     "continueCourse": "Continue Course",
     "completedCourses": "Completed Courses",

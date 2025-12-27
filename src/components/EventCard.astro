@@ -1,12 +1,15 @@
 ---
 /**
  * EventCard Component
- * 
+ *
  * Displays an event preview card with image, title, date, location, price,
  * capacity, and booking CTA. Used in event listings and grids.
  */
 
 import type { Event } from '@/lib/events';
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
 
 interface Props {
   event: Event;
@@ -18,12 +21,12 @@ const { event, variant = 'default' } = Astro.props;
 // Format price for display
 const formatPrice = (price: string | number): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-  return numPrice === 0 ? 'Free' : `$${numPrice.toFixed(2)}`;
+  return numPrice === 0 ? t('common.free') : `$${numPrice.toFixed(2)}`;
 };
 
 // Format date for display
 const formatDate = (date: Date): string => {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -33,7 +36,7 @@ const formatDate = (date: Date): string => {
 
 // Format time for display
 const formatTime = (date: Date): string => {
-  return new Date(date).toLocaleTimeString('en-US', {
+  return new Date(date).toLocaleTimeString(locale === 'es' ? 'es-ES' : 'en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -43,13 +46,13 @@ const formatTime = (date: Date): string => {
 // Calculate spots status
 const getSpotsStatus = (available: number, capacity: number): { text: string; color: string } => {
   const percentage = (available / capacity) * 100;
-  
+
   if (available === 0) {
-    return { text: 'Sold Out', color: 'error' };
+    return { text: t('events.soldOut'), color: 'error' };
   } else if (percentage <= 20) {
-    return { text: `Only ${available} spots left!`, color: 'warning' };
+    return { text: t('common.onlySpotsLeft', { count: available }), color: 'warning' };
   } else {
-    return { text: `${available} spots available`, color: 'success' };
+    return { text: t('common.spotsAvailable', { count: available }), color: 'success' };
   }
 };
 
@@ -83,13 +86,13 @@ const durationText = event.duration_hours === 1
     {isSoldOut && (
       <div class="absolute inset-0 flex items-center justify-center bg-black/60">
         <span class="rounded-full bg-error px-xl py-sm text-lg font-bold text-white shadow-md">
-          SOLD OUT
+          {t('events.soldOut').toUpperCase()}
         </span>
       </div>
     )}
     {!isSoldOut && event.available_spots <= (event.capacity * 0.2) && (
       <span class="absolute right-md top-md rounded-full bg-warning px-md py-xs text-sm font-bold text-white shadow-md">
-        🔥 Limited Spots
+        🔥 {t('common.limitedSpots')}
       </span>
     )}
   </a>
@@ -106,7 +109,7 @@ const durationText = event.duration_hours === 1
           {new Date(event.event_date).getDate()}
         </span>
         <span class="text-xs font-semibold uppercase leading-tight">
-          {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short' })}
+          {new Date(event.event_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', { month: 'short' })}
         </span>
       </div>
       <div class="flex-1">
@@ -162,27 +165,27 @@ const durationText = event.duration_hours === 1
     <div class="mt-auto flex items-center justify-between gap-md border-t border-border pt-md">
       <div class="flex items-baseline gap-xs">
         {typeof event.price === 'number' && event.price === 0 || event.price === '0' ? (
-          <span class="text-2xl font-bold text-success">Free</span>
+          <span class="text-2xl font-bold text-success">{t('common.free')}</span>
         ) : (
           <>
             <span class="text-2xl font-bold text-primary">{formatPrice(event.price)}</span>
-            <span class="text-sm text-text-light">per person</span>
+            <span class="text-sm text-text-light">{t('common.perPerson')}</span>
           </>
         )}
       </div>
       {isSoldOut ? (
-        <button 
+        <button
           disabled
           class="whitespace-nowrap rounded-md bg-surface px-lg py-sm text-sm font-semibold text-text-light opacity-50 cursor-not-allowed"
         >
-          Sold Out
+          {t('events.soldOut')}
         </button>
       ) : (
-        <a 
-          href={eventUrl} 
+        <a
+          href={eventUrl}
           class="whitespace-nowrap rounded-md bg-primary px-lg py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
         >
-          Book Now
+          {t('events.bookNow')}
         </a>
       )}
     </div>
