@@ -63,7 +63,7 @@ async function seedAdmin() {
 
   // Admin user credentials
   const adminEmail = 'admin@admin.com';
-  const adminPassword = '1234';
+  const adminPassword = 'admin1234';
   const adminName = 'Admin';
 
   console.log('👤 Admin User Seeding Script');
