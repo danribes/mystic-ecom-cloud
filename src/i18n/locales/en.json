@@ -78,6 +78,7 @@
     "title": "Courses",
     "myCourses": "My Courses",
     "browseCourses": "Browse Courses",
+    "browseDescription": "Discover spiritual and personal development courses to enhance your journey",
     "courseDetails": "Course Details",
     "enrolled": "Enrolled",
     "enrolledCount": "enrolled",
@@ -107,7 +108,15 @@
     "progress": "Progress",
     "completed": "Completed",
     "category": "Category",
-    "allCategories": "All Categories"
+    "allCategories": "All Categories",
+    "filtersActive": "{{count}} filters active",
+    "filterActive": "{{count}} filter active",
+    "errorLoading": "Error Loading Courses",
+    "noCoursesFound": "No Courses Found",
+    "showingCourses": "Showing {{start}}-{{end}} of {{total}} courses",
+    "showingCourseSingular": "Showing {{start}}-{{end}} of {{total}} course",
+    "tryAdjustingFilters": "Try adjusting your filters to see more results",
+    "clearAllFilters": "Clear All Filters"
   },
   "events": {
     "title": "Events",
@@ -363,7 +372,10 @@
     "ebook": "eBook",
     "city": "City",
     "enterCityName": "Enter city name",
-    "applyFilters": "Apply Filters"
+    "applyFilters": "Apply Filters",
+    "minimumRating": "Minimum Rating",
+    "allRatings": "All Ratings",
+    "andUp": "& up"
   },
   "reviews": {
     "title": "Reviews",

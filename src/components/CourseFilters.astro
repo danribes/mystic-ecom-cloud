@@ -5,6 +5,10 @@
  * Supports category, price range, level, and rating filters
  */
 
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { t } = useTranslations(Astro.locals);
+
 interface Props {
   currentCategory: string;
   currentLevel: string;
@@ -35,13 +39,13 @@ const hasActiveFilters =
 <aside class="w-full flex-shrink-0 lg:w-64">
   <div class="sticky top-4 rounded-lg border border-border bg-background p-lg">
     <div class="mb-lg flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-text">Filters</h2>
+      <h2 class="text-lg font-semibold text-text">{t('search.filters')}</h2>
       {hasActiveFilters && (
         <a
           href="/courses"
           class="text-sm text-primary hover:underline"
         >
-          Clear all
+          {t('search.clearAll')}
         </a>
       )}
     </div>
@@ -49,7 +53,7 @@ const hasActiveFilters =
     <form id="course-filters" action="/courses" method="GET" class="space-y-lg">
       <!-- Category Filter -->
       <div>
-        <h3 class="mb-sm text-sm font-medium text-text">Category</h3>
+        <h3 class="mb-sm text-sm font-medium text-text">{t('courses.category')}</h3>
         <div class="space-y-xs">
           <label class="filter-label">
             <input
@@ -60,7 +64,7 @@ const hasActiveFilters =
               class="filter-radio"
             />
             <span class="filter-radio-custom"></span>
-            <span class="text-sm text-text-light">All Categories</span>
+            <span class="text-sm text-text-light">{t('courses.allCategories')}</span>
           </label>
 
           {categories.map((category) => (
@@ -81,7 +85,7 @@ const hasActiveFilters =
 
       <!-- Level Filter -->
       <div class="border-t border-border pt-lg">
-        <h3 class="mb-sm text-sm font-medium text-text">Level</h3>
+        <h3 class="mb-sm text-sm font-medium text-text">{t('courses.level')}</h3>
         <div class="space-y-xs">
           <label class="filter-label">
             <input
@@ -92,7 +96,7 @@ const hasActiveFilters =
               class="filter-radio"
             />
             <span class="filter-radio-custom"></span>
-            <span class="text-sm text-text-light">All Levels</span>
+            <span class="text-sm text-text-light">{t('search.allLevels')}</span>
           </label>
 
           <label class="filter-label">
@@ -104,7 +108,7 @@ const hasActiveFilters =
               class="filter-radio"
             />
             <span class="filter-radio-custom"></span>
-            <span class="text-sm text-text-light">Beginner</span>
+            <span class="text-sm text-text-light">{t('courses.beginner')}</span>
           </label>
 
           <label class="filter-label">
@@ -116,7 +120,7 @@ const hasActiveFilters =
               class="filter-radio"
             />
             <span class="filter-radio-custom"></span>
-            <span class="text-sm text-text-light">Intermediate</span>
+            <span class="text-sm text-text-light">{t('courses.intermediate')}</span>
           </label>
 
           <label class="filter-label">
@@ -128,18 +132,18 @@ const hasActiveFilters =
               class="filter-radio"
             />
             <span class="filter-radio-custom"></span>
-            <span class="text-sm text-text-light">Advanced</span>
+            <span class="text-sm text-text-light">{t('courses.advanced')}</span>
           </label>
         </div>
       </div>
 
       <!-- Price Range Filter -->
       <div class="border-t border-border pt-lg">
-        <h3 class="mb-sm text-sm font-medium text-text">Price Range</h3>
+        <h3 class="mb-sm text-sm font-medium text-text">{t('search.priceRange')}</h3>
         <div class="space-y-sm">
           <div>
             <label for="minPrice" class="mb-xs block text-xs text-text-light">
-              Minimum Price
+              {t('search.minPrice')}
             </label>
             <div class="relative">
               <span class="absolute left-sm top-1/2 -translate-y-1/2 text-sm text-text-light">
@@ -160,7 +164,7 @@ const hasActiveFilters =
 
           <div>
             <label for="maxPrice" class="mb-xs block text-xs text-text-light">
-              Maximum Price
+              {t('search.maxPrice')}
             </label>
             <div class="relative">
               <span class="absolute left-sm top-1/2 -translate-y-1/2 text-sm text-text-light">
@@ -173,7 +177,7 @@ const hasActiveFilters =
                 value={currentMaxPrice}
                 min="0"
                 step="0.01"
-                placeholder="No max"
+                placeholder={t('search.noLimit')}
                 class="w-full rounded-md border border-border py-sm pl-6 pr-sm text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
@@ -183,7 +187,7 @@ const hasActiveFilters =
 
       <!-- Rating Filter -->
       <div class="border-t border-border pt-lg">
-        <h3 class="mb-sm text-sm font-medium text-text">Minimum Rating</h3>
+        <h3 class="mb-sm text-sm font-medium text-text">{t('search.minimumRating')}</h3>
         <div class="space-y-xs">
           <label class="filter-label">
             <input
@@ -194,7 +198,7 @@ const hasActiveFilters =
               class="filter-radio"
             />
             <span class="filter-radio-custom"></span>
-            <span class="text-sm text-text-light">All Ratings</span>
+            <span class="text-sm text-text-light">{t('search.allRatings')}</span>
           </label>
 
           {[4, 3, 2, 1].map((rating) => (
@@ -220,7 +224,7 @@ const hasActiveFilters =
                     </svg>
                   ))}
                 </span>
-                <span class="ml-1">& up</span>
+                <span class="ml-1">{t('search.andUp')}</span>
               </span>
             </label>
           ))}
@@ -233,7 +237,7 @@ const hasActiveFilters =
           type="submit"
           class="w-full rounded-md bg-primary px-md py-sm text-sm font-medium text-white transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
-          Apply Filters
+          {t('search.applyFilters')}
         </button>
       </div>
     </form>

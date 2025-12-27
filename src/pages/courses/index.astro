@@ -9,9 +9,11 @@ import CourseCard from '../../components/CourseCard.astro';
 import CourseFilters from '../../components/CourseFilters.astro';
 import { getCourses, getCategories } from '../../lib/courses';
 import { getLocalizedCourses } from '../../lib/coursesI18n';
+import { useTranslations } from '@/lib/pageTranslations';
 
 // Get locale from middleware (T168)
 const locale = Astro.locals.locale || 'en';
+const { t } = useTranslations(Astro.locals);
 
 // Extract URL parameters
 const url = new URL(Astro.request.url);
@@ -128,15 +130,15 @@ const coursePageNumbers = computeCoursePageNumbers();
       <!-- Header Section -->
       <div class="mb-2xl">
         <h1 class="mb-sm text-3xl font-bold text-text">
-          Browse Courses
+          {t('courses.browseCourses')}
         </h1>
         <p class="text-text-light">
-          Discover spiritual and personal development courses to enhance your journey
+          {t('courses.browseDescription')}
         </p>
 
         {activeFilterCount > 0 && (
           <p class="mt-sm text-sm text-text">
-            <span class="font-medium">{activeFilterCount}</span> {activeFilterCount === 1 ? 'filter' : 'filters'} active
+            <span class="font-medium">{activeFilterCount}</span> {activeFilterCount === 1 ? t('courses.filterActive', { count: '' }).replace('  ', ' ').trim() : t('courses.filtersActive', { count: '' }).replace('  ', ' ').trim()}
           </p>
         )}
       </div>
@@ -157,7 +159,7 @@ const coursePageNumbers = computeCoursePageNumbers();
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <h2 class="mb-sm text-xl font-semibold text-error">Error Loading Courses</h2>
+          <h2 class="mb-sm text-xl font-semibold text-error">{t('courses.errorLoading')}</h2>
           <p class="text-error">{error}</p>
         </div>
       ) : (
@@ -178,8 +180,10 @@ const coursePageNumbers = computeCoursePageNumbers();
             <!-- Results Header -->
             <div class="mb-lg flex items-center justify-between">
               <p class="text-sm text-text-light">
-                {courses.total === 0 ? 'No courses found' :
-                 `Showing ${offset + 1}-${Math.min(offset + limit, courses.total)} of ${courses.total} ${courses.total === 1 ? 'course' : 'courses'}`}
+                {courses.total === 0 ? t('courses.noCoursesFound') :
+                 courses.total === 1
+                   ? t('courses.showingCourseSingular', { start: offset + 1, end: Math.min(offset + limit, courses.total), total: courses.total })
+                   : t('courses.showingCourses', { start: offset + 1, end: Math.min(offset + limit, courses.total), total: courses.total })}
               </p>
             </div>
 
@@ -200,16 +204,16 @@ const coursePageNumbers = computeCoursePageNumbers();
                   />
                 </svg>
                 <h2 class="mb-sm text-xl font-semibold text-text">
-                  No Courses Found
+                  {t('courses.noCoursesFound')}
                 </h2>
                 <p class="mb-md text-text-light">
-                  Try adjusting your filters to see more results
+                  {t('courses.tryAdjustingFilters')}
                 </p>
                 <a
                   href="/courses"
                   class="inline-block rounded-md bg-primary px-xl py-sm text-white transition-colors hover:bg-primary-dark"
                 >
-                  Clear All Filters
+                  {t('courses.clearAllFilters')}
                 </a>
               </div>
             ) : (
@@ -233,11 +237,11 @@ const coursePageNumbers = computeCoursePageNumbers();
                         href={buildPageUrl(currentPage - 1)}
                         class="rounded-md border border-border px-md py-sm text-sm font-medium text-text transition-colors hover:bg-surface"
                       >
-                        Previous
+                        {t('pagination.previous')}
                       </a>
                     ) : (
                       <span class="cursor-not-allowed rounded-md border border-border px-md py-sm text-sm font-medium text-text-lighter">
-                        Previous
+                        {t('pagination.previous')}
                       </span>
                     )}
 
@@ -274,7 +278,7 @@ const coursePageNumbers = computeCoursePageNumbers();
 
                     {/* Page Indicator (Mobile) */}
                     <span class="px-md py-sm text-sm text-text md:hidden">
-                      Page {currentPage} of {totalPages}
+                      {t('pagination.page')} {currentPage} {t('pagination.of')} {totalPages}
                     </span>
 
                     {/* Next Button */}
@@ -283,11 +287,11 @@ const coursePageNumbers = computeCoursePageNumbers();
                         href={buildPageUrl(currentPage + 1)}
                         class="rounded-md border border-border px-md py-sm text-sm font-medium text-text transition-colors hover:bg-surface"
                       >
-                        Next
+                        {t('pagination.next')}
                       </a>
                     ) : (
                       <span class="cursor-not-allowed rounded-md border border-border px-md py-sm text-sm font-medium text-text-lighter">
-                        Next
+                        {t('pagination.next')}
                       </span>
                     )}
                   </nav>

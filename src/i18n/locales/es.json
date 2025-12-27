@@ -78,6 +78,7 @@
     "title": "Cursos",
     "myCourses": "Mis Cursos",
     "browseCourses": "Explorar Cursos",
+    "browseDescription": "Descubre cursos de espiritualidad y desarrollo personal para mejorar tu camino",
     "courseDetails": "Detalles del Curso",
     "enrolled": "Inscrito",
     "enrolledCount": "inscritos",
@@ -107,7 +108,15 @@
     "progress": "Progreso",
     "completed": "Completado",
     "category": "Categoría",
-    "allCategories": "Todas las Categorías"
+    "allCategories": "Todas las Categorías",
+    "filtersActive": "{{count}} filtros activos",
+    "filterActive": "{{count}} filtro activo",
+    "errorLoading": "Error al Cargar Cursos",
+    "noCoursesFound": "No se Encontraron Cursos",
+    "showingCourses": "Mostrando {{start}}-{{end}} de {{total}} cursos",
+    "showingCourseSingular": "Mostrando {{start}}-{{end}} de {{total}} curso",
+    "tryAdjustingFilters": "Intenta ajustar tus filtros para ver más resultados",
+    "clearAllFilters": "Limpiar Todos los Filtros"
   },
   "events": {
     "title": "Eventos",
@@ -363,7 +372,10 @@
     "ebook": "eBook",
     "city": "Ciudad",
     "enterCityName": "Ingresa el nombre de la ciudad",
-    "applyFilters": "Aplicar Filtros"
+    "applyFilters": "Aplicar Filtros",
+    "minimumRating": "Calificación Mínima",
+    "allRatings": "Todas las Calificaciones",
+    "andUp": "o más"
   },
   "reviews": {
     "title": "Reseñas",
