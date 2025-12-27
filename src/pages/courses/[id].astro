@@ -28,6 +28,9 @@ const { id } = Astro.params;
 // Get current user session
 const session = await getSessionFromRequest(Astro.cookies);
 
+// Check if user is admin
+const isAdmin = Astro.locals.user?.role === 'admin';
+
 // Get locale from middleware (T168)
 const locale = Astro.locals.locale || 'es';
 
@@ -476,7 +479,18 @@ const courseSchema = generateCourseSchema({
               <span>{course.title}</span>
             </nav>
 
-            <h1>{course.title}</h1>
+            <div class="title-row">
+              <h1>{course.title}</h1>
+              {isAdmin && (
+                <a href={`/admin/courses/${course.id}/edit`} class="admin-edit-btn" title="Edit Course">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Edit
+                </a>
+              )}
+            </div>
             <p class="subtitle">{course.description}</p>
 
             <!-- Meta Info -->
@@ -886,6 +900,43 @@ const courseSchema = generateCourseSchema({
 
   .breadcrumb a:hover {
     color: white;
+  }
+
+  /* Title Row with Admin Edit Button */
+  .title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .title-row h1 {
+    margin-bottom: 0;
+  }
+
+  .admin-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+    transition: background var(--transition-fast);
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: var(--spacing-sm);
+  }
+
+  .admin-edit-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .admin-edit-btn svg {
+    flex-shrink: 0;
   }
 
   /* Course Info */

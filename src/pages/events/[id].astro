@@ -20,6 +20,9 @@ const { id } = Astro.params;
 // Get locale from middleware (T169)
 const locale = Astro.locals.locale || 'es';
 
+// Check if user is admin
+const isAdmin = Astro.locals.user?.role === 'admin';
+
 if (!id) {
   return Astro.redirect('/events');
 }
@@ -199,7 +202,22 @@ const eventSchema = generateEventSchema({
 
         <!-- Event Header -->
         <header class="mb-xl">
-          <h1 class="mb-md text-4xl font-bold text-text">{event.title}</h1>
+          <div class="flex items-start gap-md mb-md">
+            <h1 class="text-4xl font-bold text-text">{event.title}</h1>
+            {isAdmin && (
+              <a
+                href={`/admin/events/${event.id}/edit`}
+                class="inline-flex items-center gap-xs px-md py-xs bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0 mt-sm"
+                title="Edit Event"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit
+              </a>
+            )}
+          </div>
           
           <!-- Event Meta -->
           <div class="flex flex-wrap items-center gap-lg text-text-light">
