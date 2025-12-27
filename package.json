@@ -42,6 +42,7 @@
     "deploy:validate:report": "tsx src/scripts/deploy-validate.ts --report",
     "db:setup": "node scripts/setup-database.cjs",
     "db:setup:http": "node scripts/setup-database-http.mjs",
+    "db:seed-admin": "node scripts/seed-admin.cjs",
     "db:test": "node -e \"require('pg').Pool && console.log('pg module OK')\""
   },
   "dependencies": {
