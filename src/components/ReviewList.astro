@@ -18,6 +18,10 @@
  * - courseSlug: Course slug for pagination URLs
  */
 
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
+
 interface ReviewWithDetails {
   id: string;
   userId: string;
@@ -52,7 +56,7 @@ const {
 // Helper to format date
 const formatDate = (date: Date | string): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -112,7 +116,7 @@ const pageNumbers = computePageNumbers();
 ---
 
 <div class="bg-white rounded-lg shadow-md p-6">
-  <h3 class="text-xl font-bold text-gray-900 mb-6">Student Reviews</h3>
+  <h3 class="text-xl font-bold text-gray-900 mb-6">{t('reviews.studentReviews')}</h3>
 
   {reviews.length === 0 ? (
     <!-- No reviews -->
@@ -130,8 +134,8 @@ const pageNumbers = computePageNumbers();
           d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
         />
       </svg>
-      <p class="text-gray-600 text-lg font-semibold">No reviews yet</p>
-      <p class="text-gray-500 text-sm mt-1">Be the first to share your experience!</p>
+      <p class="text-gray-600 text-lg font-semibold">{t('reviews.noReviews')}</p>
+      <p class="text-gray-500 text-sm mt-1">{t('reviews.beFirstToReview')}</p>
     </div>
   ) : (
     <!-- Reviews list -->
@@ -162,7 +166,7 @@ const pageNumbers = computePageNumbers();
                           clip-rule="evenodd"
                         />
                       </svg>
-                      <span class="text-xs text-green-700 font-medium">Verified Purchase</span>
+                      <span class="text-xs text-green-700 font-medium">{t('reviews.verifiedPurchase')}</span>
                     </div>
                   )}
                 </div>
@@ -190,7 +194,7 @@ const pageNumbers = computePageNumbers();
 
               <!-- Review Date -->
               <p class="text-sm text-gray-500">
-                Reviewed on {formatDate(review.createdAt)}
+                {t('reviews.reviewedOn', { date: formatDate(review.createdAt) })}
               </p>
             </div>
           </div>
@@ -207,11 +211,11 @@ const pageNumbers = computePageNumbers();
             href={`/courses/${courseSlug}?page=${currentPage - 1}`}
             class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           >
-            Previous
+            {t('common.previous')}
           </a>
         ) : (
           <span class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
-            Previous
+            {t('common.previous')}
           </span>
         )}
 
@@ -237,11 +241,11 @@ const pageNumbers = computePageNumbers();
             href={`/courses/${courseSlug}?page=${currentPage + 1}`}
             class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           >
-            Next
+            {t('common.next')}
           </a>
         ) : (
           <span class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
-            Next
+            {t('common.next')}
           </span>
         )}
       </div>

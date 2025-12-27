@@ -18,6 +18,10 @@
  * - existingReview: Existing review object if user has already reviewed
  */
 
+import { useTranslations } from '@/lib/pageTranslations';
+
+const { locale, t } = useTranslations(Astro.locals);
+
 interface Props {
   courseId: string;
   userId: string | null;
@@ -37,13 +41,13 @@ const canSubmitReview = userId && hasPurchased && !existingReview;
 const hasExistingReview = !!existingReview;
 ---
 
-<div class="bg-white rounded-lg shadow-md p-6 mb-8">
-  <h2 class="text-2xl font-bold text-gray-900 mb-4">Write a Review</h2>
+<div class="bg-white rounded-lg shadow-md p-6 mb-8" data-locale={locale} data-rating-labels={JSON.stringify([t('reviews.ratingLabels.poor'), t('reviews.ratingLabels.fair'), t('reviews.ratingLabels.good'), t('reviews.ratingLabels.veryGood'), t('reviews.ratingLabels.excellent')])}>
+  <h2 class="text-2xl font-bold text-gray-900 mb-4">{t('reviews.writeReview')}</h2>
 
   {!userId && (
     <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
       <p class="text-blue-800">
-        Please <a href="/login" class="font-semibold underline hover:text-blue-900">log in</a> to write a review.
+        {t('reviews.loginToReview').split('log in')[0]}<a href="/login" class="font-semibold underline hover:text-blue-900">{t('common.login').toLowerCase()}</a>{t('reviews.loginToReview').split('log in')[1] || ''}
       </p>
     </div>
   )}
@@ -51,16 +55,16 @@ const hasExistingReview = !!existingReview;
   {userId && !hasPurchased && !hasExistingReview && (
     <div class="bg-amber-50 border border-amber-200 rounded-md p-4">
       <p class="text-amber-800">
-        You must purchase this course before you can write a review.
+        {t('reviews.mustPurchase')}
       </p>
     </div>
   )}
 
   {hasExistingReview && (
     <div class="bg-green-50 border border-green-200 rounded-md p-4">
-      <p class="text-green-800 font-semibold mb-2">You have already reviewed this course</p>
+      <p class="text-green-800 font-semibold mb-2">{t('reviews.alreadyReviewed')}</p>
       <div class="flex items-center gap-2 mb-2">
-        <span class="text-sm text-gray-600">Your rating:</span>
+        <span class="text-sm text-gray-600">{t('reviews.yourRating')}:</span>
         <div class="flex gap-1">
           {Array.from({ length: 5 }, (_, i) => i + 1).map((star) => (
             <svg
@@ -75,13 +79,13 @@ const hasExistingReview = !!existingReview;
       </div>
       {existingReview?.comment && (
         <div class="text-sm text-gray-700 mt-2">
-          <span class="font-semibold">Your review:</span>
+          <span class="font-semibold">{t('reviews.yourReview')}:</span>
           <p class="mt-1 italic">&ldquo;{existingReview.comment}&rdquo;</p>
         </div>
       )}
       {!existingReview?.isApproved && (
         <p class="text-sm text-amber-600 mt-2">
-          Your review is pending approval by an administrator.
+          {t('reviews.pendingApproval')}
         </p>
       )}
     </div>
@@ -95,7 +99,7 @@ const hasExistingReview = !!existingReview;
       <!-- Rating Selection -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">
-          Rating <span class="text-red-500">*</span>
+          {t('reviews.rating')} <span class="text-red-500">*</span>
         </label>
         <div class="flex gap-2 items-center">
           <div id="star-rating" class="flex gap-1 cursor-pointer" role="radiogroup" aria-label="Rating">
@@ -121,13 +125,13 @@ const hasExistingReview = !!existingReview;
           <span id="rating-text" class="text-sm text-gray-600 ml-2"></span>
         </div>
         <input type="hidden" id="rating-input" name="rating" value="" required />
-        <p id="rating-error" class="text-red-500 text-sm mt-1 hidden">Please select a rating</p>
+        <p id="rating-error" class="text-red-500 text-sm mt-1 hidden" data-message={t('reviews.selectRating')}>{t('reviews.selectRating')}</p>
       </div>
 
       <!-- Comment Textarea -->
       <div>
         <label for="comment" class="block text-sm font-semibold text-gray-700 mb-2">
-          Your Review (Optional)
+          {t('reviews.reviewOptional')}
         </label>
         <textarea
           id="comment"
@@ -135,10 +139,10 @@ const hasExistingReview = !!existingReview;
           rows="5"
           maxlength="1000"
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-          placeholder="Share your experience with this course..."
+          placeholder={t('reviews.reviewPlaceholder')}
         ></textarea>
         <div class="flex justify-between items-center mt-1">
-          <p class="text-xs text-gray-500">Maximum 1000 characters</p>
+          <p class="text-xs text-gray-500">{t('reviews.maxCharacters', { max: 1000 })}</p>
           <p id="char-count" class="text-xs text-gray-500">0 / 1000</p>
         </div>
       </div>
@@ -151,7 +155,7 @@ const hasExistingReview = !!existingReview;
       <!-- Success Message -->
       <div id="form-success" class="bg-green-50 border border-green-200 rounded-md p-4 hidden">
         <p class="text-green-800 text-sm">
-          Thank you for your review! It will be visible after admin approval.
+          {t('reviews.thankYouReview')}
         </p>
       </div>
 
@@ -161,14 +165,16 @@ const hasExistingReview = !!existingReview;
           type="submit"
           id="submit-button"
           class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          data-submit-text={t('reviews.submitReview')}
+          data-submitting-text={t('reviews.submitting')}
         >
-          <span id="submit-text">Submit Review</span>
+          <span id="submit-text">{t('reviews.submitReview')}</span>
           <span id="submit-loading" class="hidden">
             <svg class="animate-spin h-5 w-5 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Submitting...
+            {t('reviews.submitting')}
           </span>
         </button>
       </div>
@@ -233,7 +239,8 @@ const hasExistingReview = !!existingReview;
 
     // Update text display
     if (ratingText && count > 0) {
-      const labels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+      const container = document.querySelector('[data-rating-labels]');
+      const labels = container ? JSON.parse(container.getAttribute('data-rating-labels') || '[]') : ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
       ratingText.textContent = labels[count - 1];
     } else if (ratingText) {
       ratingText.textContent = '';
