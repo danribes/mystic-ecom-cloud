@@ -26,6 +26,9 @@ const loginSchema = z.object({
 export const POST: APIRoute = async (context) => {
   const { request, cookies, redirect } = context;
 
+  // Parse form data early (can only be consumed once)
+  const formData = await request.formData();
+
   // Debug logging for CSRF troubleshooting
   const csrfCookieFromAstro = cookies.get('csrf_token')?.value;
 
@@ -37,8 +40,7 @@ export const POST: APIRoute = async (context) => {
     .find(c => c.startsWith('csrf_token='))
     ?.split('=')[1];
 
-  const formDataClone = await request.clone().formData();
-  const csrfForm = formDataClone.get('csrf_token') as string | null;
+  const csrfForm = formData.get('csrf_token') as string | null;
 
   console.log('[LOGIN] CSRF Debug:', {
     cookieFromAstro: csrfCookieFromAstro ? csrfCookieFromAstro.substring(0, 10) + '...' : 'MISSING',
@@ -49,11 +51,9 @@ export const POST: APIRoute = async (context) => {
     headerMatchesForm: csrfCookieFromHeader === csrfForm,
   });
 
-  // T201: CSRF protection - temporarily bypassed for debugging
-  // TODO: Re-enable after fixing the cookie parsing issue
-  const csrfValid = true; // Bypass CSRF for debugging
-
-  console.log('[LOGIN] CSRF check bypassed for debugging');
+  // T201: CSRF protection - validate manually using header parsing
+  // Astro's cookies.get() may not work correctly in Cloudflare Workers
+  const csrfValid = csrfCookieFromHeader === csrfForm && csrfForm !== null;
 
   if (!csrfValid) {
     console.warn('[LOGIN] CSRF validation failed:', {
@@ -82,8 +82,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   try {
-    // Parse form data
-    const formData = await request.formData();
+    // Form data already parsed above
     const data = {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
