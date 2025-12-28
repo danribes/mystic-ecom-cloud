@@ -26,12 +26,26 @@ const loginSchema = z.object({
 export const POST: APIRoute = async (context) => {
   const { request, cookies, redirect } = context;
 
+  // Debug logging for CSRF troubleshooting
+  const csrfCookie = cookies.get('csrf_token')?.value;
+  const formDataClone = await request.clone().formData();
+  const csrfForm = formDataClone.get('csrf_token') as string | null;
+
+  console.log('[LOGIN] CSRF Debug:', {
+    cookieToken: csrfCookie ? csrfCookie.substring(0, 10) + '...' : 'MISSING',
+    formToken: csrfForm ? csrfForm.substring(0, 10) + '...' : 'MISSING',
+    cookieHeader: request.headers.get('cookie')?.substring(0, 50),
+    tokensMatch: csrfCookie === csrfForm,
+  });
+
   // T201: CSRF protection - validate token
   const csrfValid = await validateCSRF(context);
   if (!csrfValid) {
     console.warn('[LOGIN] CSRF validation failed:', {
       ip: context.clientAddress,
       url: request.url,
+      cookieToken: csrfCookie ? 'present' : 'missing',
+      formToken: csrfForm ? 'present' : 'missing',
     });
 
     return redirect('/login?error=csrf_invalid');
