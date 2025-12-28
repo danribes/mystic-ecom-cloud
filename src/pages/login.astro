@@ -7,6 +7,7 @@
  */
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCSRFInput } from '@/lib/csrf';
 
 export const prerender = false; // Enable SSR for form handling
 
@@ -105,6 +106,8 @@ const verify = Astro.url.searchParams.get('verify');
 
         <!-- Login Form -->
         <form method="POST" action="/api/auth/login" class="space-y-6">
+          <!-- CSRF Token -->
+          <Fragment set:html={getCSRFInput(Astro.cookies)} />
           <!-- Hidden redirect field -->
           <input type="hidden" name="redirect" value={redirect} />
 
