@@ -13,6 +13,7 @@ import { verifyPassword } from '@/lib/auth/password';
 import { login } from '@/lib/auth/session';
 import { rateLimit, RateLimitProfiles } from '@/lib/ratelimit';
 import { validateCSRF } from '@/lib/csrf';
+import { initEnv } from '@/lib/env';
 import { z } from 'zod';
 
 // Validation schema
@@ -24,7 +25,13 @@ const loginSchema = z.object({
 });
 
 export const POST: APIRoute = async (context) => {
-  const { request, cookies, redirect } = context;
+  const { request, cookies, redirect, locals } = context;
+
+  // Initialize environment from Cloudflare runtime
+  const runtime = (locals as any).runtime;
+  if (runtime?.env) {
+    initEnv(runtime.env);
+  }
 
   // Parse form data early (can only be consumed once)
   const formData = await request.formData();
@@ -145,7 +152,8 @@ export const POST: APIRoute = async (context) => {
     const destination = redirectPath || '/dashboard';
     return redirect(destination);
   } catch (error) {
-    console.error('[LOGIN] Error:', error);
+    console.error('[LOGIN] Error:', error instanceof Error ? error.message : error);
+    console.error('[LOGIN] Stack:', error instanceof Error ? error.stack : 'No stack');
     return redirect(`/login?error=server_error`);
   }
 };
