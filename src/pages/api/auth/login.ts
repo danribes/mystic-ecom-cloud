@@ -27,15 +27,26 @@ export const POST: APIRoute = async (context) => {
   const { request, cookies, redirect } = context;
 
   // Debug logging for CSRF troubleshooting
-  const csrfCookie = cookies.get('csrf_token')?.value;
+  const csrfCookieFromAstro = cookies.get('csrf_token')?.value;
+
+  // Also parse cookie directly from header as backup
+  const cookieHeader = request.headers.get('cookie') || '';
+  const csrfCookieFromHeader = cookieHeader
+    .split(';')
+    .map(c => c.trim())
+    .find(c => c.startsWith('csrf_token='))
+    ?.split('=')[1];
+
   const formDataClone = await request.clone().formData();
   const csrfForm = formDataClone.get('csrf_token') as string | null;
 
   console.log('[LOGIN] CSRF Debug:', {
-    cookieToken: csrfCookie ? csrfCookie.substring(0, 10) + '...' : 'MISSING',
+    cookieFromAstro: csrfCookieFromAstro ? csrfCookieFromAstro.substring(0, 10) + '...' : 'MISSING',
+    cookieFromHeader: csrfCookieFromHeader ? csrfCookieFromHeader.substring(0, 10) + '...' : 'MISSING',
     formToken: csrfForm ? csrfForm.substring(0, 10) + '...' : 'MISSING',
-    cookieHeader: request.headers.get('cookie')?.substring(0, 50),
-    tokensMatch: csrfCookie === csrfForm,
+    rawCookieHeader: cookieHeader.substring(0, 80),
+    astroMatchesForm: csrfCookieFromAstro === csrfForm,
+    headerMatchesForm: csrfCookieFromHeader === csrfForm,
   });
 
   // T201: CSRF protection - validate token
@@ -44,7 +55,8 @@ export const POST: APIRoute = async (context) => {
     console.warn('[LOGIN] CSRF validation failed:', {
       ip: context.clientAddress,
       url: request.url,
-      cookieToken: csrfCookie ? 'present' : 'missing',
+      cookieFromAstro: csrfCookieFromAstro ? 'present' : 'missing',
+      cookieFromHeader: csrfCookieFromHeader ? 'present' : 'missing',
       formToken: csrfForm ? 'present' : 'missing',
     });
 
