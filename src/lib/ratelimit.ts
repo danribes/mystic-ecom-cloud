@@ -210,6 +210,18 @@ export async function checkRateLimit(
 ): Promise<RateLimitResult> {
   try {
     const redis = await getRedisClient();
+
+    // If Redis is not available, allow request (fail open)
+    if (!redis) {
+      console.warn('[RateLimit] Redis not available, allowing request');
+      return {
+        allowed: true,
+        remaining: config.maxRequests,
+        resetAt: Math.floor(Date.now() / 1000) + config.windowSeconds,
+        limit: config.maxRequests,
+      };
+    }
+
     const clientId = getClientIdentifier(context, config);
     const key = `${config.keyPrefix || 'rl'}:${clientId}`;
     const now = Date.now();
@@ -362,6 +374,10 @@ export async function resetRateLimit(
 ): Promise<void> {
   try {
     const redis = await getRedisClient();
+    if (!redis) {
+      console.warn('[RateLimit] Redis not available, cannot reset rate limit');
+      return;
+    }
     const key = `${keyPrefix}:${clientId}`;
     await redis.del(key);
     console.log(`[RateLimit] Reset rate limit for: ${key}`);
@@ -379,6 +395,10 @@ export async function getRateLimitStatus(
 ): Promise<RateLimitResult | null> {
   try {
     const redis = await getRedisClient();
+    if (!redis) {
+      console.warn('[RateLimit] Redis not available, cannot get status');
+      return null;
+    }
     const key = `${config.keyPrefix || 'rl'}:${clientId}`;
     const now = Date.now();
     const windowStart = now - (config.windowSeconds * 1000);
@@ -425,6 +445,11 @@ export async function applyRateLimit(
     const clientIp = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
 
     const redis = await getRedisClient();
+    if (!redis) {
+      console.warn('[RateLimit] Redis not available, allowing request');
+      return { success: true };
+    }
+
     const keyPrefix = 'rl:legacy';
     const key = `${keyPrefix}:${clientIp}`;
     const now = Date.now();
