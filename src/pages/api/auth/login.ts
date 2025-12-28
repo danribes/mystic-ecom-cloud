@@ -127,8 +127,18 @@ export const POST: APIRoute = async (context) => {
 
     const user = result.rows[0];
 
-    // Verify password
-    const isValidPassword = await verifyPassword(password, user.password_hash);
+    // Verify password with detailed error tracking
+    console.log('[LOGIN] Starting password verification for:', normalizedEmail);
+    let isValidPassword: boolean;
+    try {
+      isValidPassword = await verifyPassword(password, user.password_hash);
+      console.log('[LOGIN] Password verification completed:', isValidPassword);
+    } catch (pwError) {
+      console.error('[LOGIN] Password verification threw error:', pwError instanceof Error ? pwError.message : pwError);
+      console.error('[LOGIN] Password verification stack:', pwError instanceof Error ? pwError.stack : 'No stack');
+      return redirect(`/login?error=password_error`);
+    }
+
     if (!isValidPassword) {
       console.error('[LOGIN] Invalid password for user:', normalizedEmail);
       return redirect(`/login?error=invalid_credentials`);
@@ -143,8 +153,16 @@ export const POST: APIRoute = async (context) => {
     }
     */
 
-    // Create session
-    await login(cookies, user.id, user.email, user.name, user.role);
+    // Create session with detailed error tracking
+    console.log('[LOGIN] Starting session creation for user:', { id: user.id, role: user.role });
+    try {
+      await login(cookies, user.id, user.email, user.name, user.role);
+      console.log('[LOGIN] Session created successfully');
+    } catch (sessionError) {
+      console.error('[LOGIN] Session creation threw error:', sessionError instanceof Error ? sessionError.message : sessionError);
+      console.error('[LOGIN] Session creation stack:', sessionError instanceof Error ? sessionError.stack : 'No stack');
+      return redirect(`/login?error=session_error`);
+    }
 
     console.log('[LOGIN] User logged in:', { id: user.id, email: user.email, role: user.role });
 
