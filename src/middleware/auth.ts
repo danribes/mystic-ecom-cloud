@@ -44,6 +44,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
       '/reset-password',
       '/api/health',
       '/api/debug-env',
+      '/api/auth/',
+      '/api/checkout/',
+      '/api/search',
       '/courses',
       '/events',
       '/shop',
@@ -104,7 +107,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const { path: cleanPath } = extractLocaleFromPath(context.url.pathname);
 
     // For public paths, continue anyway
-    const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health', '/courses', '/events', '/shop', '/about', '/cart', '/checkout', '/products'];
+    const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health', '/api/auth/', '/api/checkout/', '/api/search', '/courses', '/events', '/shop', '/about', '/cart', '/checkout', '/products'];
     const isPublicPath = publicPaths.some((path) => {
       if (path === '/') {
         return cleanPath === path;
