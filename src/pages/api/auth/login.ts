@@ -50,7 +50,10 @@ export const POST: APIRoute = async (context) => {
   });
 
   // T201: CSRF protection - validate token
-  const csrfValid = await validateCSRF(context);
+  // Temporary workaround: validate CSRF token manually using header parsing
+  // since Astro's cookies.get() may not work correctly in Cloudflare Workers
+  const csrfValid = csrfCookieFromHeader === csrfForm && csrfForm !== null;
+
   if (!csrfValid) {
     console.warn('[LOGIN] CSRF validation failed:', {
       ip: context.clientAddress,
