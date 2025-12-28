@@ -125,7 +125,14 @@ export const POST: APIRoute = async (context) => {
       return redirect(`/login?error=invalid_credentials`);
     }
 
-    const user = result.rows[0];
+    const user = result.rows[0] as {
+      id: string;
+      email: string;
+      password_hash: string;
+      name: string;
+      role: 'admin' | 'user';
+      email_verified: boolean;
+    };
 
     // Verify password with detailed error tracking
     console.log('[LOGIN] Starting password verification for:', normalizedEmail);
