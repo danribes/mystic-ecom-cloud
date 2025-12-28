@@ -32,6 +32,10 @@ function isRedisConfigured(): boolean {
  * Returns null if Redis is not configured
  */
 export async function getRedisClient(): Promise<Redis | null> {
+  const url = getEnv('UPSTASH_REDIS_REST_URL');
+  const token = getEnv('UPSTASH_REDIS_REST_TOKEN');
+  console.log('[Redis] getRedisClient called, URL configured:', !!url, 'TOKEN configured:', !!token);
+
   if (!isRedisConfigured()) {
     console.warn('[Redis] UPSTASH_REDIS_REST_URL/TOKEN not configured - Redis features disabled');
     return null;
@@ -47,14 +51,21 @@ export async function set(
   value: string,
   expirationSeconds?: number
 ): Promise<void> {
-  const redis = await getRedisClient();
-  if (!redis) return; // Gracefully skip if Redis unavailable
+  console.log('[Redis] SET called for key:', key.substring(0, 30) + '...');
 
+  const redis = await getRedisClient();
+  if (!redis) {
+    console.warn('[Redis] Client not available, skipping SET');
+    return; // Gracefully skip if Redis unavailable
+  }
+
+  console.log('[Redis] Client available, executing SET...');
   if (expirationSeconds) {
     await redis.setEx(key, expirationSeconds, value);
   } else {
     await redis.set(key, value);
   }
+  console.log('[Redis] SET completed successfully');
 }
 
 /**
