@@ -127,11 +127,18 @@ export async function setJSON(
 
 /**
  * Retrieve and parse JSON object
+ * Note: Upstash Redis SDK auto-deserializes JSON, so we check the type first
  */
 export async function getJSON<T = any>(key: string): Promise<T | null> {
   const value = await get(key);
   if (!value) return null;
 
+  // If Upstash already deserialized it to an object, return as-is
+  if (typeof value === 'object') {
+    return value as T;
+  }
+
+  // If it's a string, parse it
   try {
     return JSON.parse(value) as T;
   } catch (error) {
