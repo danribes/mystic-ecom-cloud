@@ -1,12 +1,20 @@
 ---
 /**
  * T102: Admin Edit Digital Product Page
- * 
- * Form for editing existing digital products
+ *
+ * Form for editing existing digital products with:
+ * - File upload for product image and downloadable files
+ * - Product type selection (PDF, audio, video, ebook)
+ * - Price and metadata management
+ * - Publication status toggle
  */
 
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import FileUpload from '@/components/FileUpload.astro';
 import { checkAdminAuth } from '@/lib/auth/admin';
 import { getPool } from '@/lib/db';
+
+export const prerender = false;
 
 // Check admin authentication
 const authResult = await checkAdminAuth(Astro.cookies, Astro.url.pathname);
@@ -31,7 +39,7 @@ try {
     'SELECT * FROM digital_products WHERE id = $1',
     [id]
   );
-  
+
   if (result.rows.length === 0) {
     notFound = true;
   } else {
@@ -46,9 +54,6 @@ if (notFound) {
   return Astro.redirect('/admin/products?error=not-found');
 }
 
-const title = `Edit ${product.title}`;
-const description = 'Update product details and settings';
-
 // Product type options
 const productTypes = [
   { value: 'pdf', label: 'PDF Document', icon: '📄' },
@@ -56,78 +61,54 @@ const productTypes = [
   { value: 'video', label: 'Video File', icon: '🎥' },
   { value: 'ebook', label: 'eBook', icon: '📚' }
 ];
+
+// Get accept types based on product type
+const getAcceptType = (productType: string): string => {
+  switch (productType) {
+    case 'pdf':
+      return 'application/pdf';
+    case 'audio':
+      return 'audio/*';
+    case 'video':
+      return 'video/*';
+    case 'ebook':
+      return 'application/pdf,application/epub+zip,.epub,.mobi';
+    default:
+      return '*/*';
+  }
+};
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title}</title>
-  <meta name="description" content={description} />
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-50">
-  <div class="min-h-screen">
-    <!-- Header Section -->
-    <div class="bg-white shadow-sm border-b">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<AdminLayout title={`Edit: ${product.title}`}>
+  <div class="max-w-5xl mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border">
+      <div class="px-6 py-4 border-b">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-gray-900" data-testid="page-title">
-              Edit Product
-            </h1>
-            <p class="mt-2 text-sm text-gray-600">
-              Update product details and settings
-            </p>
+            <h1 class="text-2xl font-bold text-gray-900">Edit Product</h1>
+            <p class="text-sm text-gray-600 mt-1">Update product details and files</p>
           </div>
           <a
             href="/admin/products"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
           >
-            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
             Back to Products
           </a>
         </div>
       </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      <!-- Error Message Container -->
-      <div id="errorMessage" class="hidden mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md" role="alert">
-        <div class="flex">
-          <svg class="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
-          <span id="errorMessageText"></span>
-        </div>
-      </div>
+      <form id="productForm" class="p-6 space-y-8" data-product-id={product.id}>
+        {/* Basic Information */}
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Basic Information
+          </h2>
 
-      <!-- Success Message Container -->
-      <div id="successMessage" class="hidden mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md" role="alert">
-        <div class="flex">
-          <svg class="h-5 w-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
-          <span id="successMessageText"></span>
-        </div>
-      </div>
-
-      <!-- Product Form -->
-      <form id="productForm" class="space-y-8" data-testid="product-form" data-product-id={product.id}>
-        
-        <!-- Basic Information Section -->
-        <div class="bg-white shadow-sm rounded-lg p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">Basic Information</h2>
-          
-          <div class="space-y-6">
-            <!-- Title -->
-            <div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
               <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
                 Title <span class="text-red-600">*</span>
               </label>
@@ -138,17 +119,14 @@ const productTypes = [
                 required
                 maxlength="255"
                 value={product.title}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="e.g., Complete TypeScript Guide"
-                data-testid="title-input"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                placeholder="e.g., Complete Meditation Guide"
               />
-              <p class="mt-1 text-sm text-gray-500">The name of your digital product</p>
             </div>
 
-            <!-- Slug -->
-            <div>
+            <div class="md:col-span-2">
               <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">
-                Slug <span class="text-red-600">*</span>
+                URL Slug <span class="text-red-600">*</span>
               </label>
               <input
                 type="text"
@@ -159,41 +137,41 @@ const productTypes = [
                 pattern="[a-z0-9-]+"
                 value={product.slug}
                 data-original-slug={product.slug}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono"
-                placeholder="complete-typescript-guide"
-                data-testid="slug-input"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-mono"
+                placeholder="complete-meditation-guide"
               />
-              <p class="mt-1 text-sm text-gray-500">URL-friendly version (lowercase, hyphens only). Auto-generated from title.</p>
-              <p class="mt-1 text-sm text-amber-600" id="slugWarning" style="display: none;">
-                ⚠️ Changing the slug will break existing links to this product
+              <p class="mt-1 text-xs text-gray-500">Auto-generated from title (editable)</p>
+              <p class="mt-1 text-xs text-amber-600 hidden" id="slugWarning">
+                Warning: Changing the slug will break existing links to this product
               </p>
             </div>
+          </div>
 
-            <!-- Description -->
-            <div>
-              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-                Description <span class="text-red-600">*</span>
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                required
-                rows="4"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Describe your product in detail..."
-                data-testid="description-input"
-              >{product.description}</textarea>
-              <p class="mt-1 text-sm text-gray-500">Provide a detailed description of what customers will receive</p>
-            </div>
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              Description <span class="text-red-600">*</span>
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              required
+              rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+              placeholder="Describe your product in detail..."
+            >{product.description}</textarea>
           </div>
         </div>
 
-        <!-- Product Details Section -->
-        <div class="bg-white shadow-sm rounded-lg p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">Product Details</h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Product Type -->
+        {/* Product Details */}
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Product Details
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label for="productType" class="block text-sm font-medium text-gray-700 mb-1">
                 Product Type <span class="text-red-600">*</span>
@@ -202,8 +180,7 @@ const productTypes = [
                 id="productType"
                 name="productType"
                 required
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                data-testid="product-type-select"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
               >
                 <option value="">Select type...</option>
                 {productTypes.map(type => (
@@ -212,18 +189,15 @@ const productTypes = [
                   </option>
                 ))}
               </select>
-              <p class="mt-1 text-sm text-gray-500">Type of digital file</p>
+              <p class="mt-1 text-xs text-gray-500">Type of digital file</p>
             </div>
 
-            <!-- Price -->
             <div>
               <label for="price" class="block text-sm font-medium text-gray-700 mb-1">
-                Price (USD) <span class="text-red-600">*</span>
+                Price ($) <span class="text-red-600">*</span>
               </label>
-              <div class="relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span class="text-gray-500 sm:text-sm">$</span>
-                </div>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-gray-500">$</span>
                 <input
                   type="number"
                   id="price"
@@ -232,15 +206,13 @@ const productTypes = [
                   min="0"
                   step="0.01"
                   value={Number(product.price).toFixed(2)}
-                  class="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="0.00"
-                  data-testid="price-input"
+                  class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  placeholder="29.99"
                 />
               </div>
-              <p class="mt-1 text-sm text-gray-500">Price in US dollars</p>
+              <p class="mt-1 text-xs text-gray-500">Enter 0 for free products</p>
             </div>
 
-            <!-- File Size -->
             <div>
               <label for="fileSizeMb" class="block text-sm font-medium text-gray-700 mb-1">
                 File Size (MB)
@@ -252,14 +224,12 @@ const productTypes = [
                 min="0"
                 step="0.01"
                 value={product.file_size_mb ? Number(product.file_size_mb).toFixed(2) : ''}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
                 placeholder="5.5"
-                data-testid="file-size-input"
               />
-              <p class="mt-1 text-sm text-gray-500">Size of the downloadable file in megabytes</p>
+              <p class="mt-1 text-xs text-gray-500">Size of the downloadable file</p>
             </div>
 
-            <!-- Download Limit -->
             <div>
               <label for="downloadLimit" class="block text-sm font-medium text-gray-700 mb-1">
                 Download Limit
@@ -270,329 +240,297 @@ const productTypes = [
                 name="downloadLimit"
                 min="1"
                 value={product.download_limit || 3}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                data-testid="download-limit-input"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                placeholder="3"
               />
-              <p class="mt-1 text-sm text-gray-500">Number of times a customer can download this product</p>
+              <p class="mt-1 text-xs text-gray-500">Times customer can download</p>
             </div>
           </div>
         </div>
 
-        <!-- Files & Media Section -->
-        <div class="bg-white shadow-sm rounded-lg p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">Files & Media</h2>
-          
-          <div class="space-y-6">
-            <!-- File URL -->
-            <div>
-              <label for="fileUrl" class="block text-sm font-medium text-gray-700 mb-1">
-                File URL <span class="text-red-600">*</span>
-              </label>
-              <input
-                type="url"
-                id="fileUrl"
-                name="fileUrl"
-                required
-                maxlength="500"
-                value={product.file_url}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
-                placeholder="https://storage.example.com/products/your-file.pdf"
-                data-testid="file-url-input"
-              />
-              <p class="mt-1 text-sm text-gray-500">Direct URL to the downloadable file (stored in cloud storage)</p>
-            </div>
+        {/* Files & Media */}
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Files & Media
+          </h2>
 
-            <!-- Preview URL (Optional) -->
-            <div>
-              <label for="previewUrl" class="block text-sm font-medium text-gray-700 mb-1">
-                Preview URL
-              </label>
-              <input
-                type="url"
-                id="previewUrl"
-                name="previewUrl"
-                maxlength="500"
-                value={product.preview_url || ''}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
-                placeholder="https://storage.example.com/previews/sample.pdf"
-                data-testid="preview-url-input"
-              />
-              <p class="mt-1 text-sm text-gray-500">Optional preview or sample file URL</p>
-            </div>
+          <FileUpload
+            name="imageUrl"
+            label="Product Image"
+            accept="image/*"
+            maxSize={10 * 1024 * 1024}
+            currentValue={product.image_url}
+            helpText="Cover image or thumbnail (max 10MB). Recommended: 800x800px"
+            folder="products/images"
+          />
 
-            <!-- Image URL (Optional) -->
-            <div>
-              <label for="imageUrl" class="block text-sm font-medium text-gray-700 mb-1">
-                Product Image URL
-              </label>
-              <input
-                type="url"
-                id="imageUrl"
-                name="imageUrl"
-                maxlength="500"
-                value={product.image_url || ''}
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
-                placeholder="https://storage.example.com/images/product-cover.jpg"
-                data-testid="image-url-input"
-              />
-              <p class="mt-1 text-sm text-gray-500">Cover image or thumbnail for the product</p>
-              
-              <!-- Image Preview -->
-              <div id="imagePreview" class={product.image_url ? '' : 'hidden'} style="margin-top: 12px;">
-                <img 
-                  id="imagePreviewImg" 
-                  src={product.image_url || ''} 
-                  alt="Product preview" 
-                  class="w-48 h-48 object-cover rounded-lg border border-gray-300" 
-                />
-              </div>
-            </div>
-          </div>
+          <FileUpload
+            name="fileUrl"
+            label="Downloadable File"
+            accept={getAcceptType(product.product_type || 'pdf')}
+            maxSize={500 * 1024 * 1024}
+            currentValue={product.file_url}
+            required={true}
+            helpText="The main file customers will download (max 500MB)"
+            folder="products/files"
+          />
+
+          <FileUpload
+            name="previewUrl"
+            label="Preview File (Optional)"
+            accept={getAcceptType(product.product_type || 'pdf')}
+            maxSize={50 * 1024 * 1024}
+            currentValue={product.preview_url}
+            helpText="Optional sample or preview file (max 50MB)"
+            folder="products/previews"
+          />
         </div>
 
-        <!-- Publishing Options Section -->
-        <div class="bg-white shadow-sm rounded-lg p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">Publishing Options</h2>
-          
-          <div class="space-y-4">
-            <!-- Published Status -->
-            <div class="flex items-start">
-              <div class="flex items-center h-5">
-                <input
-                  id="isPublished"
-                  name="isPublished"
-                  type="checkbox"
-                  checked={product.is_published}
-                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  data-testid="is-published-checkbox"
-                />
-              </div>
-              <div class="ml-3 text-sm">
-                <label for="isPublished" class="font-medium text-gray-700">
-                  Published
-                </label>
-                <p class="text-gray-500">Make this product visible to customers</p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Product Metadata -->
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+        {/* Publication Status */}
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Publication Status
+          </h2>
+
+          <label class="inline-flex items-center">
+            <input
+              type="checkbox"
+              name="isPublished"
+              checked={product.is_published}
+              class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">Publish this product (make it visible to customers)</span>
+          </label>
+
+          {/* Product Metadata */}
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 text-sm">
               <div>
-                <dt class="text-sm font-medium text-gray-500">Created</dt>
-                <dd class="mt-1 text-sm text-gray-900">{new Date(product.created_at).toLocaleString()}</dd>
+                <dt class="font-medium text-gray-500">Created</dt>
+                <dd class="text-gray-900">{new Date(product.created_at).toLocaleString()}</dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
-                <dd class="mt-1 text-sm text-gray-900">{new Date(product.updated_at).toLocaleString()}</dd>
+                <dt class="font-medium text-gray-500">Last Updated</dt>
+                <dd class="text-gray-900">{new Date(product.updated_at).toLocaleString()}</dd>
               </div>
             </dl>
           </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="flex items-center justify-between">
+        {/* Submit */}
+        <div class="flex gap-4 justify-end pt-4 border-t">
           <a
             href="/admin/products"
-            class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="px-6 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
           >
             Cancel
           </a>
-          <div class="flex space-x-3">
-            <button
-              type="submit"
-              name="action"
-              value="save"
-              class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              data-testid="save-button"
-            >
-              <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              Save Changes
-            </button>
-          </div>
+          <button
+            type="submit"
+            id="submitBtn"
+            class="px-6 py-2 text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <span id="submitText">Update Product</span>
+            <svg id="submitSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
         </div>
       </form>
     </div>
   </div>
+</AdminLayout>
 
-  <script is:inline define:vars={{ productId: product.id, originalSlug: product.slug }}>
-    // Auto-generate slug from title
-    const titleInput = document.getElementById('title');
-    const slugInput = document.getElementById('slug');
-    const slugWarning = document.getElementById('slugWarning');
-    
-    if (titleInput && slugInput && slugWarning) {
-      // Track if slug has been manually edited
-      titleInput.addEventListener('input', (e) => {
-        if (!slugInput.value || slugInput.dataset.autoGenerated === 'true') {
-          const slug = e.target.value
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-          slugInput.value = slug;
-          slugInput.dataset.autoGenerated = 'true';
+<!-- Slug generation script -->
+<script is:inline define:vars={{ originalSlug: product.slug }}>
+document.addEventListener('DOMContentLoaded', () => {
+  const titleInput = document.getElementById('title');
+  const slugInput = document.getElementById('slug');
+  const slugWarning = document.getElementById('slugWarning');
+
+  if (titleInput && slugInput && slugWarning) {
+    // Initialize previous value
+    titleInput.dataset.previousValue = titleInput.value;
+
+    titleInput.addEventListener('input', () => {
+      const currentSlug = slugInput.value;
+      const autoSlug = titleInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      // Update slug if it matches the previous auto-generated pattern
+      const previousAutoSlug = (titleInput.dataset.previousValue || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      if (!currentSlug || currentSlug === previousAutoSlug) {
+        slugInput.value = autoSlug;
+      }
+
+      titleInput.dataset.previousValue = titleInput.value;
+    });
+
+    slugInput.addEventListener('input', () => {
+      // Show warning if slug changed from original
+      if (slugInput.value !== originalSlug) {
+        slugWarning.classList.remove('hidden');
+      } else {
+        slugWarning.classList.add('hidden');
+      }
+    });
+  }
+});
+</script>
+
+<script>
+import { useToast } from '@/lib/toast';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('productForm') as HTMLFormElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const submitText = document.getElementById('submitText') as HTMLSpanElement;
+  const submitSpinner = document.getElementById('submitSpinner') as SVGElement;
+  const toast = useToast();
+
+  if (!form) {
+    console.error('Product form not found!');
+    return;
+  }
+
+  function setLoading(loading: boolean) {
+    if (submitBtn && submitText && submitSpinner) {
+      submitBtn.disabled = loading;
+      submitText.textContent = loading ? 'Updating...' : 'Update Product';
+      submitSpinner.classList.toggle('hidden', !loading);
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Manual validation for required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+    let firstInvalidField: HTMLElement | null = null;
+
+    requiredFields.forEach((field) => {
+      const input = field as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      if (!input.value.trim()) {
+        input.setAttribute('aria-invalid', 'true');
+        input.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+        isValid = false;
+        if (!firstInvalidField) {
+          firstInvalidField = input;
         }
-      });
-      
-      slugInput.addEventListener('input', () => {
-        slugInput.dataset.autoGenerated = 'false';
-        
-        // Show warning if slug changed from original
-        if (slugInput.value !== originalSlug) {
-          slugWarning.style.display = 'block';
-        } else {
-          slugWarning.style.display = 'none';
-        }
-      });
+      } else {
+        input.removeAttribute('aria-invalid');
+        input.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+      }
+    });
+
+    // Also check hidden inputs with data-required
+    const hiddenRequired = form.querySelectorAll('input[type="hidden"][data-required="true"]');
+    hiddenRequired.forEach((field) => {
+      const input = field as HTMLInputElement;
+      if (!input.value.trim()) {
+        isValid = false;
+        toast.error(`Please upload the ${input.name.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+      }
+    });
+
+    if (!isValid && firstInvalidField) {
+      firstInvalidField.focus();
+      toast.error('Please fill in all required fields');
+      return;
     }
 
-    // Image preview
-    const imageUrlInput = document.getElementById('imageUrl');
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewImg = document.getElementById('imagePreviewImg');
-    
-    if (imageUrlInput && imagePreview && imagePreviewImg) {
-      imageUrlInput.addEventListener('blur', () => {
-        const url = imageUrlInput.value.trim();
-        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-          imagePreviewImg.src = url;
-          imagePreview.classList.remove('hidden');
-          imagePreview.style.display = 'block';
-          
-          imagePreviewImg.onerror = () => {
-            imagePreview.classList.add('hidden');
-            imagePreview.style.display = 'none';
-          };
-        } else {
-          imagePreview.classList.add('hidden');
-          imagePreview.style.display = 'none';
-        }
-      });
-    }
+    setLoading(true);
 
-    // Form submission
-    const productForm = document.getElementById('productForm');
-    const errorMessage = document.getElementById('errorMessage');
-    const errorMessageText = document.getElementById('errorMessageText');
-    const successMessage = document.getElementById('successMessage');
-    const successMessageText = document.getElementById('successMessageText');
-    
-    if (productForm) {
-      productForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // Hide previous messages
-        errorMessage.classList.add('hidden');
-        successMessage.classList.add('hidden');
-        
-        // Get form data
-        const formData = new FormData(productForm);
-        
-        // Build product object
-        const productData = {
-          title: formData.get('title'),
-          slug: formData.get('slug'),
-          description: formData.get('description'),
-          product_type: formData.get('productType'),
-          price: parseFloat(formData.get('price')) || 0,
-          file_url: formData.get('fileUrl'),
-          file_size_mb: parseFloat(formData.get('fileSizeMb')) || null,
-          preview_url: formData.get('previewUrl') || null,
-          image_url: formData.get('imageUrl') || null,
-          download_limit: parseInt(formData.get('downloadLimit')) || 3,
-          is_published: formData.get('isPublished') === 'on',
-        };
-        
-        // Client-side validation
-        if (!productData.title || productData.title.length < 3) {
-          errorMessageText.textContent = 'Title must be at least 3 characters long';
-          errorMessage.classList.remove('hidden');
-          return;
-        }
-        
-        if (!productData.slug || !/^[a-z0-9-]+$/.test(productData.slug)) {
-          errorMessageText.textContent = 'Slug must contain only lowercase letters, numbers, and hyphens';
-          errorMessage.classList.remove('hidden');
-          return;
-        }
-        
-        if (!productData.description || productData.description.length < 10) {
-          errorMessageText.textContent = 'Description must be at least 10 characters long';
-          errorMessage.classList.remove('hidden');
-          return;
-        }
-        
-        if (!productData.product_type) {
-          errorMessageText.textContent = 'Please select a product type';
-          errorMessage.classList.remove('hidden');
-          return;
-        }
-        
-        if (productData.price < 0) {
-          errorMessageText.textContent = 'Price cannot be negative';
-          errorMessage.classList.remove('hidden');
-          return;
-        }
-        
-        if (!productData.file_url) {
-          errorMessageText.textContent = 'File URL is required';
-          errorMessage.classList.remove('hidden');
-          return;
-        }
-        
-        // Disable submit button
-        const submitButton = productForm.querySelector('button[type="submit"]');
-        if (submitButton) {
-          submitButton.disabled = true;
-          submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-        
-        try {
-          // Submit to API
-          const response = await fetch(`/api/admin/products/${productId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(productData),
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-            successMessageText.textContent = `Product "${productData.title}" updated successfully!`;
-            successMessage.classList.remove('hidden');
-            
-            // Redirect after 2 seconds
-            setTimeout(() => {
-              window.location.href = '/admin/products';
-            }, 2000);
-          } else {
-            errorMessageText.textContent = result.error || 'Failed to update product';
-            errorMessage.classList.remove('hidden');
-            
-            // Re-enable submit button
-            if (submitButton) {
-              submitButton.disabled = false;
-              submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-          }
-        } catch (error) {
-          console.error('Error updating product:', error);
-          errorMessageText.textContent = 'An unexpected error occurred. Please try again.';
-          errorMessage.classList.remove('hidden');
-          
-          // Re-enable submit button
-          if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-          }
-        }
+    try {
+      const formData = new FormData(form);
+      const productId = form.dataset.productId;
+
+      if (!productId) {
+        throw new Error('Product ID not found');
+      }
+
+      // Build product object
+      const productData = {
+        title: formData.get('title') as string,
+        slug: formData.get('slug') as string,
+        description: formData.get('description') as string,
+        product_type: formData.get('productType') as string,
+        price: parseFloat(formData.get('price') as string) || 0,
+        file_url: formData.get('fileUrl') as string,
+        file_size_mb: parseFloat(formData.get('fileSizeMb') as string) || null,
+        preview_url: (formData.get('previewUrl') as string) || null,
+        image_url: (formData.get('imageUrl') as string) || null,
+        download_limit: parseInt(formData.get('downloadLimit') as string) || 3,
+        is_published: formData.get('isPublished') === 'on',
+      };
+
+      // Client-side validation
+      if (!productData.title || productData.title.length < 3) {
+        throw new Error('Title must be at least 3 characters long');
+      }
+
+      if (!productData.slug || !/^[a-z0-9-]+$/.test(productData.slug)) {
+        throw new Error('Slug must contain only lowercase letters, numbers, and hyphens');
+      }
+
+      if (!productData.description || productData.description.length < 10) {
+        throw new Error('Description must be at least 10 characters long');
+      }
+
+      if (!productData.product_type) {
+        throw new Error('Please select a product type');
+      }
+
+      if (productData.price < 0) {
+        throw new Error('Price cannot be negative');
+      }
+
+      if (!productData.file_url) {
+        throw new Error('Downloadable file is required');
+      }
+
+      // Submit to API
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update product');
+      }
+
+      const result = await response.json();
+
+      // Show success message
+      toast.success('Product updated successfully');
+
+      // Redirect to product list after a brief delay
+      setTimeout(() => {
+        window.location.href = '/admin/products';
+      }, 1000);
+    } catch (error: any) {
+      console.error('Error updating product:', error);
+      setLoading(false);
+      toast.error(error.message || 'Failed to update product');
     }
-  </script>
-</body>
-</html>
+  });
+});
+</script>

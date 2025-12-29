@@ -36,42 +36,19 @@ export const POST: APIRoute = async (context) => {
   // Parse form data early (can only be consumed once)
   const formData = await request.formData();
 
-  // Debug logging for CSRF troubleshooting
-  const csrfCookieFromAstro = cookies.get('csrf_token')?.value;
-
-  // Also parse cookie directly from header as backup
-  const cookieHeader = request.headers.get('cookie') || '';
-  const csrfCookieFromHeader = cookieHeader
-    .split(';')
-    .map(c => c.trim())
-    .find(c => c.startsWith('csrf_token='))
-    ?.split('=')[1];
-
+  // T201: CSRF protection - validate token from cookie matches form token
+  const csrfCookie = cookies.get('csrf_token')?.value;
   const csrfForm = formData.get('csrf_token') as string | null;
 
-  console.log('[LOGIN] CSRF Debug:', {
-    cookieFromAstro: csrfCookieFromAstro ? csrfCookieFromAstro.substring(0, 10) + '...' : 'MISSING',
-    cookieFromHeader: csrfCookieFromHeader ? csrfCookieFromHeader.substring(0, 10) + '...' : 'MISSING',
-    formToken: csrfForm ? csrfForm.substring(0, 10) + '...' : 'MISSING',
-    rawCookieHeader: cookieHeader.substring(0, 80),
-    astroMatchesForm: csrfCookieFromAstro === csrfForm,
-    headerMatchesForm: csrfCookieFromHeader === csrfForm,
-  });
-
-  // T201: CSRF protection - temporarily bypassed while debugging
-  // TODO: Re-enable after confirming rest of login flow works
-  console.log('[LOGIN] Bypassing CSRF validation for debugging');
-  const csrfValid = true;
+  // Validate CSRF: both must exist and match
+  const csrfValid = !!(csrfCookie && csrfForm && csrfCookie === csrfForm);
 
   if (!csrfValid) {
     console.warn('[LOGIN] CSRF validation failed:', {
       ip: context.clientAddress,
-      url: request.url,
-      cookieFromAstro: csrfCookieFromAstro ? 'present' : 'missing',
-      cookieFromHeader: csrfCookieFromHeader ? 'present' : 'missing',
-      formToken: csrfForm ? 'present' : 'missing',
+      hasCookie: !!csrfCookie,
+      hasFormToken: !!csrfForm,
     });
-
     return redirect('/login?error=csrf_invalid');
   }
 
@@ -134,20 +111,9 @@ export const POST: APIRoute = async (context) => {
       email_verified: boolean;
     };
 
-    // Verify password with detailed error tracking
-    console.log('[LOGIN] Starting password verification for:', normalizedEmail);
-    let isValidPassword: boolean;
-    try {
-      isValidPassword = await verifyPassword(password, user.password_hash);
-      console.log('[LOGIN] Password verification completed:', isValidPassword);
-    } catch (pwError) {
-      console.error('[LOGIN] Password verification threw error:', pwError instanceof Error ? pwError.message : pwError);
-      console.error('[LOGIN] Password verification stack:', pwError instanceof Error ? pwError.stack : 'No stack');
-      return redirect(`/login?error=password_error`);
-    }
-
+    // Verify password
+    const isValidPassword = await verifyPassword(password, user.password_hash);
     if (!isValidPassword) {
-      console.error('[LOGIN] Invalid password for user:', normalizedEmail);
       return redirect(`/login?error=invalid_credentials`);
     }
 
@@ -160,25 +126,14 @@ export const POST: APIRoute = async (context) => {
     }
     */
 
-    // Create session with detailed error tracking
-    console.log('[LOGIN] Starting session creation for user:', { id: user.id, role: user.role });
-    try {
-      await login(cookies, user.id, user.email, user.name, user.role);
-      console.log('[LOGIN] Session created successfully');
-    } catch (sessionError) {
-      console.error('[LOGIN] Session creation threw error:', sessionError instanceof Error ? sessionError.message : sessionError);
-      console.error('[LOGIN] Session creation stack:', sessionError instanceof Error ? sessionError.stack : 'No stack');
-      return redirect(`/login?error=session_error`);
-    }
-
-    console.log('[LOGIN] User logged in:', { id: user.id, email: user.email, role: user.role });
+    // Create session
+    await login(cookies, user.id, user.email, user.name, user.role);
 
     // Redirect to intended destination or dashboard
     const destination = redirectPath || '/dashboard';
     return redirect(destination);
   } catch (error) {
     console.error('[LOGIN] Error:', error instanceof Error ? error.message : error);
-    console.error('[LOGIN] Stack:', error instanceof Error ? error.stack : 'No stack');
     return redirect(`/login?error=server_error`);
   }
 };

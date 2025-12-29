@@ -1,7 +1,7 @@
 ---
 /**
  * T064: Admin Layout Component
- * 
+ *
  * Provides admin-specific layout with:
  * - Admin authentication check
  * - Admin navigation sidebar
@@ -11,6 +11,7 @@
  */
 
 import { checkAdminAuth } from '@/lib/auth/admin';
+import '@/styles/global.css';
 
 export interface Props {
   title: string;
@@ -31,47 +32,47 @@ const user = authResult.user!;
 
 // Admin navigation items
 const adminNavItems = [
-  { 
-    href: '/admin', 
-    label: 'Dashboard', 
+  {
+    href: '/admin',
+    label: 'Dashboard',
     icon: 'dashboard',
     description: 'Overview & Analytics'
   },
-  { 
-    href: '/admin/courses', 
-    label: 'Courses', 
+  {
+    href: '/admin/courses',
+    label: 'Courses',
     icon: 'courses',
     description: 'Manage Course Content'
   },
-  { 
-    href: '/admin/courses/new', 
-    label: 'New Course', 
-    icon: 'add-course',
-    description: 'Create New Course'
+  {
+    href: '/admin/events',
+    label: 'Events',
+    icon: 'events',
+    description: 'Manage Events & Bookings'
   },
-  { 
-    href: '/admin/orders', 
-    label: 'Orders', 
+  {
+    href: '/admin/products',
+    label: 'Products',
+    icon: 'products',
+    description: 'Manage Digital Products'
+  },
+  {
+    href: '/admin/orders',
+    label: 'Orders',
     icon: 'orders',
     description: 'Order Management'
   },
-  { 
-    href: '/admin/users', 
-    label: 'Users', 
+  {
+    href: '/admin/users',
+    label: 'Users',
     icon: 'users',
     description: 'User Management'
   },
-  { 
-    href: '/admin/analytics', 
-    label: 'Analytics', 
-    icon: 'analytics',
-    description: 'Reports & Insights'
-  },
   {
-    href: '/admin/settings',
-    label: 'Settings',
-    icon: 'settings',
-    description: 'System Configuration'
+    href: '/admin/reviews/pending',
+    label: 'Reviews',
+    icon: 'reviews',
+    description: 'Moderate Reviews'
   },
   {
     href: '/admin/database',
@@ -83,8 +84,9 @@ const adminNavItems = [
 
 // Quick actions for admin
 const quickActions = [
-  { href: '/admin/courses/new', label: 'Add Course', icon: '➕' },
-  { href: '/admin/orders?status=pending', label: 'Review Orders', icon: '📋' },
+  { href: '/admin/courses/new', label: 'Add Course', icon: '📚' },
+  { href: '/admin/events/new', label: 'Add Event', icon: '📅' },
+  { href: '/admin/products/new', label: 'Add Product', icon: '🛍️' },
   { href: '/courses', label: 'View Site', icon: '🌐' },
 ];
 ---
@@ -245,11 +247,11 @@ const quickActions = [
                 <span class="mr-3 text-lg">{
                   item.icon === 'dashboard' ? '📊' :
                   item.icon === 'courses' ? '📚' :
-                  item.icon === 'add-course' ? '➕' :
+                  item.icon === 'events' ? '📅' :
+                  item.icon === 'products' ? '🛍️' :
                   item.icon === 'orders' ? '🛒' :
                   item.icon === 'users' ? '👥' :
-                  item.icon === 'analytics' ? '📈' :
-                  item.icon === 'settings' ? '⚙️' :
+                  item.icon === 'reviews' ? '⭐' :
                   item.icon === 'database' ? '🗄️' : '📋'
                 }</span>
                 <div class="flex-1">

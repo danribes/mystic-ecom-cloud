@@ -43,8 +43,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
       '/forgot-password',
       '/reset-password',
       '/api/health',
-      '/api/debug-env',
-      '/api/debug-session',
       '/api/auth/',
       '/api/checkout/',
       '/api/search',

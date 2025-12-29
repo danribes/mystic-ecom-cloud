@@ -356,14 +356,15 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
             </svg>
             Media
           </h2>
-          
-          <FileUpload 
+
+          <FileUpload
             name="image_url"
             label="Event Image"
             accept="image/*"
-            maxSize={10485760}
+            maxSize={10 * 1024 * 1024}
             currentValue={event.image_url}
             helpText="Upload the main event image (max 10MB). Recommended: 1200x630px"
+            folder="events/images"
           />
         </div>
 
@@ -389,17 +390,22 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
 
         {/* Submit */}
         <div class="flex gap-4 justify-end pt-4 border-t">
-          <a 
-            href="/admin/events" 
+          <a
+            href="/admin/events"
             class="px-6 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
           >
             Cancel
           </a>
           <button
             type="submit"
-            class="px-6 py-2 text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+            id="submitBtn"
+            class="px-6 py-2 text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Update Event
+            <span id="submitText">Update Event</span>
+            <svg id="submitSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
           </button>
         </div>
       </form>
@@ -449,21 +455,32 @@ import { useToast } from '@/lib/toast';
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('eventForm') as HTMLFormElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const submitText = document.getElementById('submitText') as HTMLSpanElement;
+  const submitSpinner = document.getElementById('submitSpinner') as SVGElement;
   const toast = useToast();
-  
+
   if (!form) {
     console.error('Event form not found!');
     return;
   }
-  
+
+  function setLoading(loading: boolean) {
+    if (submitBtn && submitText && submitSpinner) {
+      submitBtn.disabled = loading;
+      submitText.textContent = loading ? 'Updating...' : 'Update Event';
+      submitSpinner.classList.toggle('hidden', !loading);
+    }
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-  
+
     // Manual validation for required fields
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
     let firstInvalidField: HTMLElement | null = null;
-  
+
     requiredFields.forEach((field) => {
       const input = field as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
       if (!input.value.trim()) {
@@ -478,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
       }
     });
-  
+
     if (!isValid && firstInvalidField) {
       firstInvalidField.focus();
       toast.error('Please fill in all required fields');
@@ -497,13 +514,15 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.error('Available spots cannot exceed total capacity');
       return;
     }
-  
+
+    setLoading(true);
+
     try {
       const formData = new FormData(form);
-      
+
       // Get event ID from form data attribute
       const eventId = form.dataset.eventId;
-      
+
       if (!eventId) {
         throw new Error('Event ID not found');
       }
@@ -515,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         description: formData.get('description') as string,
         price: parseFloat(formData.get('price') as string),
         event_date: new Date(formData.get('event_date') as string).toISOString(),
-        duration_hours: parseInt(formData.get('duration_hours') as string, 10),
+        duration_hours: parseFloat(formData.get('duration_hours') as string),
         venue_name: formData.get('venue_name') as string,
         venue_address: formData.get('venue_address') as string,
         venue_city: formData.get('venue_city') as string,
@@ -541,18 +560,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const error = await response.json();
         throw new Error(error.error || 'Failed to update event');
       }
-      
+
       const result = await response.json();
-      
+
       // Show success message
       toast.success('Event updated successfully');
-      
+
       // Redirect to event list after a brief delay
       setTimeout(() => {
         window.location.href = '/admin/events';
       }, 1000);
     } catch (error: any) {
       console.error('Error updating event:', error);
+      setLoading(false);
       // Show error message
       toast.error(error.message || 'Failed to update event');
     }

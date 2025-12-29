@@ -74,11 +74,8 @@ export async function createSession(
   name: string,
   role: 'admin' | 'user'
 ): Promise<string> {
-  console.log('[SESSION] Creating session for user:', userId);
-
   const sessionId = generateSessionId();
   const sessionKey = getSessionKey(sessionId);
-  console.log('[SESSION] Generated session key:', sessionKey.substring(0, 20) + '...');
 
   const sessionData: SessionData = {
     userId,
@@ -89,15 +86,7 @@ export async function createSession(
     lastActivity: Date.now(),
   };
 
-  try {
-    console.log('[SESSION] Saving session to Redis...');
-    await setJSON(sessionKey, sessionData, SESSION_TTL);
-    console.log('[SESSION] Session saved successfully');
-  } catch (redisError) {
-    console.error('[SESSION] Redis error:', redisError instanceof Error ? redisError.message : redisError);
-    console.error('[SESSION] Redis stack:', redisError instanceof Error ? redisError.stack : 'No stack');
-    throw redisError;
-  }
+  await setJSON(sessionKey, sessionData, SESSION_TTL);
 
   return sessionId;
 }
@@ -178,24 +167,14 @@ export function setSessionCookie(
   sessionId: string,
   isAdminSession: boolean = false
 ): void {
-  console.log('[SESSION] Setting session cookie, isAdmin:', isAdminSession);
-
   // Get secure cookie options based on session type
   const options = getSessionCookieOptions(SESSION_TTL, isAdminSession);
-  console.log('[SESSION] Cookie options:', JSON.stringify(options));
 
   // Validate security in production
-  try {
-    validateCookieSecurity(options);
-    console.log('[SESSION] Cookie security validated');
-  } catch (securityError) {
-    console.error('[SESSION] Cookie security validation failed:', securityError instanceof Error ? securityError.message : securityError);
-    throw securityError;
-  }
+  validateCookieSecurity(options);
 
   // Set the cookie with secure options
   cookies.set(SESSION_COOKIE_NAME, sessionId, options);
-  console.log('[SESSION] Session cookie set successfully');
 }
 
 /**

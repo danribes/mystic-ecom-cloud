@@ -32,12 +32,7 @@ function isRedisConfigured(): boolean {
  * Returns null if Redis is not configured
  */
 export async function getRedisClient(): Promise<Redis | null> {
-  const url = getEnv('UPSTASH_REDIS_REST_URL');
-  const token = getEnv('UPSTASH_REDIS_REST_TOKEN');
-  console.log('[Redis] getRedisClient called, URL configured:', !!url, 'TOKEN configured:', !!token);
-
   if (!isRedisConfigured()) {
-    console.warn('[Redis] UPSTASH_REDIS_REST_URL/TOKEN not configured - Redis features disabled');
     return null;
   }
   return getRedis();
@@ -51,21 +46,16 @@ export async function set(
   value: string,
   expirationSeconds?: number
 ): Promise<void> {
-  console.log('[Redis] SET called for key:', key.substring(0, 30) + '...');
-
   const redis = await getRedisClient();
   if (!redis) {
-    console.warn('[Redis] Client not available, skipping SET');
     return; // Gracefully skip if Redis unavailable
   }
 
-  console.log('[Redis] Client available, executing SET...');
   if (expirationSeconds) {
     await redis.setex(key, expirationSeconds, value);
   } else {
     await redis.set(key, value);
   }
-  console.log('[Redis] SET completed successfully');
 }
 
 /**
@@ -83,7 +73,7 @@ export async function get(key: string): Promise<string | null> {
 export async function del(...keys: string[]): Promise<number> {
   const redis = await getRedisClient();
   if (!redis) return 0; // Return 0 if Redis unavailable
-  return await redis.del(keys);
+  return await redis.del(...keys);
 }
 
 /**
@@ -102,7 +92,8 @@ export async function exists(key: string): Promise<boolean> {
 export async function expire(key: string, seconds: number): Promise<boolean> {
   const redis = await getRedisClient();
   if (!redis) return false; // Return false if Redis unavailable
-  return await redis.expire(key, seconds);
+  const result = await redis.expire(key, seconds);
+  return result === 1;
 }
 
 /**
@@ -417,12 +408,11 @@ export async function flushAllCache(): Promise<boolean> {
 /**
  * Get cache statistics
  *
- * @returns Cache statistics including total keys and memory usage
+ * @returns Cache statistics including total keys by namespace
  */
 export async function getCacheStats(): Promise<{
   totalKeys: number;
   keysByNamespace: Record<string, number>;
-  memoryUsage?: string;
 }> {
   try {
     const redis = await getRedisClient();
@@ -446,25 +436,9 @@ export async function getCacheStats(): Promise<{
       }
     }
 
-    // Get memory info (requires INFO command)
-    let memoryUsage: string | undefined;
-    try {
-      const info = await redis.info('memory');
-      if (info) {
-        const match = info.match(/used_memory_human:(.+)/);
-        if (match && match[1]) {
-          memoryUsage = match[1].trim();
-        }
-      }
-    } catch (err) {
-      // INFO command might not be available in all Redis setups
-      console.warn('[Cache] Could not get memory usage:', err);
-    }
-
     return {
       totalKeys,
       keysByNamespace,
-      memoryUsage,
     };
   } catch (error) {
     console.error('[Cache] Error getting cache stats:', error);
