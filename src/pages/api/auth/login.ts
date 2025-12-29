@@ -129,8 +129,11 @@ export const POST: APIRoute = async (context) => {
     // Create session
     await login(cookies, user.id, user.email, user.name, user.role);
 
-    // Redirect to intended destination or dashboard
-    const destination = redirectPath || '/dashboard';
+    // Redirect to intended destination, or admin panel for admins, or dashboard for users
+    let destination = redirectPath;
+    if (!destination) {
+      destination = user.role === 'admin' ? '/admin' : '/dashboard';
+    }
     return redirect(destination);
   } catch (error) {
     console.error('[LOGIN] Error:', error instanceof Error ? error.message : error);
