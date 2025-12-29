@@ -1,15 +1,19 @@
 ---
 /**
- * T066: Admin Courses List Page - Simple Debug Version
- * 
- * Simplified version without AdminLayout to test the core functionality
+ * T066: Admin Courses List Page
+ *
+ * Admin page for managing courses with:
+ * - List view of all courses
+ * - Edit and delete actions
+ * - Filtering and pagination
+ * - Create new course link
  */
 
+import AdminLayout from '@/layouts/AdminLayout.astro';
 import { listCourses } from '@/services/course.service';
 import type { Course } from '@/types';
 
-const title = 'Course Management';
-const description = 'Manage all courses, edit content, and organize your course catalog';
+export const prerender = false;
 
 // Get query parameters for filtering and pagination
 const url = new URL(Astro.request.url);
@@ -25,12 +29,9 @@ let courses: Course[] = [];
 let total = 0;
 let totalPages = 0;
 let error: string | null = null;
-
-// Initialize with safe defaults in case of error
 let paginationNumbers: number[] = [];
 
 try {
-  // Build filter options
   const filterOptions = {
     page,
     limit,
@@ -45,12 +46,12 @@ try {
   courses = result.courses;
   total = result.total;
   totalPages = result.totalPages;
-  
-  // Generate pagination numbers only after successful query
+
+  // Generate pagination numbers
   const generatePaginationNumbers = () => {
     const maxVisible = 7;
     const numbers: number[] = [];
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         numbers.push(i);
@@ -68,16 +69,15 @@ try {
         numbers.push(i);
       }
     }
-    
+
     return numbers;
   };
 
   paginationNumbers = generatePaginationNumbers();
-  
+
 } catch (e) {
   console.error('Error loading courses:', e);
   error = 'Failed to load courses. Please try again.';
-  // Set safe defaults
   courses = [];
   total = 0;
   totalPages = 0;
@@ -87,7 +87,7 @@ try {
 // Available categories for filter dropdown
 const categories = [
   'Manifestation',
-  'Energy Healing', 
+  'Energy Healing',
   'Meditation',
   'Spirituality',
   'Personal Growth',
@@ -115,154 +115,229 @@ const formatDate = (date: Date): string => {
 };
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title}</title>
-  <meta name="description" content={description} />
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-50">
-  <div class="min-h-screen">
-    <!-- Header Section -->
-    <div class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 data-testid="admin-page-title" class="text-3xl font-bold text-gray-900">Course Management</h1>
-            <p class="mt-2 text-sm text-gray-600">
-              Manage your course catalog, content, and settings
-            </p>
-          </div>
-          <div class="flex space-x-3">
-            <a
-              href="/admin/courses/new"
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-            >
-              <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-              Add New Course
-            </a>
+<AdminLayout title="Course Management" description="Manage your course catalog, content, and settings">
+  {error && (
+    <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+      <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Error</h3>
+          <div class="mt-2 text-sm text-red-700">
+            <p>{error}</p>
           </div>
         </div>
       </div>
     </div>
+  )}
 
-    <!-- Debug Info -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-      <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-        <h3 class="text-sm font-medium text-blue-800">Debug Info</h3>
-        <div class="mt-2 text-sm text-blue-700">
-          <p>Total courses: {total}</p>
-          <p>Current page: {page}</p>
-          <p>Total pages: {totalPages}</p>
-          <p>Auth bypass enabled: {process.env.BYPASS_ADMIN_AUTH === 'true' ? 'Yes' : 'No'}</p>
-        </div>
-      </div>
+  <!-- Header with actions -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <p class="text-sm text-gray-600">
+        {total} course{total !== 1 ? 's' : ''} total
+      </p>
     </div>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {error && (
-        <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-          <div class="flex">
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800">Error</h3>
-              <div class="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <!-- Course List -->
-      <div class="bg-white rounded-lg shadow-sm border">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">Courses ({total})</h2>
-        </div>
-
-        {courses.length > 0 ? (
-          <div class="overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {courses.map((course) => (
-                  <tr key={course.id}>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-gray-900">{course.title}</div>
-                      <div class="text-sm text-gray-500">{course.description}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{course.category}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        course.isPublished 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {course.isPublished ? 'Published' : 'Draft'}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(course.price)}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(course.createdAt)}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div class="flex space-x-2">
-                        <a
-                          href={`/admin/courses/${course.id}/edit`}
-                          class="text-purple-600 hover:text-purple-900"
-                        >
-                          Edit
-                        </a>
-                        <span class="text-gray-300">|</span>
-                        <button
-                          data-delete-course={course.id}
-                          class="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div class="text-center py-12">
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No courses found</h3>
-            <p class="mt-1 text-sm text-gray-500">Get started by creating a new course.</p>
-            <div class="mt-6">
-              <a
-                href="/admin/courses/new"
-                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-              >
-                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                New Course
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <a
+      href="/admin/courses/new"
+      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+    >
+      <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+      </svg>
+      Add New Course
+    </a>
   </div>
-</body>
-</html>
+
+  <!-- Course List -->
+  <div class="bg-white rounded-lg shadow-sm border">
+    {courses.length > 0 ? (
+      <div class="overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-300">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {courses.map((course) => (
+              <tr key={course.id} class="hover:bg-gray-50">
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    {course.imageUrl && (
+                      <img
+                        src={course.imageUrl}
+                        alt={course.title}
+                        class="h-10 w-10 rounded-lg object-cover mr-3"
+                      />
+                    )}
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{course.title}</div>
+                      <div class="text-sm text-gray-500 truncate max-w-xs">{course.description}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{course.category}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    course.isPublished
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {course.isPublished ? 'Published' : 'Draft'}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {formatCurrency(course.price)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {formatDate(course.createdAt)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div class="flex items-center space-x-3">
+                    <a
+                      href={`/admin/courses/${course.id}/edit`}
+                      class="text-purple-600 hover:text-purple-900 flex items-center"
+                      title="Edit course"
+                    >
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </a>
+                    <a
+                      href={`/admin/courses/${course.id}/videos`}
+                      class="text-blue-600 hover:text-blue-900 flex items-center"
+                      title="Manage videos"
+                    >
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                      </svg>
+                    </a>
+                    <a
+                      href={`/courses/${course.id}`}
+                      target="_blank"
+                      class="text-gray-600 hover:text-gray-900 flex items-center"
+                      title="View course"
+                    >
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                    </a>
+                    <button
+                      data-delete-course={course.id}
+                      class="text-red-600 hover:text-red-900"
+                      title="Delete course"
+                    >
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No courses found</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by creating a new course.</p>
+        <div class="mt-6">
+          <a
+            href="/admin/courses/new"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            New Course
+          </a>
+        </div>
+      </div>
+    )}
+
+    {/* Pagination */}
+    {totalPages > 1 && (
+      <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Showing page {page} of {totalPages}
+        </div>
+        <div class="flex space-x-2">
+          {page > 1 && (
+            <a
+              href={`/admin/courses?page=${page - 1}`}
+              class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Previous
+            </a>
+          )}
+          {paginationNumbers.map((num) => (
+            <a
+              href={`/admin/courses?page=${num}`}
+              class={`px-3 py-1 text-sm border rounded ${
+                num === page
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {num}
+            </a>
+          ))}
+          {page < totalPages && (
+            <a
+              href={`/admin/courses?page=${page + 1}`}
+              class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Next
+            </a>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+import { useToast } from '@/lib/toast';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const toast = useToast();
+
+  // Handle delete buttons
+  document.querySelectorAll('[data-delete-course]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const courseId = button.getAttribute('data-delete-course');
+      if (!courseId) return;
+
+      if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/courses/${courseId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to delete course');
+        }
+
+        toast.success('Course deleted successfully');
+        window.location.reload();
+      } catch (error: any) {
+        console.error('Error deleting course:', error);
+        toast.error(error.message || 'Failed to delete course');
+      }
+    });
+  });
+});
+</script>
