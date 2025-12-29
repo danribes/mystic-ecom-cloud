@@ -14,12 +14,19 @@ export const prerender = false; // Enable SSR for form handling
 // Check if already logged in
 import { getSessionFromRequest } from '@/lib/auth/session';
 const session = await getSessionFromRequest(Astro.cookies);
-if (session) {
-  return Astro.redirect('/dashboard');
+
+// Get redirect parameter and force_login flag
+const redirectParam = Astro.url.searchParams.get('redirect');
+const forceLogin = Astro.url.searchParams.get('force') === 'true';
+
+// If user is logged in and not forcing a new login, redirect to appropriate dashboard
+if (session && !forceLogin) {
+  const destination = redirectParam || (session.role === 'admin' ? '/admin' : '/dashboard');
+  return Astro.redirect(destination);
 }
 
-// Get redirect parameter (where to go after login)
-const redirect = Astro.url.searchParams.get('redirect') || '/dashboard';
+// Determine redirect destination after login
+const redirect = redirectParam || '/dashboard';
 
 // Get error/success messages from URL
 const error = Astro.url.searchParams.get('error');
@@ -45,6 +52,23 @@ const verify = Astro.url.searchParams.get('verify');
 
       <!-- Login Card -->
       <div class="bg-white rounded-2xl shadow-xl p-8">
+        <!-- Already Logged In Notice (when force=true) -->
+        {session && forceLogin && (
+          <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p class="text-sm text-amber-800 flex items-center mb-2">
+              <span class="mr-2">👤</span>
+              You are currently logged in as <strong class="mx-1">{session.email}</strong>
+              ({session.role === 'admin' ? '🔧 Admin' : 'User'})
+            </p>
+            <p class="text-xs text-amber-700">
+              Enter different credentials below to switch accounts, or
+              <a href={session.role === 'admin' ? '/admin' : '/dashboard'} class="underline font-medium">
+                continue to your dashboard
+              </a>
+            </p>
+          </div>
+        )}
+
         <!-- Success Message -->
         {success && (
           <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">

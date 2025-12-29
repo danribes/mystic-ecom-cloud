@@ -291,6 +291,16 @@ const quickActions = [
               <div class="text-xs text-gray-500">Get Help</div>
             </div>
           </a>
+          <a
+            href="/login?force=true"
+            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-white/80 hover:text-gray-900 transition-colors"
+          >
+            <span class="mr-3 text-lg">🔄</span>
+            <div>
+              <div>Switch Account</div>
+              <div class="text-xs text-gray-500">Login as Different User</div>
+            </div>
+          </a>
           <form method="POST" action="/api/auth/logout">
             <button
               type="submit"
