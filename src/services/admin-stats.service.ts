@@ -65,7 +65,8 @@ export async function getAdminStats(): Promise<AdminStats> {
   const pool = getPool();
 
   if (!pool) {
-    throw new DatabaseError('Database connection not configured');
+    console.error('[ADMIN-STATS] Database pool is null - DATABASE_URL may not be configured');
+    throw new DatabaseError('Database connection not configured. Please verify DATABASE_URL is set in Cloudflare secrets.');
   }
 
   try {

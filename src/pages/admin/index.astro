@@ -20,6 +20,9 @@ export const prerender = false;
 const runtime = (Astro.locals as any).runtime;
 if (runtime?.env) {
   initEnv(runtime.env);
+  console.log('[ADMIN] Environment initialized from Cloudflare runtime');
+} else {
+  console.warn('[ADMIN] No Cloudflare runtime env available - running in local/dev mode?');
 }
 
 // Fetch admin statistics
