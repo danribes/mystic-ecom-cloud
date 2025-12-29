@@ -61,7 +61,7 @@ export async function set(
 
   console.log('[Redis] Client available, executing SET...');
   if (expirationSeconds) {
-    await redis.setEx(key, expirationSeconds, value);
+    await redis.setex(key, expirationSeconds, value);
   } else {
     await redis.set(key, value);
   }
@@ -398,7 +398,7 @@ export async function flushAllCache(): Promise<boolean> {
       console.warn('[Cache] Redis not available - cannot flush cache');
       return false;
     }
-    await redis.flushDb();
+    await redis.flushdb();
     console.log('[Cache] FLUSH: All caches cleared');
     return true;
   } catch (error) {

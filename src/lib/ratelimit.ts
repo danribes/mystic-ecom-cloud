@@ -228,13 +228,13 @@ export async function checkRateLimit(
     const windowStart = now - (config.windowSeconds * 1000);
 
     // Remove old entries outside the window
-    await redis.zRemRangeByScore(key, 0, windowStart);
+    await redis.zremrangebyscore(key, 0, windowStart);
 
     // Count current requests in window
-    const count = await redis.zCard(key);
+    const count = await redis.zcard(key);
 
     // Calculate reset time
-    const oldestEntry = await redis.zRange(key, 0, 0);
+    const oldestEntry = await redis.zrange(key, 0, 0);
     const resetAt = oldestEntry.length > 0 && oldestEntry[0]
       ? parseInt(oldestEntry[0].split(':')[0]) + (config.windowSeconds * 1000)
       : now + (config.windowSeconds * 1000);
@@ -250,7 +250,7 @@ export async function checkRateLimit(
     }
 
     // Add current request timestamp
-    await redis.zAdd(key, {
+    await redis.zadd(key, {
       score: now,
       value: `${now}:${Math.random()}`, // Unique value
     });
@@ -404,13 +404,13 @@ export async function getRateLimitStatus(
     const windowStart = now - (config.windowSeconds * 1000);
 
     // Remove old entries
-    await redis.zRemRangeByScore(key, 0, windowStart);
+    await redis.zremrangebyscore(key, 0, windowStart);
 
     // Count current requests
-    const count = await redis.zCard(key);
+    const count = await redis.zcard(key);
 
     // Get oldest entry for reset time
-    const oldestEntry = await redis.zRange(key, 0, 0);
+    const oldestEntry = await redis.zrange(key, 0, 0);
     const resetAt = oldestEntry.length > 0 && oldestEntry[0]
       ? parseInt(oldestEntry[0].split(':')[0]) + (config.windowSeconds * 1000)
       : now + (config.windowSeconds * 1000);
@@ -456,15 +456,15 @@ export async function applyRateLimit(
     const windowStart = now - config.windowMs;
 
     // Remove old entries outside the window
-    await redis.zRemRangeByScore(key, 0, windowStart);
+    await redis.zremrangebyscore(key, 0, windowStart);
 
     // Count requests in current window
-    const count = await redis.zCard(key);
+    const count = await redis.zcard(key);
 
     // Check if limit exceeded
     if (count >= config.maxRequests) {
       // Get oldest entry to calculate retry time
-      const oldestEntry = await redis.zRange(key, 0, 0);
+      const oldestEntry = await redis.zrange(key, 0, 0);
       const retryAfter = oldestEntry.length > 0 && oldestEntry[0]
         ? Math.ceil((parseInt(oldestEntry[0].split(':')[0]) + config.windowMs - now) / 1000)
         : Math.ceil(config.windowMs / 1000);
@@ -477,7 +477,7 @@ export async function applyRateLimit(
 
     // Add current request to the window
     const requestId = `${now}:${Math.random()}`;
-    await redis.zAdd(key, { score: now, value: requestId });
+    await redis.zadd(key, { score: now, value: requestId });
 
     // Set expiry on the key
     await redis.expire(key, Math.ceil(config.windowMs / 1000) + 10);
