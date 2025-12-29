@@ -63,7 +63,11 @@ export interface AdminStats {
  */
 export async function getAdminStats(): Promise<AdminStats> {
   const pool = getPool();
-  
+
+  if (!pool) {
+    throw new DatabaseError('Database connection not configured');
+  }
+
   try {
     // Get current date for monthly calculations
     const now = new Date();
@@ -313,7 +317,11 @@ export async function getAdminStats(): Promise<AdminStats> {
  */
 export async function getQuickStats() {
   const pool = getPool();
-  
+
+  if (!pool) {
+    throw new DatabaseError('Database connection not configured');
+  }
+
   try {
     const result = await pool.query(`
       SELECT 

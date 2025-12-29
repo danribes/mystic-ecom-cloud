@@ -1,10 +1,10 @@
 ---
 /**
  * T065: Admin Dashboard Page
- * 
+ *
  * Main administrative dashboard displaying:
  * - Key business metrics (courses, users, orders, revenue)
- * - Monthly trends and growth indicators  
+ * - Monthly trends and growth indicators
  * - Recent activity feed
  * - Course performance statistics
  * - Quick action shortcuts
@@ -12,6 +12,15 @@
 
 import AdminLayout from '@/layouts/AdminLayout.astro';
 import { getAdminStats } from '@/services/admin-stats.service';
+import { initEnv } from '@/lib/env';
+
+export const prerender = false;
+
+// Initialize environment from Cloudflare runtime
+const runtime = (Astro.locals as any).runtime;
+if (runtime?.env) {
+  initEnv(runtime.env);
+}
 
 // Fetch admin statistics
 let stats;
