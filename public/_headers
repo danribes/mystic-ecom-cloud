@@ -37,9 +37,8 @@
   Cache-Control: no-cache, no-store, must-revalidate
 
   # Cross-Origin policies
-  Cross-Origin-Embedder-Policy: require-corp
+  # Note: COEP and CORP disabled to allow cross-origin images from Unsplash
   Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Resource-Policy: same-origin
 
 # Static assets can be cached longer
 /uploads/*
