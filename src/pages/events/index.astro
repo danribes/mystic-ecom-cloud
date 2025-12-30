@@ -16,8 +16,34 @@ import EventCard from '@/components/EventCard.astro';
 import EventFilters from '@/components/EventFilters.astro';
 import { getEvents } from '@/lib/events';
 import { getLocalizedEvents } from '@/lib/eventsI18n';
-import type { EventFilters as EventFiltersType } from '@/lib/events';
+import type { EventFilters as EventFiltersType, Event } from '@/lib/events';
+import type { LocalizedEvent } from '@/lib/eventsI18n';
 import { useTranslations } from '@/lib/pageTranslations';
+
+// Helper to convert LocalizedEvent to Event format for EventCard
+function toEventFormat(localized: LocalizedEvent): Event {
+  return {
+    id: localized.id,
+    title: localized.title,
+    slug: localized.slug,
+    description: localized.description,
+    price: localized.price,
+    event_date: localized.eventDate,
+    duration_hours: localized.durationHours,
+    venue_name: localized.venueName,
+    venue_address: localized.venueAddress,
+    venue_city: localized.venueCity,
+    venue_country: localized.venueCountry,
+    venue_lat: localized.venueLat,
+    venue_lng: localized.venueLng,
+    capacity: localized.capacity,
+    available_spots: localized.availableSpots,
+    image_url: localized.imageUrl,
+    is_published: localized.isPublished,
+    created_at: localized.createdAt,
+    updated_at: localized.updatedAt,
+  };
+}
 
 // Get locale from middleware (T169)
 const locale = Astro.locals.locale || 'es';
@@ -67,7 +93,7 @@ try {
     offset: (page - 1) * limit,
   });
 
-  events = result.items;
+  events = result.items.map(toEventFormat);
   totalEvents = result.total;
 } catch (e) {
   console.error('[T169] Error fetching localized events, falling back:', e);
