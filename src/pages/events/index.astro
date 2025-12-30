@@ -192,23 +192,25 @@ const keywords = 'spiritual events, meditation workshops, mindfulness retreats, 
     </header>
 
     <div class="flex flex-col lg:flex-row gap-xl">
-      
+
       <!-- Filter Sidebar -->
-      <EventFilters
-        currentCity={city}
-        currentCountry={country}
-        currentTimeFrame={timeFrame}
-        currentStartDate={startDate}
-        currentEndDate={endDate}
-        currentMinPrice={minPrice}
-        currentMaxPrice={maxPrice}
-        currentAvailability={availability}
-        cities={cities}
-        countries={countries}
-      />
+      <div class="lg:w-64 lg:flex-shrink-0">
+        <EventFilters
+          currentCity={city}
+          currentCountry={country}
+          currentTimeFrame={timeFrame}
+          currentStartDate={startDate}
+          currentEndDate={endDate}
+          currentMinPrice={minPrice}
+          currentMaxPrice={maxPrice}
+          currentAvailability={availability}
+          cities={cities}
+          countries={countries}
+        />
+      </div>
 
       <!-- Main Content -->
-      <main class="flex-1">
+      <main class="flex-1 min-w-0">
         
         <!-- Error State -->
         {error && (
