@@ -176,14 +176,14 @@ const durationText = event.duration_hours === 1
       {isSoldOut ? (
         <button
           disabled
-          class="shrink-0 rounded-md bg-surface px-lg py-sm text-sm font-semibold text-text-light opacity-50 cursor-not-allowed"
+          class="w-full sm:w-auto text-center rounded-md bg-surface px-md py-sm text-sm font-semibold text-text-light opacity-50 cursor-not-allowed whitespace-nowrap"
         >
           {t('events.soldOut')}
         </button>
       ) : (
         <a
           href={eventUrl}
-          class="shrink-0 rounded-md bg-primary px-lg py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
+          class="w-full sm:w-auto text-center rounded-md bg-primary px-md py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md whitespace-nowrap"
         >
           {t('events.bookNow')}
         </a>
