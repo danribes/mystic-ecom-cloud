@@ -1,0 +1,172 @@
+---
+/**
+ * About Page
+ *
+ * Information about Mystic Ecom and its mission.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { useTranslations } from '@/lib/pageTranslations';
+
+export const prerender = false;
+
+const { t } = useTranslations(Astro.locals);
+const locale = Astro.locals.locale || 'es';
+
+const title = locale === 'es' ? 'Sobre Nosotros' : 'About Us';
+const description = locale === 'es'
+  ? 'Descubre nuestra misión de guiarte en tu viaje espiritual a través de cursos, eventos y productos transformadores.'
+  : 'Discover our mission to guide you on your spiritual journey through transformative courses, events, and products.';
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="container mx-auto px-lg py-2xl">
+    <!-- Hero Section -->
+    <header class="text-center mb-2xl">
+      <h1 class="text-5xl font-bold text-text mb-md">
+        {locale === 'es' ? 'Sobre Nosotros' : 'About Us'}
+      </h1>
+      <p class="text-xl text-text-light max-w-3xl mx-auto">
+        {locale === 'es'
+          ? 'Tu viaje hacia el despertar espiritual comienza aquí'
+          : 'Your journey to spiritual awakening begins here'}
+      </p>
+    </header>
+
+    <!-- Mission Section -->
+    <section class="mb-2xl">
+      <div class="bg-surface rounded-xl p-xl max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-text mb-lg text-center">
+          {locale === 'es' ? 'Nuestra Misión' : 'Our Mission'}
+        </h2>
+        <p class="text-text-light text-lg leading-relaxed mb-md">
+          {locale === 'es'
+            ? 'En Mystic Ecom, nos dedicamos a proporcionar herramientas, conocimientos y experiencias que apoyen tu crecimiento espiritual y bienestar personal. Creemos que cada persona tiene el potencial de alcanzar un estado de paz interior, claridad mental y conexión profunda con el universo.'
+            : 'At Mystic Ecom, we are dedicated to providing tools, knowledge, and experiences that support your spiritual growth and personal well-being. We believe that every person has the potential to achieve a state of inner peace, mental clarity, and deep connection with the universe.'}
+        </p>
+        <p class="text-text-light text-lg leading-relaxed">
+          {locale === 'es'
+            ? 'Nuestra plataforma ofrece una selección cuidadosamente curada de cursos en línea, eventos presenciales y productos espirituales diseñados para guiarte en cada paso de tu camino hacia la iluminación.'
+            : 'Our platform offers a carefully curated selection of online courses, in-person events, and spiritual products designed to guide you at every step of your path toward enlightenment.'}
+        </p>
+      </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="mb-2xl">
+      <h2 class="text-3xl font-bold text-text mb-xl text-center">
+        {locale === 'es' ? 'Nuestros Valores' : 'Our Values'}
+      </h2>
+      <div class="grid md:grid-cols-3 gap-xl max-w-5xl mx-auto">
+        <!-- Value 1 -->
+        <div class="text-center p-lg">
+          <div class="text-5xl mb-md">🧘</div>
+          <h3 class="text-xl font-bold text-text mb-sm">
+            {locale === 'es' ? 'Autenticidad' : 'Authenticity'}
+          </h3>
+          <p class="text-text-light">
+            {locale === 'es'
+              ? 'Ofrecemos enseñanzas genuinas basadas en tradiciones espirituales milenarias adaptadas al mundo moderno.'
+              : 'We offer genuine teachings based on ancient spiritual traditions adapted for the modern world.'}
+          </p>
+        </div>
+        <!-- Value 2 -->
+        <div class="text-center p-lg">
+          <div class="text-5xl mb-md">💫</div>
+          <h3 class="text-xl font-bold text-text mb-sm">
+            {locale === 'es' ? 'Transformación' : 'Transformation'}
+          </h3>
+          <p class="text-text-light">
+            {locale === 'es'
+              ? 'Cada curso, evento y producto está diseñado para crear un impacto positivo y duradero en tu vida.'
+              : 'Every course, event, and product is designed to create a positive and lasting impact on your life.'}
+          </p>
+        </div>
+        <!-- Value 3 -->
+        <div class="text-center p-lg">
+          <div class="text-5xl mb-md">🤝</div>
+          <h3 class="text-xl font-bold text-text mb-sm">
+            {locale === 'es' ? 'Comunidad' : 'Community'}
+          </h3>
+          <p class="text-text-light">
+            {locale === 'es'
+              ? 'Fomentamos una comunidad de apoyo donde cada buscador espiritual puede encontrar conexión y guía.'
+              : 'We foster a supportive community where every spiritual seeker can find connection and guidance.'}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- What We Offer Section -->
+    <section class="mb-2xl">
+      <h2 class="text-3xl font-bold text-text mb-xl text-center">
+        {locale === 'es' ? 'Lo Que Ofrecemos' : 'What We Offer'}
+      </h2>
+      <div class="grid md:grid-cols-3 gap-xl max-w-5xl mx-auto">
+        <!-- Courses -->
+        <a href="/courses" class="group bg-surface rounded-xl p-xl hover:shadow-lg transition-all duration-base">
+          <div class="text-4xl mb-md">📚</div>
+          <h3 class="text-xl font-bold text-text mb-sm group-hover:text-primary transition-colors">
+            {locale === 'es' ? 'Cursos' : 'Courses'}
+          </h3>
+          <p class="text-text-light mb-md">
+            {locale === 'es'
+              ? 'Programas de aprendizaje en línea sobre meditación, sanación energética, desarrollo espiritual y más.'
+              : 'Online learning programs on meditation, energy healing, spiritual development, and more.'}
+          </p>
+          <span class="text-primary font-semibold">
+            {locale === 'es' ? 'Explorar cursos →' : 'Explore courses →'}
+          </span>
+        </a>
+        <!-- Events -->
+        <a href="/events" class="group bg-surface rounded-xl p-xl hover:shadow-lg transition-all duration-base">
+          <div class="text-4xl mb-md">🎪</div>
+          <h3 class="text-xl font-bold text-text mb-sm group-hover:text-primary transition-colors">
+            {locale === 'es' ? 'Eventos' : 'Events'}
+          </h3>
+          <p class="text-text-light mb-md">
+            {locale === 'es'
+              ? 'Retiros, ceremonias y talleres presenciales para experiencias de transformación profunda.'
+              : 'Retreats, ceremonies, and in-person workshops for deep transformation experiences.'}
+          </p>
+          <span class="text-primary font-semibold">
+            {locale === 'es' ? 'Ver eventos →' : 'View events →'}
+          </span>
+        </a>
+        <!-- Products -->
+        <a href="/products" class="group bg-surface rounded-xl p-xl hover:shadow-lg transition-all duration-base">
+          <div class="text-4xl mb-md">🛍️</div>
+          <h3 class="text-xl font-bold text-text mb-sm group-hover:text-primary transition-colors">
+            {locale === 'es' ? 'Tienda' : 'Shop'}
+          </h3>
+          <p class="text-text-light mb-md">
+            {locale === 'es'
+              ? 'Productos espirituales cuidadosamente seleccionados para apoyar tu práctica diaria.'
+              : 'Carefully selected spiritual products to support your daily practice.'}
+          </p>
+          <span class="text-primary font-semibold">
+            {locale === 'es' ? 'Visitar tienda →' : 'Visit shop →'}
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Contact CTA -->
+    <section class="text-center bg-primary-light/20 rounded-xl p-xl max-w-3xl mx-auto">
+      <h2 class="text-2xl font-bold text-text mb-md">
+        {locale === 'es' ? '¿Tienes preguntas?' : 'Have questions?'}
+      </h2>
+      <p class="text-text-light mb-lg">
+        {locale === 'es'
+          ? 'Estamos aquí para ayudarte en tu viaje espiritual. No dudes en contactarnos.'
+          : "We're here to help you on your spiritual journey. Don't hesitate to reach out."}
+      </p>
+      <a
+        href="mailto:contact@mysticecom.com"
+        class="inline-block bg-primary text-white font-semibold px-xl py-md rounded-md hover:bg-primary-dark transition-colors"
+      >
+        {locale === 'es' ? 'Contáctanos' : 'Contact Us'}
+      </a>
+    </section>
+  </div>
+</BaseLayout>
