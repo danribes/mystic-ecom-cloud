@@ -162,7 +162,7 @@ const durationText = event.duration_hours === 1
     </div>
 
     <!-- Footer: Price & CTA -->
-    <div class="mt-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-sm sm:gap-md border-t border-border pt-md">
+    <div class="mt-auto flex flex-col gap-sm border-t border-border pt-md">
       <div class="flex items-baseline gap-xs">
         {typeof event.price === 'number' && event.price === 0 || event.price === '0' ? (
           <span class="text-2xl font-bold text-success">{t('common.free')}</span>
@@ -176,14 +176,14 @@ const durationText = event.duration_hours === 1
       {isSoldOut ? (
         <button
           disabled
-          class="w-full sm:w-auto text-center rounded-md bg-surface px-md py-sm text-sm font-semibold text-text-light opacity-50 cursor-not-allowed whitespace-nowrap"
+          class="w-full text-center rounded-md bg-surface py-sm text-sm font-semibold text-text-light opacity-50 cursor-not-allowed"
         >
           {t('events.soldOut')}
         </button>
       ) : (
         <a
           href={eventUrl}
-          class="w-full sm:w-auto text-center rounded-md bg-primary px-md py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md whitespace-nowrap"
+          class="w-full text-center rounded-md bg-primary py-sm text-sm font-semibold text-white transition-all duration-fast hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-md"
         >
           {t('events.bookNow')}
         </a>
