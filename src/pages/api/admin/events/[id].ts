@@ -37,6 +37,11 @@ const EventUpdateSchema = z.object({
   available_spots: z.number().int().min(0, 'Available spots must be non-negative'),
   image_url: z.string().url().max(500).optional().nullable(),
   is_published: z.boolean().optional().default(false),
+  // Spanish translation fields (T168 i18n)
+  title_es: z.string().max(255).optional().nullable(),
+  description_es: z.string().optional().nullable(),
+  venue_name_es: z.string().max(255).optional().nullable(),
+  venue_address_es: z.string().optional().nullable(),
 }).refine(
   (data) => data.available_spots <= data.capacity,
   {
@@ -217,8 +222,12 @@ export const PUT: APIRoute = async ({ request, params, cookies }) => {
         available_spots = $14,
         image_url = $15,
         is_published = $16,
+        title_es = $17,
+        description_es = $18,
+        venue_name_es = $19,
+        venue_address_es = $20,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $17
+      WHERE id = $21
       RETURNING *`,
       [
         data.title,
@@ -237,6 +246,10 @@ export const PUT: APIRoute = async ({ request, params, cookies }) => {
         data.available_spots,
         data.image_url,
         data.is_published ?? false,
+        data.title_es || null,
+        data.description_es || null,
+        data.venue_name_es || null,
+        data.venue_address_es || null,
         eventId,
       ]
     );

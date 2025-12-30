@@ -51,6 +51,12 @@ export interface UpdateCourseInput {
   curriculum?: CourseSection[];
   isPublished?: boolean;
   isFeatured?: boolean;
+  // Spanish translation fields (T168 i18n)
+  titleEs?: string;
+  descriptionEs?: string;
+  longDescriptionEs?: string;
+  learningOutcomesEs?: string[];
+  prerequisitesEs?: string[];
 }
 
 export interface ListCoursesOptions {
@@ -118,6 +124,12 @@ function mapRowToCourse(row: any): Course {
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
+    // Spanish translation fields (T168 i18n)
+    titleEs: row.title_es || undefined,
+    descriptionEs: row.description_es || undefined,
+    longDescriptionEs: row.long_description_es || undefined,
+    learningOutcomesEs: row.learning_outcomes_es || [],
+    prerequisitesEs: row.prerequisites_es || [],
   };
 }
 
@@ -381,6 +393,28 @@ export async function updateCourse(id: string, input: UpdateCourseInput): Promis
   if (input.isFeatured !== undefined) {
     updates.push(`is_featured = $${paramIndex++}`);
     values.push(input.isFeatured);
+  }
+
+  // Spanish translation fields (T168 i18n)
+  if (input.titleEs !== undefined) {
+    updates.push(`title_es = $${paramIndex++}`);
+    values.push(input.titleEs || null);
+  }
+  if (input.descriptionEs !== undefined) {
+    updates.push(`description_es = $${paramIndex++}`);
+    values.push(input.descriptionEs || null);
+  }
+  if (input.longDescriptionEs !== undefined) {
+    updates.push(`long_description_es = $${paramIndex++}`);
+    values.push(input.longDescriptionEs || null);
+  }
+  if (input.learningOutcomesEs !== undefined) {
+    updates.push(`learning_outcomes_es = $${paramIndex++}`);
+    values.push(JSON.stringify(input.learningOutcomesEs));
+  }
+  if (input.prerequisitesEs !== undefined) {
+    updates.push(`prerequisites_es = $${paramIndex++}`);
+    values.push(JSON.stringify(input.prerequisitesEs));
   }
 
   updates.push(`updated_at = NOW()`);

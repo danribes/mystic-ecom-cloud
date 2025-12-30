@@ -151,8 +151,45 @@ function getGrowthClass(growth: number): string {
         <span class="font-medium">Analytics</span>
       </a>
       
-      <a 
-        href="/courses" 
+      <a
+        href="/admin/users"
+        class="flex items-center justify-center p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors group"
+        data-testid="quick-action-users"
+      >
+        <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">👥</span>
+        <span class="font-medium">Manage Users</span>
+      </a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+      <a
+        href="/admin/events"
+        class="flex items-center justify-center p-4 bg-pink-50 text-pink-700 rounded-lg hover:bg-pink-100 transition-colors group"
+        data-testid="quick-action-events"
+      >
+        <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">📅</span>
+        <span class="font-medium">Events</span>
+      </a>
+
+      <a
+        href="/admin/products"
+        class="flex items-center justify-center p-4 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors group"
+        data-testid="quick-action-products"
+      >
+        <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">🛍️</span>
+        <span class="font-medium">Products</span>
+      </a>
+
+      <a
+        href="/admin/orders"
+        class="flex items-center justify-center p-4 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors group"
+        data-testid="quick-action-orders"
+      >
+        <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">📦</span>
+        <span class="font-medium">All Orders</span>
+      </a>
+
+      <a
+        href="/courses"
         class="flex items-center justify-center p-4 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
         data-testid="quick-action-view-site"
       >

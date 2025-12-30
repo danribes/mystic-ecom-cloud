@@ -118,7 +118,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
             <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
               Description <span class="text-red-600">*</span>
             </label>
-            <textarea 
+            <textarea
               id="description"
               name="description"
               required
@@ -126,6 +126,73 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
               placeholder="Describe your event in detail..."
             >{event.description}</textarea>
+          </div>
+        </div>
+
+        {/* Spanish Translations (T168 i18n) */}
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            Spanish Translations
+            <span class="text-xs font-normal text-gray-500 ml-2">(Optional - for Spanish-speaking users)</span>
+          </h2>
+
+          <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-4">
+            <div>
+              <label for="title_es" class="block text-sm font-medium text-gray-700 mb-1">
+                Event Title (Spanish)
+              </label>
+              <input
+                type="text"
+                id="title_es"
+                name="title_es"
+                value={event.title_es || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                placeholder="Titulo del evento en espanol"
+              />
+            </div>
+
+            <div>
+              <label for="description_es" class="block text-sm font-medium text-gray-700 mb-1">
+                Description (Spanish)
+              </label>
+              <textarea
+                id="description_es"
+                name="description_es"
+                rows="4"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                placeholder="Descripcion detallada del evento..."
+              >{event.description_es || ''}</textarea>
+            </div>
+
+            <div>
+              <label for="venue_name_es" class="block text-sm font-medium text-gray-700 mb-1">
+                Venue Name (Spanish)
+              </label>
+              <input
+                type="text"
+                id="venue_name_es"
+                name="venue_name_es"
+                value={event.venue_name_es || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                placeholder="Nombre del lugar en espanol"
+              />
+            </div>
+
+            <div>
+              <label for="venue_address_es" class="block text-sm font-medium text-gray-700 mb-1">
+                Street Address (Spanish)
+              </label>
+              <textarea
+                id="venue_address_es"
+                name="venue_address_es"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                placeholder="Direccion del lugar en espanol"
+              >{event.venue_address_es || ''}</textarea>
+            </div>
           </div>
         </div>
 
@@ -378,11 +445,11 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
           </h2>
           
           <label class="inline-flex items-center">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               name="is_published"
               checked={event.is_published}
-              class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
             />
             <span class="ml-2 text-sm text-gray-700">Publish this event (make it visible to users)</span>
           </label>
@@ -544,7 +611,12 @@ document.addEventListener('DOMContentLoaded', () => {
         capacity: parseInt(formData.get('capacity') as string, 10),
         available_spots: parseInt(formData.get('available_spots') as string, 10),
         image_url: formData.get('image_url') as string || undefined,
-        is_published: formData.get('is_published') === 'on'
+        is_published: formData.get('is_published') === 'on',
+        // Spanish translation fields (T168 i18n)
+        title_es: (formData.get('title_es') as string)?.trim() || null,
+        description_es: (formData.get('description_es') as string)?.trim() || null,
+        venue_name_es: (formData.get('venue_name_es') as string)?.trim() || null,
+        venue_address_es: (formData.get('venue_address_es') as string)?.trim() || null,
       };
 
       // Update event via API

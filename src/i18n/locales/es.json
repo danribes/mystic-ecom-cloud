@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Plataforma de Espiritualidad",
+    "appName": "Mystic International",
     "welcome": "Bienvenido",
     "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
@@ -330,6 +330,7 @@
     "pendingVerification": "Pendiente",
     "makeAdmin": "Hacer Admin",
     "removeAdmin": "Quitar Admin",
+    "editUser": "Editar Usuario",
     "currentUser": "Usuario actual",
     "noUsersFound": "No se encontraron usuarios",
     "noUsersMessage": "Intenta ajustar tu búsqueda o filtros.",
@@ -341,7 +342,34 @@
     "demoteMessage": "¿Estás seguro de que quieres quitar los privilegios de administrador a \"{{name}}\"? Ya no podrá acceder al panel de administración.",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "updating": "Actualizando..."
+    "updating": "Actualizando...",
+    "backToUsers": "Volver a Usuarios",
+    "editing": "Editando",
+    "editUserDetails": "Editar Detalles del Usuario",
+    "nameRequired": "El nombre es requerido",
+    "emailRequired": "El email es requerido",
+    "userUpdatedSuccess": "Usuario actualizado exitosamente",
+    "updateError": "Ocurrió un error al actualizar el usuario",
+    "thisIsYou": "Esta es tu cuenta",
+    "cannotChangeOwnRole": "No puedes cambiar tu propio rol",
+    "lastUpdated": "Última Actualización",
+    "whatsappHint": "Incluir código de país (ej., +34 para España)",
+    "emailVerified": "Email está verificado",
+    "emailVerifiedHint": "Marca esto si el email del usuario ha sido verificado",
+    "saveChanges": "Guardar Cambios",
+    "deleteUser": "Eliminar Usuario",
+    "deleteUserTitle": "Eliminar Usuario",
+    "deleteUserMessage": "¿Estás seguro de que quieres eliminar a \"{{name}}\"? Esta acción no se puede deshacer.",
+    "delete": "Eliminar",
+    "deleting": "Eliminando...",
+    "addNewUser": "Agregar Nuevo Usuario",
+    "createUser": "Crear Usuario",
+    "createUserDesc": "Crear una nueva cuenta de usuario",
+    "passwordHint": "Mínimo 8 caracteres",
+    "confirmPasswordLabel": "Confirmar Contraseña",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "userCreatedSuccess": "Usuario creado exitosamente",
+    "createError": "Ocurrió un error al crear el usuario"
   },
   "profile": {
     "title": "Mi Perfil",
@@ -555,7 +583,7 @@
       "questions": "¿Preguntas?",
       "contactUs": "Si tienes alguna pregunta, por favor contáctanos en support@spiritualityplatform.com",
       "thankYouFooter": "¡Gracias por ser parte de nuestra comunidad!",
-      "team": "El Equipo de Plataforma de Espiritualidad"
+      "team": "El Equipo de Mystic International"
     },
     "eventBooking": {
       "subject": "Confirmación de Reserva de Evento - {{eventTitle}}",
@@ -575,15 +603,15 @@
       "arriveEarly": "Por favor llega 15 minutos antes para el registro.",
       "bringTicket": "Trae este correo de confirmación o tu ID de reserva: {{bookingId}}",
       "lookingForward": "¡Esperamos verte!",
-      "team": "El Equipo de Plataforma de Espiritualidad"
+      "team": "El Equipo de Mystic International"
     },
     "common": {
       "viewInBrowser": "Ver en Navegador",
       "unsubscribe": "Darse de Baja",
       "privacyPolicy": "Política de Privacidad",
       "termsOfService": "Términos de Servicio",
-      "allRightsReserved": "© {{year}} Plataforma de Espiritualidad. Todos los derechos reservados.",
-      "sentWith": "Enviado con ❤️ desde Plataforma de Espiritualidad"
+      "allRightsReserved": "© {{year}} Mystic International. Todos los derechos reservados.",
+      "sentWith": "Enviado con ❤️ desde Mystic International"
     }
   },
   "seo": {

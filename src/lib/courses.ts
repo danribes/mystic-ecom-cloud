@@ -45,6 +45,9 @@ export interface GetCoursesFilters {
   search?: string;
   limit?: number;
   offset?: number;
+  isFeatured?: boolean;
+  sortBy?: 'createdAt' | 'price' | 'rating' | 'title';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface GetCoursesResult {
@@ -68,6 +71,9 @@ export async function getCourses(filters: GetCoursesFilters = {}): Promise<GetCo
     search,
     limit = 12,
     offset = 0,
+    isFeatured,
+    sortBy = 'rating',
+    sortOrder = 'desc',
   } = filters;
 
   // Generate cache key based on filters
@@ -128,11 +134,18 @@ export async function getCourses(filters: GetCoursesFilters = {}): Promise<GetCo
   // Search filter
   if (search && search.trim()) {
     query += ` AND (
-      c.title ILIKE $${paramIndex} OR 
-      c.description ILIKE $${paramIndex} OR 
+      c.title ILIKE $${paramIndex} OR
+      c.description ILIKE $${paramIndex} OR
       c.instructor ILIKE $${paramIndex}
     )`;
     params.push(`%${search.trim()}%`);
+    paramIndex++;
+  }
+
+  // Featured filter
+  if (isFeatured !== undefined) {
+    query += ` AND c.is_featured = $${paramIndex}`;
+    params.push(isFeatured);
     paramIndex++;
   }
 
@@ -146,8 +159,16 @@ export async function getCourses(filters: GetCoursesFilters = {}): Promise<GetCo
     paramIndex++;
   }
 
-  // Order by rating and created date
-  query += ` ORDER BY rating DESC, c.created_at DESC`;
+  // Dynamic sorting
+  const sortColumn = {
+    createdAt: 'c.created_at',
+    price: 'c.price',
+    rating: 'rating',
+    title: 'c.title',
+  }[sortBy] || 'rating';
+
+  const order = sortOrder === 'asc' ? 'ASC' : 'DESC';
+  query += ` ORDER BY ${sortColumn} ${order}, c.created_at DESC`;
 
   // Pagination
   query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;

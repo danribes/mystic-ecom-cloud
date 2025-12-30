@@ -2,199 +2,86 @@
 /**
  * Homepage
  *
- * Displays featured courses and recent offerings.
+ * Displays featured courses and recent offerings from the database.
  */
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CourseCard from '@/components/CourseCard.astro';
 import type { Course } from '@/types';
 import { useTranslations } from '@/lib/pageTranslations';
+import { getCourses } from '@/lib/courses';
+import { getLocalizedCourses } from '@/lib/coursesI18n';
+import { initEnv } from '@/lib/env';
+
+export const prerender = false;
+
+// Initialize environment from Cloudflare runtime
+const runtime = (Astro.locals as any).runtime;
+if (runtime?.env) {
+  initEnv(runtime.env);
+}
 
 const { t } = useTranslations(Astro.locals);
+const locale = Astro.locals.locale || 'en';
 
-// For now, use mock data directly (database not configured)
-// In production, this would fetch from the API
+// Fetch courses from database
 let error: string | null = null;
-let featuredCourses: Course[] = [
-  {
-    id: 1,
-    title: 'Quantum Manifestation Mastery',
-      slug: 'quantum-manifestation-mastery',
-      description: 'Learn to collapse quantum possibilities into your desired reality through advanced manifestation techniques.',
-      longDescription: 'A comprehensive course on quantum manifestation...',
-      imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400',
-      previewVideoUrl: null,
-      price: 19900,
-      duration: 14400,
-      level: 'intermediate' as const,
-      category: 'Manifestation',
-      tags: ['manifestation', 'quantum', 'law of attraction'],
-      instructorId: 1,
-      instructorName: 'Dr. Sarah Quantum',
-      instructorAvatar: 'https://i.pravatar.cc/150?img=5',
-      enrollmentCount: 1247,
-      avgRating: 4.9,
-      reviewCount: 423,
-      curriculum: [],
-      learningOutcomes: [],
-      prerequisites: [],
-      isPublished: true,
-      isFeatured: true,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      title: 'Advanced Energy Healing Certification',
-      slug: 'advanced-energy-healing-certification',
-      description: 'Master the art of energy healing and become a certified practitioner in multiple modalities.',
-      longDescription: 'Complete certification program...',
-      imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400',
-      previewVideoUrl: 'https://example.com/preview.mp4',
-      price: 29900,
-      duration: 28800,
-      level: 'advanced' as const,
-      category: 'Energy Healing',
-      tags: ['reiki', 'energy healing', 'certification'],
-      instructorId: 2,
-      instructorName: 'Master Elena Light',
-      instructorAvatar: 'https://i.pravatar.cc/150?img=9',
-      enrollmentCount: 892,
-      avgRating: 4.8,
-      reviewCount: 312,
-      curriculum: [],
-      learningOutcomes: [],
-      prerequisites: [],
-      isPublished: true,
-      isFeatured: true,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      title: 'Chakra Awakening Journey',
-      slug: 'chakra-awakening-journey',
-      description: 'Unlock and balance all seven chakras for optimal energy flow and spiritual awakening.',
-      longDescription: 'Complete chakra system...',
-      imageUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=800',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400',
-      previewVideoUrl: null,
-      price: 0,
-      duration: 7200,
-      level: 'beginner' as const,
-      category: 'Chakras',
-      tags: ['chakras', 'energy', 'meditation'],
-      instructorId: 3,
-      instructorName: 'Yogi Ananda',
-      instructorAvatar: 'https://i.pravatar.cc/150?img=12',
-      enrollmentCount: 3421,
-      avgRating: 4.7,
-      reviewCount: 1028,
-      curriculum: [],
-      learningOutcomes: [],
-      prerequisites: [],
-      isPublished: true,
-      isFeatured: true,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ] as Course[];
+let featuredCourses: Course[] = [];
+let recentCourses: Course[] = [];
 
-// Mock data for recent courses
-let recentCourses: Course[] = [
-  {
-    id: 4,
-    title: 'Sacred Geometry Fundamentals',
-      slug: 'sacred-geometry-fundamentals',
-      description: 'Explore the mathematical patterns that underlie all creation and spiritual architecture.',
-      longDescription: 'Sacred geometry course...',
-      imageUrl: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=400',
-      previewVideoUrl: null,
-      price: 14900,
-      duration: 10800,
-      level: 'beginner' as const,
-      category: 'Sacred Arts',
-      tags: ['sacred geometry', 'mathematics', 'spirituality'],
-      instructorId: 4,
-      instructorName: 'Prof. Michael Fibonacci',
-      instructorAvatar: 'https://i.pravatar.cc/150?img=33',
-      enrollmentCount: 687,
-      avgRating: 4.6,
-      reviewCount: 189,
-      curriculum: [],
-      learningOutcomes: [],
-      prerequisites: [],
-      isPublished: true,
+try {
+  // Fetch featured courses (marked as featured in the database)
+  const featuredResult = await getLocalizedCourses({
+    isFeatured: true,
+    limit: 3,
+    offset: 0,
+    locale,
+  });
+  featuredCourses = featuredResult.items;
+} catch (err) {
+  console.error('[Homepage] Error fetching featured courses:', err);
+  // Try fallback to non-localized
+  try {
+    const featuredResult = await getCourses({
+      isFeatured: true,
+      limit: 3,
+      offset: 0,
+    });
+    featuredCourses = featuredResult.items;
+  } catch (fallbackErr) {
+    console.error('[Homepage] Fallback error fetching featured courses:', fallbackErr);
+    error = 'Failed to load featured courses.';
+  }
+}
+
+try {
+  // Fetch recent courses (not featured, sorted by creation date)
+  const recentResult = await getLocalizedCourses({
+    isFeatured: false,
+    limit: 3,
+    offset: 0,
+    locale,
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+  });
+  recentCourses = recentResult.items;
+} catch (err) {
+  console.error('[Homepage] Error fetching recent courses:', err);
+  // Try fallback to non-localized
+  try {
+    const recentResult = await getCourses({
       isFeatured: false,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 5,
-      title: 'Astral Projection Masterclass',
-      slug: 'astral-projection-masterclass',
-      description: 'Learn safe and effective techniques for out-of-body experiences and astral travel.',
-      longDescription: 'Astral projection techniques...',
-      imageUrl: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
-      previewVideoUrl: null,
-      price: 24900,
-      duration: 21600,
-      level: 'advanced' as const,
-      category: 'Consciousness',
-      tags: ['astral projection', 'OBE', 'consciousness'],
-      instructorId: 5,
-      instructorName: 'Lumina Starwalker',
-      instructorAvatar: 'https://i.pravatar.cc/150?img=20',
-      enrollmentCount: 512,
-      avgRating: 4.9,
-      reviewCount: 267,
-      curriculum: [],
-      learningOutcomes: [],
-      prerequisites: [],
-      isPublished: true,
-      isFeatured: false,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 6,
-      title: 'Crystal Healing Practitioner',
-      slug: 'crystal-healing-practitioner',
-      description: 'Comprehensive training in crystal healing properties, layouts, and therapeutic applications.',
-      longDescription: 'Crystal healing certification...',
-      imageUrl: 'https://images.unsplash.com/photo-1518281361980-b26bfd556770?w=800',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1518281361980-b26bfd556770?w=400',
-      previewVideoUrl: null,
-      price: 17900,
-      duration: 18000,
-      level: 'intermediate' as const,
-      category: 'Crystal Healing',
-      tags: ['crystals', 'healing', 'stones'],
-      instructorId: 6,
-      instructorName: 'Crystal Rose',
-      instructorAvatar: 'https://i.pravatar.cc/150?img=45',
-      enrollmentCount: 923,
-      avgRating: 4.8,
-      reviewCount: 412,
-      curriculum: [],
-      learningOutcomes: [],
-      prerequisites: [],
-      isPublished: true,
-      isFeatured: false,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ] as Course[];
+      limit: 3,
+      offset: 0,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    });
+    recentCourses = recentResult.items;
+  } catch (fallbackErr) {
+    console.error('[Homepage] Fallback error fetching recent courses:', fallbackErr);
+    if (!error) error = 'Failed to load recent courses.';
+  }
+}
 ---
 
 <BaseLayout

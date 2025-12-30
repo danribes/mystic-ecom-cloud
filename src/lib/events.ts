@@ -46,6 +46,11 @@ export interface Event {
   is_published: boolean;
   created_at: Date;
   updated_at: Date;
+  // Spanish translation fields (T168 i18n)
+  title_es?: string;
+  description_es?: string;
+  venue_name_es?: string;
+  venue_address_es?: string;
 }
 
 /**
@@ -263,7 +268,8 @@ export async function getEventById(identifier: string): Promise<Event> {
         id, title, slug, description, price, event_date, duration_hours,
         venue_name, venue_address, venue_city, venue_country,
         venue_lat, venue_lng, capacity, available_spots, image_url,
-        is_published, created_at, updated_at
+        is_published, created_at, updated_at,
+        title_es, description_es, venue_name_es, venue_address_es
       FROM events
       WHERE ${isUUID ? 'id' : 'slug'} = $1
     `;

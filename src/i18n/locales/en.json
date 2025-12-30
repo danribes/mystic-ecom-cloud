@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Spirituality Platform",
+    "appName": "Mystic International",
     "welcome": "Welcome",
     "login": "Login",
     "logout": "Logout",
@@ -330,6 +330,7 @@
     "pendingVerification": "Pending",
     "makeAdmin": "Make Admin",
     "removeAdmin": "Remove Admin",
+    "editUser": "Edit User",
     "currentUser": "Current user",
     "noUsersFound": "No users found",
     "noUsersMessage": "Try adjusting your search or filters.",
@@ -341,7 +342,34 @@
     "demoteMessage": "Are you sure you want to remove admin privileges from \"{{name}}\"? They will no longer be able to access the admin panel.",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "updating": "Updating..."
+    "updating": "Updating...",
+    "backToUsers": "Back to Users",
+    "editing": "Editing",
+    "editUserDetails": "Edit User Details",
+    "nameRequired": "Name is required",
+    "emailRequired": "Email is required",
+    "userUpdatedSuccess": "User updated successfully",
+    "updateError": "An error occurred while updating the user",
+    "thisIsYou": "This is your account",
+    "cannotChangeOwnRole": "You cannot change your own role",
+    "lastUpdated": "Last Updated",
+    "whatsappHint": "Include country code (e.g., +1 for US)",
+    "emailVerified": "Email is verified",
+    "emailVerifiedHint": "Check this if the user's email has been verified",
+    "saveChanges": "Save Changes",
+    "deleteUser": "Delete User",
+    "deleteUserTitle": "Delete User",
+    "deleteUserMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "addNewUser": "Add New User",
+    "createUser": "Create User",
+    "createUserDesc": "Create a new user account",
+    "passwordHint": "Minimum 8 characters",
+    "confirmPasswordLabel": "Confirm Password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "userCreatedSuccess": "User created successfully",
+    "createError": "An error occurred while creating the user"
   },
   "profile": {
     "title": "My Profile",
@@ -555,7 +583,7 @@
       "questions": "Questions?",
       "contactUs": "If you have any questions, please contact us at support@spiritualityplatform.com",
       "thankYouFooter": "Thank you for being part of our community!",
-      "team": "The Spirituality Platform Team"
+      "team": "The Mystic International Team"
     },
     "eventBooking": {
       "subject": "Event Booking Confirmation - {{eventTitle}}",
@@ -575,15 +603,15 @@
       "arriveEarly": "Please arrive 15 minutes early for check-in.",
       "bringTicket": "Bring this confirmation email or your booking ID: {{bookingId}}",
       "lookingForward": "We're looking forward to seeing you!",
-      "team": "The Spirituality Platform Team"
+      "team": "The Mystic International Team"
     },
     "common": {
       "viewInBrowser": "View in Browser",
       "unsubscribe": "Unsubscribe",
       "privacyPolicy": "Privacy Policy",
       "termsOfService": "Terms of Service",
-      "allRightsReserved": "© {{year}} Spirituality Platform. All rights reserved.",
-      "sentWith": "Sent with ❤️ from Spirituality Platform"
+      "allRightsReserved": "© {{year}} Mystic International. All rights reserved.",
+      "sentWith": "Sent with ❤️ from Mystic International"
     }
   },
   "seo": {

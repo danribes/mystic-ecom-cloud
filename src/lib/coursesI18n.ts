@@ -40,6 +40,9 @@ export interface GetLocalizedCoursesFilters {
   limit?: number;
   offset?: number;
   locale?: Locale;
+  isFeatured?: boolean;
+  sortBy?: 'createdAt' | 'price' | 'rating' | 'title';
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -258,6 +261,9 @@ export async function getLocalizedCourses(
     limit = 12,
     offset = 0,
     locale = 'en',
+    isFeatured,
+    sortBy = 'rating',
+    sortOrder = 'desc',
   } = filters;
 
   let query = `
@@ -330,6 +336,13 @@ export async function getLocalizedCourses(
     paramIndex++;
   }
 
+  // Featured filter
+  if (isFeatured !== undefined) {
+    query += ` AND c.is_featured = $${paramIndex}`;
+    params.push(isFeatured);
+    paramIndex++;
+  }
+
   query += ` GROUP BY c.id`;
 
   // Rating filter (after aggregation)
@@ -339,7 +352,16 @@ export async function getLocalizedCourses(
     paramIndex++;
   }
 
-  query += ` ORDER BY avg_rating DESC, c.created_at DESC`;
+  // Dynamic sorting
+  const sortColumn = {
+    createdAt: 'c.created_at',
+    price: 'c.price',
+    rating: 'avg_rating',
+    title: 'c.title',
+  }[sortBy] || 'avg_rating';
+
+  const order = sortOrder === 'asc' ? 'ASC' : 'DESC';
+  query += ` ORDER BY ${sortColumn} ${order}, c.created_at DESC`;
   query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
   params.push(limit + 1); // Fetch one extra to check for more
   params.push(offset);

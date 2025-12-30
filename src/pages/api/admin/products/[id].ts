@@ -36,6 +36,9 @@ const ProductUpdateSchema = z.object({
   image_url: z.string().url('Image URL must be a valid URL').max(500).optional().nullable(),
   download_limit: z.number().int().min(1, 'Download limit must be at least 1').optional().default(3),
   is_published: z.boolean().optional().default(false),
+  // Spanish translation fields (T168 i18n)
+  title_es: z.string().max(255).optional().nullable(),
+  description_es: z.string().optional().nullable(),
 });
 
 // ==================== Helper Functions ====================
@@ -278,8 +281,10 @@ export const PUT: APIRoute = async ({ request, params, cookies }) => {
         image_url = $9,
         download_limit = $10,
         is_published = $11,
+        title_es = $12,
+        description_es = $13,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $12
+      WHERE id = $14
       RETURNING *`,
       [
         data.title,
@@ -293,6 +298,8 @@ export const PUT: APIRoute = async ({ request, params, cookies }) => {
         data.image_url,
         data.download_limit ?? 3,
         data.is_published ?? false,
+        data.title_es || null,
+        data.description_es || null,
         productId,
       ]
     );

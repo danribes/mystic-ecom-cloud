@@ -53,6 +53,12 @@ const UpdateCourseSchema = z.object({
   })).optional(),
   isPublished: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
+  // Spanish translation fields (T168 i18n)
+  titleEs: z.string().max(200).optional().nullable(),
+  descriptionEs: z.string().max(500).optional().nullable(),
+  longDescriptionEs: z.string().optional().nullable(),
+  learningOutcomesEs: z.array(z.string()).optional().nullable(),
+  prerequisitesEs: z.array(z.string()).optional().nullable(),
 });
 
 // ==================== Helper Functions ====================
