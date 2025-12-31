@@ -19,40 +19,40 @@
 }
 
 :root {
-  /* Colors - Spiritual Theme */
-  --color-primary: #7c3aed; /* Purple - spirituality */
-  --color-primary-light: #a78bfa;
-  --color-primary-dark: #5b21b6;
-  
+  /* Colors - Dark Mystic Theme */
+  --color-primary: #a855f7; /* Vibrant purple */
+  --color-primary-light: #c084fc;
+  --color-primary-dark: #7c3aed;
+
   --color-secondary: #ec4899; /* Pink - love/compassion */
-  --color-secondary-light: #f9a8d4;
-  --color-secondary-dark: #be185d;
-  
-  --color-accent: #f59e0b; /* Amber - enlightenment */
+  --color-secondary-light: #f472b6;
+  --color-secondary-dark: #db2777;
+
+  --color-accent: #fbbf24; /* Gold - enlightenment */
   --color-accent-light: #fcd34d;
-  --color-accent-dark: #d97706;
-  
-  /* Neutrals */
-  --color-background: #ffffff;
-  --color-surface: #f9fafb;
-  --color-surface-dark: #f3f4f6;
-  
-  --color-text: #111827;
-  --color-text-light: #6b7280;
-  --color-text-lighter: #9ca3af;
-  
-  --color-border: #e5e7eb;
-  --color-border-dark: #d1d5db;
-  
-  /* Semantic Colors */
-  --color-success: #10b981;
-  --color-success-light: #d1fae5;
-  --color-error: #ef4444;
-  --color-error-light: #fee2e2;
-  --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
-  --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
+  --color-accent-dark: #f59e0b;
+
+  /* Dark Neutrals */
+  --color-background: #0f0f1a; /* Deep dark blue-black */
+  --color-surface: #1a1a2e; /* Dark navy */
+  --color-surface-dark: #252542; /* Slightly lighter for cards */
+
+  --color-text: #f1f5f9; /* Light gray text */
+  --color-text-light: #cbd5e1; /* Muted text */
+  --color-text-lighter: #94a3b8; /* Even more muted */
+
+  --color-border: #334155; /* Dark borders */
+  --color-border-dark: #475569; /* Slightly lighter borders */
+
+  /* Semantic Colors - adjusted for dark theme */
+  --color-success: #22c55e;
+  --color-success-light: #166534;
+  --color-error: #f87171;
+  --color-error-light: #7f1d1d;
+  --color-warning: #fbbf24;
+  --color-warning-light: #78350f;
+  --color-info: #60a5fa;
+  --color-info-light: #1e3a5f;
   
   /* Typography */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -95,11 +95,11 @@
   --radius-2xl: 1rem;      /* 16px */
   --radius-full: 9999px;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Shadows - enhanced for dark theme */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
   
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
@@ -527,45 +527,7 @@ select[required] + label::after {
   }
 }
 
-/* Dark Mode - Currently disabled for consistent UX
-   To re-enable, uncomment this section and change
-   html style to "color-scheme: light dark;" in BaseLayout.astro
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #111827;
-    --color-surface: #1f2937;
-    --color-surface-dark: #374151;
-    --color-text: #f9fafb;
-    --color-text-light: #d1d5db;
-    --color-text-lighter: #9ca3af;
-    --color-border: #374151;
-    --color-border-dark: #4b5563;
-  }
-
-  a {
-    color: var(--color-primary-light);
-  }
-
-  a:hover {
-    color: var(--color-primary);
-  }
-
-  input,
-  textarea,
-  select {
-    background-color: var(--color-surface);
-    color: var(--color-text);
-    border-color: var(--color-border);
-  }
-
-  input:focus,
-  textarea:focus,
-  select:focus {
-    border-color: var(--color-primary-light);
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
-  }
-}
-*/
+/* Dark Theme is now the default - no media query needed */
 
 /* Print Accessibility */
 @media print {
@@ -606,7 +568,7 @@ select[required] + label::after {
 
 /* Hero Section Styles */
 .hero-gradient {
-  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
 }
 
 .hero-subtitle {
