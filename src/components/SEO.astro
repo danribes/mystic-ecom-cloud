@@ -254,7 +254,9 @@ const hreflangLinks = generateHreflangFromAstro(
 
 <!-- Additional Meta Tags -->
 <meta name="generator" content={Astro.generator} />
-<meta name="theme-color" content="#7c3aed" />
+<!-- Theme colors for light and dark mode -->
+<meta name="theme-color" content="#7c3aed" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#7c3aed" media="(prefers-color-scheme: dark)" />
 
 <!-- Structured Data (JSON-LD) -->
 <StructuredData
