@@ -25,14 +25,15 @@ export const siteConfig = {
 
   /**
    * Site URL (should match astro.config.mjs site)
+   * Uses environment variable or defaults to Cloudflare Pages URL
    */
-  url: 'https://mystic-international.com',
+  url: import.meta.env.PUBLIC_SITE_URL || 'https://mystic-ecom-cloud.pages.dev',
 
   /**
-   * Organization logo (absolute URL)
-   * Should be a high-quality square image (recommended: 512x512px or larger)
+   * Organization logo (relative path - will be combined with site URL)
+   * Should be a high-quality image
    */
-  logo: 'https://mystic-international.com/logo.png',
+  logo: '/images/logo.png',
 
   /**
    * Contact email
@@ -81,7 +82,7 @@ export const siteConfig = {
     title: 'Mystic Ecommerce - Spiritual Growth & Wellness',
     description: 'Your premier destination for spiritual growth, mindfulness, and holistic wellness. Discover transformative courses, events, and products.',
     keywords: 'spirituality, meditation, mindfulness, wellness, courses, events, spiritual growth, yoga, holistic health, spiritual awakening',
-    ogImage: 'https://mystic-international.com/images/og-default.svg',
+    ogImage: '/images/og-default.svg',
   },
 } as const;
 
@@ -104,10 +105,15 @@ export function getOrganizationData(): Omit<OrganizationSchema, '@type'> {
   // Collect all social media URLs into an array
   const sameAs = Object.values(siteConfig.socialMedia).filter(Boolean);
 
+  // Construct absolute logo URL from relative path
+  const absoluteLogoUrl = siteConfig.logo.startsWith('http')
+    ? siteConfig.logo
+    : `${siteConfig.url}${siteConfig.logo}`;
+
   return {
     name: siteConfig.name,
     url: siteConfig.url,
-    logo: siteConfig.logo,
+    logo: absoluteLogoUrl,
     description: siteConfig.description,
     email: siteConfig.email,
     telephone: siteConfig.telephone,
