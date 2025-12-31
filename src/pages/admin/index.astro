@@ -121,7 +121,7 @@ function getGrowthClass(growth: number): string {
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <a 
         href="/admin/courses/new" 
-        class="flex items-center justify-center p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors group"
+        class="flex items-center justify-center p-4 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors group"
         data-testid="quick-action-new-course"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">➕</span>
@@ -172,7 +172,7 @@ function getGrowthClass(growth: number): string {
 
       <a
         href="/admin/products"
-        class="flex items-center justify-center p-4 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors group"
+        class="flex items-center justify-center p-4 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors group"
         data-testid="quick-action-products"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">🛍️</span>
@@ -306,7 +306,7 @@ function getGrowthClass(growth: number): string {
         <h3 class="text-lg font-semibold text-gray-900">Recent Orders</h3>
         <a 
           href="/admin/orders" 
-          class="text-sm text-purple-600 hover:text-purple-700 font-medium"
+          class="text-sm text-primary hover:text-primary-dark font-medium"
           data-testid="view-all-orders"
         >
           View all →
@@ -352,7 +352,7 @@ function getGrowthClass(growth: number): string {
         <h3 class="text-lg font-semibold text-gray-900">Recent Users</h3>
         <a 
           href="/admin/users" 
-          class="text-sm text-purple-600 hover:text-purple-700 font-medium"
+          class="text-sm text-primary hover:text-primary-dark font-medium"
           data-testid="view-all-users"
         >
           View all →
@@ -363,8 +363,8 @@ function getGrowthClass(growth: number): string {
         <div class="space-y-3" data-testid="recent-users-list">
           {stats.recentActivity.recentUsers.map((user) => (
             <div key={user.id} class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <span class="text-purple-600 font-semibold text-sm">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-primary font-semibold text-sm">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -392,7 +392,7 @@ function getGrowthClass(growth: number): string {
         <h3 class="text-lg font-semibold text-gray-900">Top Courses</h3>
         <a 
           href="/admin/courses" 
-          class="text-sm text-purple-600 hover:text-purple-700 font-medium"
+          class="text-sm text-primary hover:text-primary-dark font-medium"
           data-testid="view-all-courses"
         >
           Manage →
@@ -404,7 +404,7 @@ function getGrowthClass(growth: number): string {
           {stats.courseStats.topCourses.map((course, index) => (
             <div key={course.id} class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
                   {index + 1}
                 </div>
                 <div>
@@ -424,7 +424,7 @@ function getGrowthClass(growth: number): string {
         <div class="text-center py-8 text-gray-500" data-testid="no-courses">
           <span class="text-4xl">📚</span>
           <p class="mt-2">No courses yet</p>
-          <a href="/admin/courses/new" class="mt-2 text-sm text-purple-600 hover:text-purple-700">
+          <a href="/admin/courses/new" class="mt-2 text-sm text-primary hover:text-primary-dark">
             Create your first course
           </a>
         </div>
@@ -456,7 +456,7 @@ function getGrowthClass(growth: number): string {
   </div>
 
   <!-- Admin Actions Footer -->
-  <div class="mt-8 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
+  <div class="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-primary/20">
     <div class="flex items-center justify-between">
       <div>
         <h3 class="text-lg font-semibold text-gray-900">Admin Tools</h3>
@@ -472,7 +472,7 @@ function getGrowthClass(growth: number): string {
         </a>
         <a 
           href="/admin/analytics" 
-          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+          class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
           data-testid="admin-analytics"
         >
           📊 View Analytics

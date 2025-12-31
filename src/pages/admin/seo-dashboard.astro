@@ -132,7 +132,7 @@ function formatDate(date: Date): string {
           href="https://search.google.com/search-console"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary to-secondary rounded-lg hover:from-primary-dark hover:to-secondary-dark transition-all shadow-md hover:shadow-lg"
         >
           <span class="mr-2">🔍</span>
           Open Google Search Console
@@ -279,7 +279,7 @@ function formatDate(date: Date): string {
         </div>
         <div class="flex justify-between items-center">
           <span class="text-sm text-gray-600">Top 3 Keywords</span>
-          <span class="text-lg font-bold text-purple-600">{metrics.keywords.top3Keywords}</span>
+          <span class="text-lg font-bold text-primary">{metrics.keywords.top3Keywords}</span>
         </div>
         <div class="flex justify-between items-center">
           <span class="text-sm text-gray-600">Total Tracked</span>
@@ -290,7 +290,7 @@ function formatDate(date: Date): string {
       <div class="mt-4 pt-4 border-t border-gray-200">
         <a
           href="#keyword-details"
-          class="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center justify-center"
+          class="text-sm text-primary hover:text-primary-dark font-medium flex items-center justify-center"
         >
           View All Keywords
           <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -335,7 +335,7 @@ function formatDate(date: Date): string {
 
       <div class="mt-4 pt-4 border-t border-gray-200">
         <div class="text-center">
-          <p class="text-2xl font-bold text-purple-600">{formatNumber(metrics.ctr.clicks)}</p>
+          <p class="text-2xl font-bold text-primary">{formatNumber(metrics.ctr.clicks)}</p>
           <p class="text-xs text-gray-500">clicks from {formatNumber(metrics.ctr.impressions)} impressions</p>
         </div>
       </div>
@@ -374,7 +374,7 @@ function formatDate(date: Date): string {
           href="https://search.google.com/test/rich-results"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center justify-center"
+          class="text-sm text-primary hover:text-primary-dark font-medium flex items-center justify-center"
         >
           Test Structured Data
           <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -421,7 +421,7 @@ function formatDate(date: Date): string {
           href={metrics.sitemap.sitemapUrl}
           target="_blank"
           rel="noopener noreferrer"
-          class="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center justify-center"
+          class="text-sm text-primary hover:text-primary-dark font-medium flex items-center justify-center"
         >
           View Sitemap
           <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -505,7 +505,7 @@ function formatDate(date: Date): string {
                   </td>
                   <td class="py-3 px-4 text-right font-medium text-gray-700">{formatNumber(keyword.clicks)}</td>
                   <td class="py-3 px-4 text-right text-gray-600">{formatNumber(keyword.impressions)}</td>
-                  <td class="py-3 px-4 text-right font-medium text-purple-600">{formatPercentage(keyword.ctr)}</td>
+                  <td class="py-3 px-4 text-right font-medium text-primary">{formatPercentage(keyword.ctr)}</td>
                 </tr>
               ))}
             </tbody>
@@ -553,14 +553,14 @@ function formatDate(date: Date): string {
   )}
 
   <!-- Quick Actions -->
-  <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+  <div class="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl p-6 border border-primary/20">
     <h3 class="text-lg font-bold text-gray-900 mb-4">⚡ Quick Actions</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <a
         href="https://search.google.com/search-console"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-purple-500 hover:shadow-md transition-all text-center"
+        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-primary hover:shadow-md transition-all text-center"
       >
         <span class="mr-2">🔍</span>
         <span class="font-medium text-gray-900">Search Console</span>
@@ -570,7 +570,7 @@ function formatDate(date: Date): string {
         href="https://search.google.com/test/rich-results"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-purple-500 hover:shadow-md transition-all text-center"
+        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-primary hover:shadow-md transition-all text-center"
       >
         <span class="mr-2">🧪</span>
         <span class="font-medium text-gray-900">Rich Results Test</span>
@@ -580,7 +580,7 @@ function formatDate(date: Date): string {
         href={metrics.sitemap.sitemapUrl}
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-purple-500 hover:shadow-md transition-all text-center"
+        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-primary hover:shadow-md transition-all text-center"
       >
         <span class="mr-2">🗺️</span>
         <span class="font-medium text-gray-900">View Sitemap</span>
@@ -590,7 +590,7 @@ function formatDate(date: Date): string {
         href="https://pagespeed.web.dev/"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-purple-500 hover:shadow-md transition-all text-center"
+        class="flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 hover:border-primary hover:shadow-md transition-all text-center"
       >
         <span class="mr-2">⚡</span>
         <span class="font-medium text-gray-900">PageSpeed Insights</span>

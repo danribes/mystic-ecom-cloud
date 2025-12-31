@@ -154,7 +154,7 @@ function getStatusColor(course: any): string {
           href="/dashboard/courses?status=all"
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'all'
-              ? 'bg-purple-600 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -164,7 +164,7 @@ function getStatusColor(course: any): string {
           href="/dashboard/courses?status=in-progress"
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'in-progress'
-              ? 'bg-purple-600 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -174,7 +174,7 @@ function getStatusColor(course: any): string {
           href="/dashboard/courses?status=completed"
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'completed'
-              ? 'bg-purple-600 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -184,7 +184,7 @@ function getStatusColor(course: any): string {
           href="/dashboard/courses?status=not-started"
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'not-started'
-              ? 'bg-purple-600 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -200,7 +200,7 @@ function getStatusColor(course: any): string {
         <select
           id="sort"
           name="sort"
-          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
           onchange="window.location.href = `/dashboard/courses?status=${filterStatus}&sort=${this.value}`"
         >
           <option value="recent" selected={sortBy === 'recent'}>Recently Enrolled</option>
@@ -225,7 +225,7 @@ function getStatusColor(course: any): string {
                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
-              <div class="w-full h-48 bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+              <div class="w-full h-48 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
                 <span class="text-6xl">🧘</span>
               </div>
             )}
@@ -242,13 +242,13 @@ function getStatusColor(course: any): string {
           <div class="p-6">
             {/* Category */}
             {course.category && (
-              <p class="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2">
+              <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-2">
                 {course.category}
               </p>
             )}
 
             {/* Title */}
-            <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors">
+            <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
               {course.title}
             </h3>
 
@@ -283,7 +283,7 @@ function getStatusColor(course: any): string {
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div
-                  class="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-500"
+                  class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all duration-500"
                   style={`width: ${course.progress || 0}%`}
                 ></div>
               </div>
@@ -301,7 +301,7 @@ function getStatusColor(course: any): string {
             <div class="flex gap-2">
               <a
                 href={`/courses/${course.slug}/learn`}
-                class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium text-center"
+                class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium text-center"
               >
                 {(course.progress || 0) > 0 ? 'Continue Learning' : 'Start Course'}
               </a>
@@ -320,7 +320,7 @@ function getStatusColor(course: any): string {
   ) : (
     <!-- Empty state -->
     <div class="bg-white rounded-lg shadow p-12 text-center">
-      <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
         <span class="text-4xl">
           {filterStatus === 'completed' ? '🎉' :
            filterStatus === 'in-progress' ? '📚' :
@@ -345,14 +345,14 @@ function getStatusColor(course: any): string {
       {filterStatus !== 'all' ? (
         <a
           href="/dashboard/courses"
-          class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          class="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
         >
           View All Courses
         </a>
       ) : (
         <a
           href="/courses"
-          class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          class="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
         >
           Browse Courses
         </a>
@@ -362,7 +362,7 @@ function getStatusColor(course: any): string {
 
   <!-- Call to action -->
   {courses.length > 0 && (
-    <div class="mt-8 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-100">
+    <div class="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-primary/10">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h4 class="text-lg font-semibold text-gray-900 mb-1">
@@ -374,7 +374,7 @@ function getStatusColor(course: any): string {
         </div>
         <a
           href="/courses"
-          class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium whitespace-nowrap"
+          class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium whitespace-nowrap"
         >
           Browse More Courses
         </a>

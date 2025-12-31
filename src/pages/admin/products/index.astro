@@ -130,7 +130,7 @@ const formatDate = (date: Date): string => {
     </div>
     <a
       href="/admin/products/new"
-      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
       data-testid="add-product-button"
     >
       <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,8 +152,8 @@ const formatDate = (date: Date): string => {
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow-sm border p-4">
       <div class="flex items-center">
-        <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
-          <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex-shrink-0 bg-primary/10 rounded-md p-3">
+          <svg class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
           </svg>
         </div>
@@ -227,7 +227,7 @@ const formatDate = (date: Date): string => {
             name="search"
             value={search}
             placeholder="Search products..."
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
             data-testid="search-input"
           />
         </div>
@@ -240,7 +240,7 @@ const formatDate = (date: Date): string => {
           <select
             id="type"
             name="type"
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
             data-testid="type-filter"
           >
             <option value="">All Types</option>
@@ -260,7 +260,7 @@ const formatDate = (date: Date): string => {
           <select
             id="published"
             name="published"
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
             data-testid="published-filter"
           >
             <option value="">All Status</option>
@@ -277,7 +277,7 @@ const formatDate = (date: Date): string => {
           <select
             id="sortBy"
             name="sortBy"
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
             data-testid="sort-filter"
           >
             <option value="newest" selected={sortBy === 'newest'}>Newest First</option>
@@ -303,7 +303,7 @@ const formatDate = (date: Date): string => {
           </a>
           <button
             type="submit"
-            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             Apply Filters
           </button>
@@ -318,32 +318,32 @@ const formatDate = (date: Date): string => {
       <h2 class="text-lg font-semibold text-gray-900">Products ({products.length})</h2>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200" data-testid="products-table">
+    <div>
+      <table class="w-full divide-y divide-gray-200" data-testid="products-table">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Product
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Type
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Price
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Size
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Downloads
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Created
             </th>
-            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -363,7 +363,7 @@ const formatDate = (date: Date): string => {
                   {!search && !type && !published && (
                     <a
                       href="/admin/products/new"
-                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors"
+                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark transition-colors"
                     >
                       <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -377,53 +377,53 @@ const formatDate = (date: Date): string => {
           ) : (
             products.map((product) => (
               <tr class="hover:bg-gray-50 transition-colors" data-testid={`product-row-${product.id}`}>
-                <td class="px-6 py-4">
-                  <div class="flex items-center">
+                <td class="px-4 py-4">
+                  <div class="flex items-center min-w-0">
                     {product.image_url ? (
-                      <img src={product.image_url} alt={product.title} class="h-10 w-10 rounded object-cover" />
+                      <img src={product.image_url} alt={product.title} class="h-10 w-10 flex-shrink-0 rounded object-cover" />
                     ) : (
-                      <div class="h-10 w-10 rounded bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+                      <div class="h-10 w-10 flex-shrink-0 rounded bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-sm font-bold">
                         {product.title.charAt(0)}
                       </div>
                     )}
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
+                    <div class="ml-3 min-w-0 flex-1">
+                      <div class="text-sm font-medium text-gray-900 truncate">
                         {product.title}
                       </div>
-                      <div class="text-sm text-gray-500 truncate max-w-xs">
+                      <div class="text-sm text-gray-500 truncate max-w-[200px]">
                         {product.description || 'No description'}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                <td class="px-3 py-4 whitespace-nowrap">
+                  <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                     product.product_type === 'pdf' ? 'bg-red-100 text-red-800' :
                     product.product_type === 'audio' ? 'bg-blue-100 text-blue-800' :
-                    product.product_type === 'video' ? 'bg-purple-100 text-purple-800' :
+                    product.product_type === 'video' ? 'bg-primary/10 text-primary-dark' :
                     'bg-green-100 text-green-800'
                   }`}>
                     {product.product_type.toUpperCase()}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatCurrency(product.price)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatFileSize(product.file_size_mb)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-3 py-4 whitespace-nowrap">
                   {product.is_published ? (
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       Published
                     </span>
                   ) : (
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       Draft
                     </span>
                   )}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span class="inline-flex items-center">
                     <svg class="mr-1 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
@@ -431,41 +431,41 @@ const formatDate = (date: Date): string => {
                     Limit: {product.download_limit}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatDate(product.created_at)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div class="flex justify-end space-x-2">
+                <td class="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end items-center space-x-2">
                     <a
                       href={`/products/${product.slug}`}
                       target="_blank"
-                      class="text-blue-600 hover:text-blue-900 transition-colors"
+                      class="text-blue-600 hover:text-blue-900 transition-colors p-1"
                       title="View product page"
                     >
-                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                       </svg>
                     </a>
                     <a
                       href={`/admin/products/${product.id}/edit`}
-                      class="text-purple-600 hover:text-purple-900 transition-colors"
+                      class="text-primary hover:text-primary-dark transition-colors p-1"
                       title="Edit product"
                       data-testid={`edit-product-${product.id}`}
                     >
-                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                     </a>
                     <button
-                      class="text-red-600 hover:text-red-900 transition-colors"
+                      class="text-red-600 hover:text-red-900 transition-colors p-1"
                       title="Delete product"
                       data-testid={`delete-product-${product.id}`}
                       data-product-id={product.id}
                       data-product-title={product.title}
                       onclick="handleDeleteProduct(this)"
                     >
-                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
                     </button>
@@ -518,7 +518,7 @@ const formatDate = (date: Date): string => {
                     href={`?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: String(num)}).toString()}`}
                     class={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                       num === page
-                        ? 'z-10 bg-purple-50 border-purple-500 text-purple-600'
+                        ? 'z-10 bg-primary/5 border-primary text-primary'
                         : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                     }`}
                   >
@@ -576,7 +576,7 @@ const formatDate = (date: Date): string => {
           <button
             type="button"
             onclick="closeDeleteModal()"
-            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:w-auto sm:text-sm"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm"
           >
             Cancel
           </button>

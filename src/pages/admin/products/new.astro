@@ -51,7 +51,7 @@ const productTypes = [
           </div>
           <a
             href="/admin/products"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -104,7 +104,7 @@ const productTypes = [
                 name="title"
                 required
                 maxlength="255"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="e.g., Complete TypeScript Guide"
                 data-testid="title-input"
               />
@@ -123,7 +123,7 @@ const productTypes = [
                 required
                 maxlength="255"
                 pattern="[a-z0-9-]+"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm font-mono"
                 placeholder="complete-typescript-guide"
                 data-testid="slug-input"
               />
@@ -140,7 +140,7 @@ const productTypes = [
                 name="description"
                 required
                 rows="4"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Describe your product in detail..."
                 data-testid="description-input"
               ></textarea>
@@ -163,7 +163,7 @@ const productTypes = [
                 id="productType"
                 name="productType"
                 required
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                 data-testid="product-type-select"
               >
                 <option value="">Select type...</option>
@@ -192,7 +192,7 @@ const productTypes = [
                   required
                   min="0"
                   step="0.01"
-                  class="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                   placeholder="0.00"
                   data-testid="price-input"
                 />
@@ -211,7 +211,7 @@ const productTypes = [
                 name="fileSizeMb"
                 min="0"
                 step="0.01"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="5.5"
                 data-testid="file-size-input"
               />
@@ -229,7 +229,7 @@ const productTypes = [
                 name="downloadLimit"
                 min="1"
                 value="3"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                 data-testid="download-limit-input"
               />
               <p class="mt-1 text-sm text-gray-500">Number of times a customer can download this product</p>
@@ -253,7 +253,7 @@ const productTypes = [
                 name="fileUrl"
                 required
                 maxlength="500"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm font-mono text-xs"
                 placeholder="https://storage.example.com/products/your-file.pdf"
                 data-testid="file-url-input"
               />
@@ -270,7 +270,7 @@ const productTypes = [
                 id="previewUrl"
                 name="previewUrl"
                 maxlength="500"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm font-mono text-xs"
                 placeholder="https://storage.example.com/previews/sample.pdf"
                 data-testid="preview-url-input"
               />
@@ -287,7 +287,7 @@ const productTypes = [
                 id="imageUrl"
                 name="imageUrl"
                 maxlength="500"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm font-mono text-xs"
                 placeholder="https://storage.example.com/images/product-cover.jpg"
                 data-testid="image-url-input"
               />
@@ -313,7 +313,7 @@ const productTypes = [
                   id="isPublished"
                   name="isPublished"
                   type="checkbox"
-                  class="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  class="h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded"
                   data-testid="is-published-checkbox"
                 />
               </div>
@@ -331,7 +331,7 @@ const productTypes = [
         <div class="flex items-center justify-between">
           <a
             href="/admin/products"
-            class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             Cancel
           </a>
@@ -340,7 +340,7 @@ const productTypes = [
               type="submit"
               name="action"
               value="draft"
-              class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               data-testid="save-draft-button"
             >
               Save as Draft
@@ -349,7 +349,7 @@ const productTypes = [
               type="submit"
               name="action"
               value="publish"
-              class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               data-testid="publish-button"
             >
               <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

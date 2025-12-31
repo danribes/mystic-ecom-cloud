@@ -51,19 +51,21 @@ const navItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Spirituality Platform</title>
     {description && <meta name="description" content={description} />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
   </head>
   <body class="bg-gray-50">
     <!-- Mobile header -->
     <div class="lg:hidden bg-white border-b border-gray-200">
       <div class="flex items-center justify-between px-4 py-3">
-        <a href="/" class="text-xl font-semibold text-purple-600">
-          Spirituality Platform
+        <a href="/" class="flex items-center gap-2 text-xl font-semibold text-primary">
+          <img src="/images/logo.png" alt="Mystic International" width="32" height="32" class="h-8 w-auto" />
+          <span>Mystic International</span>
         </a>
         <button
           id="mobile-menu-toggle"
           type="button"
-          class="p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg"
+          class="p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
           aria-label="Toggle menu"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,13 +90,14 @@ const navItems = [
       >
         <!-- Logo -->
         <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <a href="/" class="text-xl font-semibold text-purple-600">
-            Spirituality Platform
+          <a href="/" class="flex items-center gap-2 text-xl font-semibold text-primary">
+            <img src="/images/logo.png" alt="Mystic International" width="32" height="32" class="h-8 w-auto" />
+            <span class="hidden xl:inline">Mystic International</span>
           </a>
           <button
             id="mobile-menu-close"
             type="button"
-            class="lg:hidden p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg"
+            class="lg:hidden p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
             aria-label="Close menu"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,8 +113,8 @@ const navItems = [
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} class="w-10 h-10 rounded-full" />
               ) : (
-                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <span class="text-purple-600 font-semibold text-lg">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span class="text-primary font-semibold text-lg">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -134,7 +137,7 @@ const navItems = [
                 href={item.href}
                 class={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-purple-50 text-purple-700'
+                    ? 'bg-primary/5 text-primary'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
@@ -159,11 +162,11 @@ const navItems = [
           {user.role === 'admin' && (
             <a
               href="/admin"
-              class="flex items-center px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors border border-purple-200"
+              class="flex items-center px-3 py-2 text-sm font-medium text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors border border-primary/20"
             >
               <span class="mr-3 text-lg">🔧</span>
               Admin Panel
-              <span class="ml-auto px-2 py-0.5 text-xs font-semibold bg-purple-600 text-white rounded-full">ADMIN</span>
+              <span class="ml-auto px-2 py-0.5 text-xs font-semibold bg-primary text-white rounded-full">ADMIN</span>
             </a>
           )}
           <a

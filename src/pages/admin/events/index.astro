@@ -116,7 +116,7 @@ const isPastEvent = (eventDate: Date): boolean => {
     </div>
     <a
       href="/admin/events/new"
-      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
     >
       <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -136,7 +136,7 @@ const isPastEvent = (eventDate: Date): boolean => {
           name="city"
           value={city}
           placeholder="Filter by city"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
         />
       </div>
 
@@ -148,7 +148,7 @@ const isPastEvent = (eventDate: Date): boolean => {
           name="country"
           value={country}
           placeholder="Filter by country"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
         />
       </div>
 
@@ -157,7 +157,7 @@ const isPastEvent = (eventDate: Date): boolean => {
         <select
           id="status"
           name="status"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
         >
           <option value="">All Events</option>
           <option value="published" selected={status === 'published'}>Published</option>
@@ -168,7 +168,7 @@ const isPastEvent = (eventDate: Date): boolean => {
       <div class="flex items-end space-x-2">
         <button
           type="submit"
-          class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+          class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
         >
           Apply Filters
         </button>
@@ -202,8 +202,8 @@ const isPastEvent = (eventDate: Date): boolean => {
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow-sm border p-4">
       <div class="flex items-center">
-        <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
-          <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex-shrink-0 bg-primary/10 rounded-md p-3">
+          <svg class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
           </svg>
         </div>
@@ -357,7 +357,7 @@ const isPastEvent = (eventDate: Date): boolean => {
                     <div class="flex space-x-2">
                       <a
                         href={`/admin/events/${event.id}/edit`}
-                        class="text-purple-600 hover:text-purple-900 transition-colors"
+                        class="text-primary hover:text-primary-dark transition-colors"
                         title="Edit event"
                       >
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -404,7 +404,7 @@ const isPastEvent = (eventDate: Date): boolean => {
         <div class="mt-6">
           <a
             href="/admin/events/new"
-            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>

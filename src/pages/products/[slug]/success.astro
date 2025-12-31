@@ -73,10 +73,10 @@ const downloadsRemaining = purchaseInfo.download_limit - purchaseInfo.download_c
         </div>
 
         <!-- Download Section -->
-        <div class="bg-indigo-50 rounded-lg p-6 mb-6">
+        <div class="bg-primary/5 rounded-lg p-6 mb-6">
           <div class="flex items-start space-x-4">
             <div class="flex-shrink-0">
-              <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
               </svg>
             </div>
@@ -85,12 +85,12 @@ const downloadsRemaining = purchaseInfo.download_limit - purchaseInfo.download_c
                 Your Download
               </h3>
               <p class="text-sm text-gray-600 mb-4">
-                You have <span class="font-semibold text-indigo-600">{downloadsRemaining}</span> download{downloadsRemaining !== 1 ? 's' : ''} remaining.
+                You have <span class="font-semibold text-primary">{downloadsRemaining}</span> download{downloadsRemaining !== 1 ? 's' : ''} remaining.
               </p>
               {downloadsRemaining > 0 ? (
                 <a
                   href={downloadLink.url}
-                  class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
                   data-download-button
                 >
                   <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,7 +124,7 @@ const downloadsRemaining = purchaseInfo.download_limit - purchaseInfo.download_c
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
               <p class="text-sm text-gray-700">
-                Your product has been added to your <a href="/dashboard/my-products" class="text-indigo-600 hover:text-indigo-800 font-medium">My Products</a> page
+                Your product has been added to your <a href="/dashboard/my-products" class="text-primary hover:text-primary-dark font-medium">My Products</a> page
               </p>
             </div>
 
@@ -152,14 +152,14 @@ const downloadsRemaining = purchaseInfo.download_limit - purchaseInfo.download_c
         <div class="flex flex-col sm:flex-row gap-4 mt-8">
           <a
             href="/dashboard/my-products"
-            class="flex-1 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             View My Products
           </a>
           
           <a
             href="/products"
-            class="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             Browse More Products
           </a>

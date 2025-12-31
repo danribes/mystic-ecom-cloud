@@ -75,7 +75,7 @@ function formatDate(date: Date): string {
   ) : (
     lessons.map((lesson, index) => {
       const isCurrent = lesson.lessonId === currentLessonId;
-      const borderClass = isCurrent ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white';
+      const borderClass = isCurrent ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white';
       const padding = compact ? 'p-3' : 'p-4';
       
       return (
@@ -107,7 +107,7 @@ function formatDate(date: Date): string {
                       Lesson {index + 1}
                     </span>
                     {isCurrent && (
-                      <span class="px-2 py-0.5 text-xs font-semibold text-purple-700 bg-purple-100 rounded-full">
+                      <span class="px-2 py-0.5 text-xs font-semibold text-primary bg-primary/10 rounded-full">
                         Current
                       </span>
                     )}

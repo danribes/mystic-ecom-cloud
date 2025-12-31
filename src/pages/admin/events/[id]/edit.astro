@@ -75,7 +75,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
         {/* Basic Information */}
         <div class="space-y-4">
           <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Basic Information
@@ -92,7 +92,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="title"
                 required
                 value={event.title}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="e.g., Spiritual Awakening Workshop"
               />
             </div>
@@ -107,7 +107,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="slug"
                 required
                 value={event.slug}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="spiritual-awakening-workshop"
               />
               <p class="mt-1 text-xs text-gray-500">Auto-generated from title (editable)</p>
@@ -123,7 +123,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
               name="description"
               required
               rows="4"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
               placeholder="Describe your event in detail..."
             >{event.description}</textarea>
           </div>
@@ -132,7 +132,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
         {/* Spanish Translations (T168 i18n) */}
         <div class="space-y-4">
           <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
             </svg>
             Spanish Translations
@@ -149,7 +149,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 id="title_es"
                 name="title_es"
                 value={event.title_es || ''}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="Titulo del evento en espanol"
               />
             </div>
@@ -162,7 +162,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 id="description_es"
                 name="description_es"
                 rows="4"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="Descripcion detallada del evento..."
               >{event.description_es || ''}</textarea>
             </div>
@@ -176,7 +176,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 id="venue_name_es"
                 name="venue_name_es"
                 value={event.venue_name_es || ''}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="Nombre del lugar en espanol"
               />
             </div>
@@ -189,7 +189,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 id="venue_address_es"
                 name="venue_address_es"
                 rows="2"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="Direccion del lugar en espanol"
               >{event.venue_address_es || ''}</textarea>
             </div>
@@ -199,7 +199,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
         {/* Event Details */}
         <div class="space-y-4">
           <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Event Details
@@ -220,7 +220,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                   min="0"
                   step="0.01"
                   value={typeof event.price === 'string' ? parseFloat(event.price) : event.price}
-                  class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                   placeholder="99.00"
                 />
               </div>
@@ -237,7 +237,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="event_date"
                 required
                 value={formattedEventDate}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
               />
             </div>
 
@@ -253,7 +253,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 min="0.5"
                 step="0.5"
                 value={event.duration_hours}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="2.0"
               />
               <p class="mt-1 text-xs text-gray-500">Enter 0.5 for 30 minutes</p>
@@ -270,7 +270,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 required
                 min="1"
                 value={event.capacity}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="50"
               />
             </div>
@@ -286,7 +286,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 required
                 min="0"
                 value={event.available_spots}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="50"
               />
               <p class="mt-1 text-xs text-gray-500">Cannot exceed total capacity</p>
@@ -297,7 +297,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
         {/* Venue Information */}
         <div class="space-y-4">
           <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -315,7 +315,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="venue_name"
                 required
                 value={event.venue_name}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="e.g., Serenity Wellness Center"
               />
             </div>
@@ -329,7 +329,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="venue_address"
                 required
                 rows="2"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="123 Main Street, Suite 100"
               >{event.venue_address}</textarea>
             </div>
@@ -344,7 +344,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="venue_city"
                 required
                 value={event.venue_city}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="San Francisco"
               />
             </div>
@@ -359,7 +359,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
                 name="venue_country"
                 required
                 value={event.venue_country}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="United States"
               />
             </div>
@@ -418,7 +418,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
         {/* Media */}
         <div class="space-y-4">
           <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Media
@@ -438,7 +438,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
         {/* Publication Status */}
         <div class="space-y-4">
           <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Publication Status
@@ -449,7 +449,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
               type="checkbox"
               name="is_published"
               checked={event.is_published}
-              class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
             />
             <span class="ml-2 text-sm text-gray-700">Publish this event (make it visible to users)</span>
           </label>
@@ -466,7 +466,7 @@ const formattedEventDate = formatDateTimeLocal(event.event_date);
           <button
             type="submit"
             id="submitBtn"
-            class="px-6 py-2 text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-6 py-2 text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <span id="submitText">Update Event</span>
             <svg id="submitSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

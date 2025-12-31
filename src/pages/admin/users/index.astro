@@ -126,7 +126,7 @@ const paginationNumbers = generatePaginationNumbers();
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600">{t('admin.administrators')}</p>
-          <p class="text-2xl font-bold text-purple-600">{stats.totalAdmins}</p>
+          <p class="text-2xl font-bold text-primary">{stats.totalAdmins}</p>
         </div>
         <span class="text-3xl">🔐</span>
       </div>
@@ -171,7 +171,7 @@ const paginationNumbers = generatePaginationNumbers();
           name="search"
           value={search}
           placeholder={t('admin.searchPlaceholder')}
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
         />
       </div>
 
@@ -180,7 +180,7 @@ const paginationNumbers = generatePaginationNumbers();
         <select
           id="role"
           name="role"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
         >
           <option value="">{t('admin.allRoles')}</option>
           <option value="user" selected={roleFilter === 'user'}>{t('admin.users')}</option>
@@ -193,7 +193,7 @@ const paginationNumbers = generatePaginationNumbers();
         <select
           id="sortBy"
           name="sortBy"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
         >
           <option value="created_at" selected={sortBy === 'created_at'}>{t('admin.dateJoined')}</option>
           <option value="name" selected={sortBy === 'name'}>{t('admin.name')}</option>
@@ -207,7 +207,7 @@ const paginationNumbers = generatePaginationNumbers();
         <select
           id="sortOrder"
           name="sortOrder"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
         >
           <option value="DESC" selected={sortOrder === 'DESC'}>{t('admin.newest')}</option>
           <option value="ASC" selected={sortOrder === 'ASC'}>{t('admin.oldest')}</option>
@@ -216,7 +216,7 @@ const paginationNumbers = generatePaginationNumbers();
 
       <button
         type="submit"
-        class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+        class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
       >
         {t('admin.filter')}
       </button>
@@ -257,8 +257,8 @@ const paginationNumbers = generatePaginationNumbers();
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <span class="text-purple-600 font-semibold">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span class="text-primary font-semibold">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -271,7 +271,7 @@ const paginationNumbers = generatePaginationNumbers();
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     user.role === 'admin'
-                      ? 'bg-purple-100 text-purple-800'
+                      ? 'bg-primary/10 text-primary-dark'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
                     {user.role === 'admin' ? `🔐 ${t('admin.adminBadge')}` : `👤 ${t('admin.userBadge')}`}
@@ -293,7 +293,7 @@ const paginationNumbers = generatePaginationNumbers();
                   <div class="relative">
                     <button
                       type="button"
-                      class="actions-menu-btn p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+                      class="actions-menu-btn p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                       data-user-id={user.id}
                       aria-label="User actions"
                     >
@@ -373,11 +373,11 @@ const paginationNumbers = generatePaginationNumbers();
               <td colspan="5" class="px-6 py-4">
                 <a
                   href="/admin/users/new"
-                  class="flex items-center justify-center w-full py-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors group"
+                  class="flex items-center justify-center w-full py-2 text-primary hover:text-primary-dark hover:bg-primary/5 rounded-lg transition-colors group"
                 >
                   <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-full bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
-                      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                      <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
                     </div>
@@ -418,7 +418,7 @@ const paginationNumbers = generatePaginationNumbers();
               href={buildUrl({ page: pageNum })}
               class={`px-3 py-1 border rounded-md text-sm ${
                 pageNum === page
-                  ? 'bg-purple-600 text-white border-purple-600'
+                  ? 'bg-primary text-white border-primary'
                   : 'border-gray-300 hover:bg-gray-50'
               }`}
             >
@@ -465,7 +465,7 @@ const paginationNumbers = generatePaginationNumbers();
         <button
           type="button"
           id="modal-confirm"
-          class="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700"
+          class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark"
         >
           {t('admin.confirm')}
         </button>

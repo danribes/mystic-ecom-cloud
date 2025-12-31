@@ -1,0 +1,75 @@
+---
+/**
+ * Blog Index Page
+ *
+ * Displays a coming soon message for the blog section.
+ * Will eventually list blog posts about spirituality and personal growth.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getTranslations } from '../../i18n';
+
+const locale = Astro.locals.locale || 'es';
+const t = getTranslations(locale);
+---
+
+<BaseLayout title={t.blog.title} description={t.blog.description}>
+  <div class="container py-2xl">
+    <!-- Header -->
+    <div class="mx-auto mb-2xl max-w-3xl text-center">
+      <h1 class="mb-md text-4xl font-bold text-text">{t.blog.title}</h1>
+      <p class="text-lg text-text-light">{t.blog.description}</p>
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="mx-auto max-w-2xl">
+      <div class="rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 p-3xl text-center">
+        <div class="mb-lg">
+          <div class="mx-auto mb-lg flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+            <svg class="h-12 w-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h2 class="mb-md text-2xl font-bold text-text">{t.blog.comingSoon}</h2>
+          <p class="text-text-light">{t.blog.comingSoonMessage}</p>
+        </div>
+
+        <!-- Decorative elements -->
+        <div class="mt-xl flex justify-center gap-lg">
+          <div class="h-2 w-2 animate-pulse rounded-full bg-primary"></div>
+          <div class="h-2 w-2 animate-pulse rounded-full bg-secondary" style="animation-delay: 0.2s"></div>
+          <div class="h-2 w-2 animate-pulse rounded-full bg-accent" style="animation-delay: 0.4s"></div>
+        </div>
+      </div>
+
+      <!-- Preview Cards (placeholder) -->
+      <div class="mt-2xl grid gap-lg md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div class="rounded-lg border border-border bg-surface p-lg opacity-60">
+            <div class="mb-md h-32 animate-pulse rounded bg-surface-hover"></div>
+            <div class="mb-sm h-4 w-3/4 animate-pulse rounded bg-surface-hover"></div>
+            <div class="h-3 w-1/2 animate-pulse rounded bg-surface-hover"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Subscribe CTA -->
+    <div class="mx-auto mt-3xl max-w-xl text-center">
+      <h3 class="mb-md text-lg font-semibold text-text">{t.footer.subscribeNewsletter}</h3>
+      <form class="flex gap-sm">
+        <input
+          type="email"
+          placeholder={t.footer.enterEmail}
+          class="flex-1 rounded-lg border border-border bg-surface px-lg py-sm text-text placeholder:text-text-lighter focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <button
+          type="submit"
+          class="rounded-lg bg-primary px-lg py-sm font-medium text-white transition-colors hover:bg-primary-hover"
+        >
+          {t.footer.subscribe}
+        </button>
+      </form>
+    </div>
+  </div>
+</BaseLayout>

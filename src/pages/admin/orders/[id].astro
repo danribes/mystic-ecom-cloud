@@ -1,0 +1,395 @@
+---
+/**
+ * T072: Admin Order Detail Page
+ *
+ * Displays a single order with:
+ * - Order details (ID, customer, date, status, totals)
+ * - Order items list
+ * - Status change actions
+ * - Cancel/Refund functionality
+ */
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { getSessionFromRequest } from '@/lib/auth/session';
+import { getOrderById, updateOrderStatus, cancelOrder, refundOrder, fulfillOrder } from '@/services/order.service';
+import type { OrderStatus } from '@/types';
+
+export const prerender = false; // Enable SSR for authentication
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/login?redirect=/admin/orders');
+}
+
+// Get order ID from URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/admin/orders');
+}
+
+// Handle form actions
+let actionError = '';
+let actionSuccess = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const action = formData.get('action') as string;
+
+    switch (action) {
+      case 'update_status':
+        const newStatus = formData.get('status') as OrderStatus;
+        await updateOrderStatus(id, newStatus, session.userId);
+        actionSuccess = `Order status updated to ${newStatus.replace('_', ' ')}`;
+        break;
+      case 'cancel':
+        await cancelOrder(id);
+        actionSuccess = 'Order has been cancelled';
+        break;
+      case 'refund':
+        await refundOrder(id);
+        actionSuccess = 'Order has been refunded';
+        break;
+      case 'fulfill':
+        await fulfillOrder(id);
+        actionSuccess = 'Order has been fulfilled - access granted to customer';
+        break;
+    }
+  } catch (err: any) {
+    actionError = err.message || 'An error occurred';
+  }
+}
+
+// Fetch order
+let order = null;
+let error = '';
+try {
+  order = await getOrderById(id, session.userId);
+} catch (err: any) {
+  error = err.message;
+  console.error('Error fetching order:', err);
+}
+
+// Status color mapping
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  payment_pending: 'bg-orange-100 text-orange-800 border-orange-300',
+  paid: 'bg-blue-100 text-blue-800 border-blue-300',
+  processing: 'bg-primary/10 text-primary-dark border-primary-light',
+  completed: 'bg-green-100 text-green-800 border-green-300',
+  cancelled: 'bg-gray-100 text-gray-800 border-gray-300',
+  refunded: 'bg-red-100 text-red-800 border-red-300',
+};
+
+// Valid status transitions
+const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['payment_pending', 'cancelled'],
+  payment_pending: ['paid', 'cancelled'],
+  paid: ['processing', 'cancelled'],
+  processing: ['completed', 'cancelled'],
+  completed: ['refunded'],
+  cancelled: [],
+  refunded: [],
+};
+
+// Item type icons
+const itemTypeIcons: Record<string, string> = {
+  course: '📚',
+  event: '📅',
+  digital_product: '📦',
+};
+
+// Format date
+function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+// Format currency (amounts are in cents)
+function formatCurrency(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+---
+
+<AdminLayout title={order ? `Order ${order.id.substring(0, 8)}...` : 'Order Details'}>
+  <div class="p-6">
+    <!-- Back Button -->
+    <div class="mb-6">
+      <a
+        href="/admin/orders"
+        class="inline-flex items-center text-blue-600 hover:text-blue-800"
+      >
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Orders
+      </a>
+    </div>
+
+    {/* Success/Error Messages */}
+    {actionSuccess && (
+      <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+        {actionSuccess}
+      </div>
+    )}
+
+    {actionError && (
+      <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+        {actionError}
+      </div>
+    )}
+
+    {error ? (
+      <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">Error Loading Order</h2>
+        <p>{error}</p>
+      </div>
+    ) : order ? (
+      <div class="space-y-6">
+        {/* Order Header */}
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 mb-1">
+                Order #{order.id.substring(0, 8)}...
+              </h1>
+              <p class="text-sm text-gray-500">
+                Full ID: {order.id}
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class={`px-4 py-2 text-sm font-semibold rounded-full border ${statusColors[order.status]}`}>
+                {order.status.replace('_', ' ').toUpperCase()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Order Details Grid */}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Customer Info */}
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Customer Information</h2>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm text-gray-500">Name</dt>
+                <dd class="text-sm font-medium text-gray-900">{order.userName || 'N/A'}</dd>
+              </div>
+              <div>
+                <dt class="text-sm text-gray-500">Email</dt>
+                <dd class="text-sm font-medium text-gray-900">{order.userEmail}</dd>
+              </div>
+              <div>
+                <dt class="text-sm text-gray-500">User ID</dt>
+                <dd class="text-sm font-mono text-gray-600">{order.userId.substring(0, 8)}...</dd>
+              </div>
+            </dl>
+          </div>
+
+          {/* Order Info */}
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Information</h2>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm text-gray-500">Created</dt>
+                <dd class="text-sm font-medium text-gray-900">{formatDate(order.createdAt)}</dd>
+              </div>
+              <div>
+                <dt class="text-sm text-gray-500">Last Updated</dt>
+                <dd class="text-sm font-medium text-gray-900">{formatDate(order.updatedAt)}</dd>
+              </div>
+              {order.completedAt && (
+                <div>
+                  <dt class="text-sm text-gray-500">Completed</dt>
+                  <dd class="text-sm font-medium text-gray-900">{formatDate(order.completedAt)}</dd>
+                </div>
+              )}
+              {order.paymentIntentId && (
+                <div>
+                  <dt class="text-sm text-gray-500">Payment ID</dt>
+                  <dd class="text-sm font-mono text-gray-600">{order.paymentIntentId}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {/* Payment Summary */}
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h2>
+            <dl class="space-y-3">
+              <div class="flex justify-between">
+                <dt class="text-sm text-gray-500">Subtotal</dt>
+                <dd class="text-sm font-medium text-gray-900">{formatCurrency(order.subtotal)}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-sm text-gray-500">Tax (8%)</dt>
+                <dd class="text-sm font-medium text-gray-900">{formatCurrency(order.tax)}</dd>
+              </div>
+              <hr class="border-gray-200" />
+              <div class="flex justify-between">
+                <dt class="text-base font-semibold text-gray-900">Total</dt>
+                <dd class="text-base font-bold text-gray-900">{formatCurrency(order.total)}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        {/* Order Items */}
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Order Items</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Item
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Qty
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Subtotal
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {order.items.map((item) => (
+                  <tr>
+                    <td class="px-6 py-4">
+                      <div class="text-sm font-medium text-gray-900">{item.itemTitle}</div>
+                      <div class="text-xs text-gray-500 font-mono">{item.itemId?.substring(0, 8)}...</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center gap-1 text-sm text-gray-600">
+                        <span>{itemTypeIcons[item.itemType] || '📦'}</span>
+                        <span class="capitalize">{item.itemType.replace('_', ' ')}</span>
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatCurrency(item.price)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.quantity}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {formatCurrency(item.price * item.quantity)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
+
+          <div class="flex flex-wrap gap-4">
+            {/* Status Update Form */}
+            {validTransitions[order.status as OrderStatus]?.length > 0 && (
+              <form method="POST" class="flex items-center gap-2">
+                <input type="hidden" name="action" value="update_status" />
+                <select
+                  name="status"
+                  class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {validTransitions[order.status as OrderStatus].map((status) => (
+                    <option value={status}>
+                      {status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Update Status
+                </button>
+              </form>
+            )}
+
+            {/* Fulfill Order Button */}
+            {(order.status === 'paid' || order.status === 'processing') && (
+              <form method="POST">
+                <input type="hidden" name="action" value="fulfill" />
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  onclick="return confirm('This will grant the customer access to all purchased items. Continue?')"
+                >
+                  Fulfill Order
+                </button>
+              </form>
+            )}
+
+            {/* Cancel Order Button */}
+            {(order.status === 'pending' || order.status === 'payment_pending') && (
+              <form method="POST">
+                <input type="hidden" name="action" value="cancel" />
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  onclick="return confirm('Are you sure you want to cancel this order?')"
+                >
+                  Cancel Order
+                </button>
+              </form>
+            )}
+
+            {/* Refund Order Button */}
+            {order.status === 'completed' && (
+              <form method="POST">
+                <input type="hidden" name="action" value="refund" />
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  onclick="return confirm('Are you sure you want to refund this order? This will revoke customer access to purchased items.')"
+                >
+                  Refund Order
+                </button>
+              </form>
+            )}
+
+            {/* No actions available */}
+            {(order.status === 'cancelled' || order.status === 'refunded') && (
+              <p class="text-gray-500 italic">
+                No actions available for {order.status} orders.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Status History Note */}
+        <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
+          <p>
+            <strong>Status Flow:</strong>
+            Pending → Payment Pending → Paid → Processing → Completed → Refunded
+          </p>
+          <p class="mt-1">
+            Orders can be cancelled while in Pending, Payment Pending, Paid, or Processing status.
+          </p>
+        </div>
+      </div>
+    ) : (
+      <div class="bg-gray-50 text-gray-500 px-6 py-8 rounded-lg text-center">
+        Loading order...
+      </div>
+    )}
+  </div>
+</AdminLayout>

@@ -41,7 +41,7 @@ function getTypeBadgeColor(type: string): string {
   const colors: Record<string, string> = {
     pdf: 'bg-red-100 text-red-800',
     audio: 'bg-blue-100 text-blue-800',
-    video: 'bg-purple-100 text-purple-800',
+    video: 'bg-primary/10 text-primary-dark',
     ebook: 'bg-green-100 text-green-800'
   };
   return colors[type] || 'bg-gray-100 text-gray-800';
@@ -72,7 +72,7 @@ function getTypeBadgeColor(type: string): string {
           <div class="mt-6">
             <a
               href="/products"
-              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               Browse Products
             </a>
@@ -115,7 +115,7 @@ function getTypeBadgeColor(type: string): string {
                         href={product.preview_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="ml-4 text-indigo-600 hover:text-indigo-800"
+                        class="ml-4 text-primary hover:text-primary-dark"
                         title="Preview"
                       >
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -176,7 +176,7 @@ function getTypeBadgeColor(type: string): string {
                       {canDownload ? (
                         <a
                           href={downloadLink.url}
-                          class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                          class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
                           data-product-id={product.id}
                         >
                           <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -198,7 +198,7 @@ function getTypeBadgeColor(type: string): string {
 
                       <a
                         href={`/products/${product.slug}`}
-                        class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
                       >
                         View Details
                       </a>
@@ -241,7 +241,7 @@ function getTypeBadgeColor(type: string): string {
       <div class="mt-6 text-center">
         <a
           href="/dashboard"
-          class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800"
+          class="inline-flex items-center text-sm font-medium text-primary hover:text-primary-dark"
         >
           <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
