@@ -5,6 +5,20 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Override white and gray to match dark theme
+        white: 'var(--color-surface)',
+        gray: {
+          50: 'var(--color-surface)',
+          100: 'var(--color-surface)',
+          200: 'var(--color-surface-dark)',
+          300: 'var(--color-border)',
+          400: 'var(--color-text-lighter)',
+          500: 'var(--color-text-light)',
+          600: 'var(--color-text-light)',
+          700: 'var(--color-text)',
+          800: 'var(--color-text)',
+          900: 'var(--color-text)',
+        },
         // Use CSS variables for dark mode support
         primary: {
           DEFAULT: 'var(--color-primary)',
