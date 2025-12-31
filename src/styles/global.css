@@ -527,7 +527,35 @@ select[required] + label::after {
   }
 }
 
-/* Dark Theme is now the default - no media query needed */
+/* Dark Theme Background Overrides
+   Override bg-white and bg-gray-* to use dark theme colors
+   while preserving text-white and text-gray-* for proper contrast */
+@layer utilities {
+  .bg-white {
+    background-color: var(--color-surface) !important;
+  }
+  .bg-gray-50 {
+    background-color: var(--color-surface) !important;
+  }
+  .bg-gray-100 {
+    background-color: var(--color-surface) !important;
+  }
+  .bg-gray-200 {
+    background-color: var(--color-surface-dark) !important;
+  }
+  .bg-gray-300 {
+    background-color: var(--color-border) !important;
+  }
+  .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--color-border) !important;
+  }
+  .border-gray-200 {
+    border-color: var(--color-border) !important;
+  }
+  .border-gray-300 {
+    border-color: var(--color-border) !important;
+  }
+}
 
 /* Print Accessibility */
 @media print {
