@@ -2,7 +2,7 @@
 /**
  * Homepage
  *
- * Displays featured courses and recent offerings from the database.
+ * Displays featured courses, recent offerings, and testimonials from the database.
  */
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
@@ -11,6 +11,7 @@ import type { Course } from '@/types';
 import { useTranslations } from '@/lib/pageTranslations';
 import { getCourses } from '@/lib/courses';
 import { getLocalizedCourses } from '@/lib/coursesI18n';
+import { ReviewService } from '@/lib/reviews';
 import { initEnv } from '@/lib/env';
 
 export const prerender = false;
@@ -28,6 +29,7 @@ const locale = Astro.locals.locale || 'en';
 let error: string | null = null;
 let featuredCourses: Course[] = [];
 let recentCourses: Course[] = [];
+let testimonials: any[] = [];
 
 try {
   // Fetch featured courses (marked as featured in the database)
@@ -82,6 +84,21 @@ try {
     if (!error) error = 'Failed to load recent courses.';
   }
 }
+
+// Fetch approved testimonials/reviews
+try {
+  const reviewService = new ReviewService();
+  const reviewsData = await reviewService.getReviews({
+    isApproved: true,
+    limit: 4,
+    sortBy: 'rating',
+    sortOrder: 'DESC',
+  });
+  testimonials = reviewsData.reviews;
+} catch (err) {
+  console.error('[Homepage] Error fetching testimonials:', err);
+  // Non-critical, continue without testimonials
+}
 ---
 
 <BaseLayout
@@ -90,12 +107,12 @@ try {
   keywords={['spiritual courses', 'energy healing', 'manifestation', 'meditation', 'quantum healing', 'consciousness', 'chakras', 'reiki']}
 >
   <!-- Hero Section -->
-  <section class="bg-gradient-to-br from-primary to-secondary py-3xl text-center text-white">
+  <section class="hero-gradient py-3xl text-center text-white">
     <div class="container">
       <div class="mx-auto max-w-[800px]">
         <h1 class="mb-lg text-4xl font-bold leading-tight">
           {t('home.heroTitle')}<br />
-          <span class="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">{t('home.heroSubtitle')}</span>
+          <span class="hero-subtitle">{t('home.heroSubtitle')}</span>
         </h1>
         <p class="mb-2xl text-xl leading-relaxed opacity-95">
           {t('home.heroDescription')}
@@ -153,6 +170,52 @@ try {
           <a href="/courses" class="inline-block rounded-md bg-primary px-xl py-md font-semibold text-white transition-all duration-fast hover:-translate-y-1 hover:bg-primary-dark hover:shadow-lg">
             {t('home.viewAllCourses')}
           </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Testimonials Section -->
+  {testimonials.length > 0 && (
+    <section class="bg-surface py-3xl">
+      <div class="container">
+        <div class="mb-2xl text-center">
+          <h2 class="mb-md text-3xl font-bold text-text">
+            {locale === 'es' ? 'Lo Que Dicen Nuestros Estudiantes' : 'What Our Students Say'}
+          </h2>
+          <p class="mx-auto max-w-[600px] text-lg text-text-light">
+            {locale === 'es'
+              ? 'Descubre cómo nuestros cursos han transformado la vida de miles de buscadores espirituales.'
+              : 'Discover how our courses have transformed the lives of thousands of spiritual seekers.'}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-xl md:grid-cols-2 lg:grid-cols-4">
+          {testimonials.map((review) => (
+            <div class="flex flex-col rounded-xl bg-background p-lg shadow-md">
+              <div class="mb-md flex items-center gap-xs">
+                {[...Array(5)].map((_, i) => (
+                  <span class={i < review.rating ? 'text-amber-400' : 'text-gray-300'}>
+                    ★
+                  </span>
+                ))}
+              </div>
+              <p class="mb-lg flex-1 text-text-light italic">
+                "{review.comment}"
+              </p>
+              <div class="flex items-center gap-md border-t border-border pt-md">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white font-bold">
+                  {review.user_name ? review.user_name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div>
+                  <div class="font-semibold text-text">{review.user_name || 'Student'}</div>
+                  {review.course_title && (
+                    <div class="text-sm text-text-light">{review.course_title}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
