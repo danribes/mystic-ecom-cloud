@@ -123,7 +123,7 @@ describe('Page Translations (T173)', () => {
         const translateEs = getTranslate('es');
 
         expect(translateEn('home.newArrivalsTitle')).toBe('🆕 New Arrivals');
-        expect(translateEs('home.newArrivalsTitle')).toBe('🆕 Nuevos Llegados');
+        expect(translateEs('home.newArrivalsTitle')).toBe('🆕 Recién Llegados');
       });
 
       it('should have CTA section translations', () => {

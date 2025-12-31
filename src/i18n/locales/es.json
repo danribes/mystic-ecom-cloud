@@ -558,7 +558,7 @@
     "learnMore": "Saber Más",
     "featuredCoursesTitle": "⭐ Cursos Destacados",
     "featuredCoursesDescription": "Experiencias transformadoras seleccionadas para acelerar tu viaje espiritual",
-    "newArrivalsTitle": "🆕 Nuevos Llegados",
+    "newArrivalsTitle": "🆕 Recién Llegados",
     "newArrivalsDescription": "Explora nuestros últimos cursos y expande tu kit de herramientas espirituales",
     "viewAllCourses": "Ver Todos los Cursos →",
     "ctaTitle": "¿Listo para Comenzar tu Transformación?",
@@ -627,5 +627,267 @@
     "productsDescription": "Descubre productos espirituales seleccionados, herramientas de sanación y recursos digitales para apoyar tu viaje de transformación.",
     "dashboardTitle": "Tu Panel Espiritual",
     "dashboardDescription": "Accede a tus cursos, rastrea tu progreso y gestiona tu viaje de crecimiento espiritual todo en un solo lugar."
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "description": "Encuentra respuestas a preguntas comunes sobre nuestros cursos, eventos y servicios",
+    "categories": {
+      "general": "Preguntas Generales",
+      "courses": "Cursos",
+      "events": "Eventos",
+      "payments": "Pagos y Reembolsos",
+      "account": "Cuenta y Acceso"
+    },
+    "questions": {
+      "whatIsMystic": {
+        "q": "¿Qué es Mystic International?",
+        "a": "Mystic International es una plataforma dedicada al crecimiento espiritual y la transformación personal. Ofrecemos cursos en línea, eventos en vivo y productos digitales diseñados para ayudarte en tu camino hacia la iluminación."
+      },
+      "howToStart": {
+        "q": "¿Cómo empiezo?",
+        "a": "Simplemente crea una cuenta, explora nuestros cursos y eventos, e inscríbete en cualquier programa que resuene contigo. ¡Muchos de nuestros cursos introductorios son gratuitos!"
+      },
+      "courseAccess": {
+        "q": "¿Cuánto tiempo tengo acceso a un curso?",
+        "a": "Una vez que compras un curso, tienes acceso de por vida a todo su contenido. Puedes revisar los materiales tantas veces como quieras."
+      },
+      "eventOnline": {
+        "q": "¿Los eventos están disponibles en línea?",
+        "a": "¡Sí! Ofrecemos eventos tanto presenciales como virtuales. Los eventos virtuales pueden asistirse desde cualquier parte del mundo."
+      },
+      "paymentMethods": {
+        "q": "¿Qué métodos de pago aceptan?",
+        "a": "Aceptamos todas las tarjetas de crédito y débito principales, y varios métodos de pago locales a través de nuestro procesador de pagos seguro, Stripe."
+      },
+      "refundPolicy": {
+        "q": "¿Cuál es su política de reembolso?",
+        "a": "Ofrecemos una garantía de devolución de dinero de 30 días en todos los cursos. Si no estás satisfecho con tu compra, contacta a nuestro equipo de soporte para un reembolso completo."
+      },
+      "lostAccess": {
+        "q": "Perdí el acceso a mi cuenta. ¿Qué debo hacer?",
+        "a": "Usa el enlace '¿Olvidó su contraseña?' en la página de inicio de sesión para restablecer tu contraseña. Si continúas teniendo problemas, contacta a nuestro equipo de soporte."
+      },
+      "certificates": {
+        "q": "¿Ofrecen certificados?",
+        "a": "Sí, al completar ciertos cursos, recibirás un certificado digital que puedes descargar y compartir."
+      }
+    },
+    "stillNeedHelp": "¿Aún necesitas ayuda?",
+    "contactSupport": "Contacta a nuestro equipo de soporte"
+  },
+  "blog": {
+    "title": "Blog",
+    "description": "Ideas, consejos e historias sobre tu viaje espiritual",
+    "readMore": "Leer Más",
+    "categories": "Categorías",
+    "recentPosts": "Publicaciones Recientes",
+    "allPosts": "Todas las Publicaciones",
+    "noPostsFound": "No se encontraron publicaciones",
+    "comingSoon": "Próximamente",
+    "comingSoonMessage": "Estamos trabajando para traerte contenido inspirador sobre espiritualidad, crecimiento personal y transformación. ¡Vuelve pronto!"
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "description": "Ponte en contacto con nuestro equipo. ¡Nos encantaría saber de ti!",
+    "formTitle": "Envíanos un mensaje",
+    "name": "Tu Nombre",
+    "email": "Tu Correo Electrónico",
+    "subject": "Asunto",
+    "message": "Tu Mensaje",
+    "send": "Enviar Mensaje",
+    "sending": "Enviando...",
+    "successMessage": "¡Gracias por tu mensaje! Te responderemos pronto.",
+    "errorMessage": "Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo.",
+    "contactInfo": "Información de Contacto",
+    "emailLabel": "Correo Electrónico",
+    "phoneLabel": "Teléfono",
+    "addressLabel": "Dirección",
+    "hoursLabel": "Horario de Atención",
+    "hours": "Lunes - Viernes: 9:00 AM - 6:00 PM (EST)",
+    "followUs": "Síguenos"
+  },
+  "support": {
+    "title": "Centro de Soporte",
+    "description": "¿Cómo podemos ayudarte hoy?",
+    "searchPlaceholder": "Buscar artículos de ayuda...",
+    "popularTopics": "Temas Populares",
+    "categories": {
+      "gettingStarted": "Primeros Pasos",
+      "accountHelp": "Ayuda con la Cuenta",
+      "coursesHelp": "Ayuda con Cursos",
+      "paymentsHelp": "Ayuda con Pagos",
+      "technicalHelp": "Soporte Técnico"
+    },
+    "needMoreHelp": "¿Necesitas más ayuda?",
+    "contactOptions": "Opciones de Contacto",
+    "emailSupport": "Soporte por Correo",
+    "emailSupportDesc": "Obtén una respuesta en 24 horas",
+    "liveChat": "Chat en Vivo",
+    "liveChatDesc": "Chatea con nuestro equipo (Próximamente)",
+    "callUs": "Llámanos",
+    "callUsDesc": "Habla con un representante"
+  },
+  "legal": {
+    "lastUpdated": "Última Actualización",
+    "privacy": {
+      "title": "Política de Privacidad",
+      "description": "Cómo recopilamos, usamos y protegemos tu información personal",
+      "introduction": "En Mystic International, estamos comprometidos con proteger tu privacidad. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos tu información cuando visitas nuestro sitio web o usas nuestros servicios.",
+      "sections": {
+        "infoCollect": {
+          "title": "Información que Recopilamos",
+          "content": "Recopilamos información que nos proporcionas directamente, como cuando creas una cuenta, realizas una compra o nos contactas. Esto puede incluir tu nombre, dirección de correo electrónico, información de pago y cualquier otra información que elijas proporcionar."
+        },
+        "howWeUse": {
+          "title": "Cómo Usamos tu Información",
+          "content": "Usamos la información que recopilamos para proporcionar, mantener y mejorar nuestros servicios, procesar transacciones, enviarte comunicaciones y personalizar tu experiencia."
+        },
+        "infoSharing": {
+          "title": "Compartir Información",
+          "content": "No vendemos tu información personal. Podemos compartir tu información con proveedores de servicios que nos ayudan a operar nuestra plataforma, procesar pagos y entregar servicios."
+        },
+        "dataSecurity": {
+          "title": "Seguridad de Datos",
+          "content": "Implementamos medidas técnicas y organizativas apropiadas para proteger tu información personal contra acceso no autorizado, alteración, divulgación o destrucción."
+        },
+        "yourRights": {
+          "title": "Tus Derechos",
+          "content": "Tienes derecho a acceder, actualizar o eliminar tu información personal. También puedes optar por no recibir comunicaciones de marketing en cualquier momento."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "content": "Usamos cookies y tecnologías similares para mejorar tu experiencia, analizar el uso y ayudar en nuestros esfuerzos de marketing. Consulta nuestra Política de Cookies para más detalles."
+        },
+        "changes": {
+          "title": "Cambios a Esta Política",
+          "content": "Podemos actualizar esta Política de Privacidad de vez en cuando. Te notificaremos sobre cualquier cambio publicando la nueva Política de Privacidad en esta página."
+        },
+        "contact": {
+          "title": "Contáctanos",
+          "content": "Si tienes alguna pregunta sobre esta Política de Privacidad, por favor contáctanos en privacy@mysticinternational.com"
+        }
+      }
+    },
+    "terms": {
+      "title": "Términos de Servicio",
+      "description": "Términos y condiciones para usar nuestros servicios",
+      "introduction": "Bienvenido a Mystic International. Al acceder o usar nuestro sitio web y servicios, aceptas estar sujeto a estos Términos de Servicio.",
+      "sections": {
+        "acceptance": {
+          "title": "Aceptación de Términos",
+          "content": "Al crear una cuenta o usar nuestros servicios, aceptas estos Términos de Servicio y nuestra Política de Privacidad. Si no estás de acuerdo, por favor no uses nuestros servicios."
+        },
+        "accountResponsibility": {
+          "title": "Responsabilidad de la Cuenta",
+          "content": "Eres responsable de mantener la confidencialidad de las credenciales de tu cuenta y de todas las actividades que ocurran bajo tu cuenta."
+        },
+        "contentOwnership": {
+          "title": "Propiedad del Contenido",
+          "content": "Todo el contenido en nuestra plataforma, incluyendo cursos, videos y materiales, es propiedad de Mystic International o sus creadores de contenido. No puedes reproducir, distribuir o crear obras derivadas sin permiso."
+        },
+        "userConduct": {
+          "title": "Conducta del Usuario",
+          "content": "Aceptas usar nuestros servicios solo para fines legales y de acuerdo con estos Términos. No puedes compartir el acceso a tu cuenta o el contenido comprado con otros."
+        },
+        "purchases": {
+          "title": "Compras y Pagos",
+          "content": "Todas las compras se procesan de forma segura a través de Stripe. Los precios se muestran en USD a menos que se especifique lo contrario. Aceptas pagar todas las tarifas asociadas con tus compras."
+        },
+        "refunds": {
+          "title": "Reembolsos",
+          "content": "Ofrecemos una garantía de devolución de dinero de 30 días en la mayoría de los cursos. Consulta nuestra Política de Reembolso para detalles completos."
+        },
+        "limitation": {
+          "title": "Limitación de Responsabilidad",
+          "content": "Mystic International no será responsable de ningún daño indirecto, incidental, especial, consecuente o punitivo que surja de tu uso de nuestros servicios."
+        },
+        "termination": {
+          "title": "Terminación",
+          "content": "Nos reservamos el derecho de suspender o terminar tu cuenta si violas estos Términos de Servicio."
+        },
+        "changes": {
+          "title": "Cambios a los Términos",
+          "content": "Podemos modificar estos Términos en cualquier momento. El uso continuado de nuestros servicios después de los cambios constituye aceptación de los nuevos Términos."
+        },
+        "contact": {
+          "title": "Contáctanos",
+          "content": "Para preguntas sobre estos Términos, por favor contáctanos en legal@mysticinternational.com"
+        }
+      }
+    },
+    "refunds": {
+      "title": "Política de Reembolso",
+      "description": "Nuestras políticas sobre reembolsos y cancelaciones",
+      "introduction": "Queremos que estés completamente satisfecho con tus compras. Esta Política de Reembolso describe nuestros procedimientos para reembolsos y cancelaciones.",
+      "sections": {
+        "coursesRefund": {
+          "title": "Reembolsos de Cursos",
+          "content": "Ofrecemos una garantía de devolución de dinero de 30 días en todas las compras de cursos. Si no estás satisfecho con un curso, puedes solicitar un reembolso completo dentro de los 30 días posteriores a la compra, independientemente de cuánto del curso hayas completado."
+        },
+        "eventsRefund": {
+          "title": "Reembolsos de Eventos",
+          "content": "Las entradas para eventos pueden reembolsarse hasta 7 días antes de la fecha del evento. Los reembolsos solicitados dentro de los 7 días del evento quedan a nuestra discreción. No hay reembolsos disponibles después de que el evento haya comenzado."
+        },
+        "digitalProducts": {
+          "title": "Productos Digitales",
+          "content": "Debido a la naturaleza de los productos digitales, todas las ventas son finales una vez que se ha accedido al enlace de descarga. Sin embargo, si experimentas problemas técnicos, por favor contacta a soporte."
+        },
+        "howToRequest": {
+          "title": "Cómo Solicitar un Reembolso",
+          "content": "Para solicitar un reembolso, por favor contacta a nuestro equipo de soporte en support@mysticinternational.com con los detalles de tu pedido. Los reembolsos se procesan típicamente dentro de 5-7 días hábiles."
+        },
+        "processing": {
+          "title": "Procesamiento de Reembolsos",
+          "content": "Los reembolsos se acreditarán al método de pago original utilizado para la compra. Los tiempos de procesamiento pueden variar dependiendo de tu banco o proveedor de pago."
+        },
+        "exceptions": {
+          "title": "Excepciones",
+          "content": "Nos reservamos el derecho de denegar solicitudes de reembolso que parezcan realizarse de mala fe o que violen nuestros Términos de Servicio."
+        }
+      }
+    },
+    "cookies": {
+      "title": "Política de Cookies",
+      "description": "Cómo usamos cookies y tecnologías similares",
+      "introduction": "Esta Política de Cookies explica cómo Mystic International usa cookies y tecnologías similares cuando visitas nuestro sitio web.",
+      "sections": {
+        "whatAreCookies": {
+          "title": "¿Qué Son las Cookies?",
+          "content": "Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo cuando visitas un sitio web. Ayudan al sitio web a recordar tus preferencias y mejorar tu experiencia."
+        },
+        "typesOfCookies": {
+          "title": "Tipos de Cookies que Usamos",
+          "content": "Usamos cookies esenciales (necesarias para que el sitio web funcione), cookies de análisis (para entender cómo los visitantes usan nuestro sitio) y cookies de marketing (para mostrar anuncios relevantes)."
+        },
+        "essentialCookies": {
+          "title": "Cookies Esenciales",
+          "content": "Estas cookies son necesarias para que el sitio web funcione correctamente. Habilitan funcionalidades básicas como seguridad, gestión de red y accesibilidad."
+        },
+        "analyticsCookies": {
+          "title": "Cookies de Análisis",
+          "content": "Usamos cookies de análisis para entender cómo los visitantes interactúan con nuestro sitio web, ayudándonos a mejorar nuestros servicios y experiencia de usuario."
+        },
+        "marketingCookies": {
+          "title": "Cookies de Marketing",
+          "content": "Estas cookies se usan para rastrear visitantes a través de sitios web para mostrar anuncios relevantes y medir su efectividad."
+        },
+        "manageCookies": {
+          "title": "Gestionar Cookies",
+          "content": "Puedes controlar y gestionar las cookies a través de la configuración de tu navegador. Ten en cuenta que deshabilitar ciertas cookies puede afectar la funcionalidad de nuestro sitio web."
+        },
+        "thirdPartyCookies": {
+          "title": "Cookies de Terceros",
+          "content": "Algunas cookies son colocadas por servicios de terceros que aparecen en nuestras páginas, como procesadores de pago, proveedores de análisis y plataformas de redes sociales."
+        },
+        "updates": {
+          "title": "Actualizaciones a Esta Política",
+          "content": "Podemos actualizar esta Política de Cookies de vez en cuando. Cualquier cambio se publicará en esta página."
+        },
+        "contact": {
+          "title": "Contáctanos",
+          "content": "Si tienes alguna pregunta sobre nuestro uso de cookies, por favor contáctanos en privacy@mysticinternational.com"
+        }
+      }
+    }
   }
 }
