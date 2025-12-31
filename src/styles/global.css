@@ -527,7 +527,9 @@ select[required] + label::after {
   }
 }
 
-/* Dark Mode Accessibility */
+/* Dark Mode - Currently disabled for consistent UX
+   To re-enable, uncomment this section and change
+   html style to "color-scheme: light dark;" in BaseLayout.astro
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: #111827;
@@ -540,7 +542,6 @@ select[required] + label::after {
     --color-border-dark: #4b5563;
   }
 
-  /* Ensure sufficient contrast in dark mode */
   a {
     color: var(--color-primary-light);
   }
@@ -564,6 +565,7 @@ select[required] + label::after {
     box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
   }
 }
+*/
 
 /* Print Accessibility */
 @media print {
