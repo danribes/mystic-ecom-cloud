@@ -50,8 +50,8 @@ A production-ready, multilingual e-commerce platform for spiritual courses, live
 ### Core Technologies
 - **Framework**: [Astro 5.15](https://astro.build) with SSR
 - **Language**: [TypeScript 5.9](https://www.typescriptlang.org)
-- **Database**: [PostgreSQL](https://www.postgresql.org) with UUID primary keys
-- **Cache/Sessions**: [Redis 4.7](https://redis.io)
+- **Database**: [Neon PostgreSQL](https://neon.tech) (serverless)
+- **Cache/Sessions**: [Upstash Redis](https://upstash.com) (serverless)
 - **Styling**: [Tailwind CSS 3.4](https://tailwindcss.com)
 
 ### Key Libraries
@@ -60,14 +60,186 @@ A production-ready, multilingual e-commerce platform for spiritual courses, live
 - **Validation**: [Zod 3.23](https://zod.dev)
 - **Email**: [Resend 6.4](https://resend.com) (transactional emails)
 - **Video**: [Cloudflare Stream](https://developers.cloudflare.com/stream/) (video hosting)
-- **Storage**: AWS S3 (file uploads)
-- **Notifications**: Twilio (WhatsApp admin alerts)
+- **Storage**: [AWS S3](https://aws.amazon.com/s3/) (file uploads with pre-signed URLs)
+- **Monitoring**: [Sentry](https://sentry.io) (error tracking & performance)
 
 ### Testing & Quality
 - **Unit Testing**: [Vitest 4.0](https://vitest.dev)
 - **E2E Testing**: [Playwright 1.49](https://playwright.dev)
 - **Code Quality**: ESLint + Prettier
 - **Logging**: [Pino 10.1](https://github.com/pinojs/pino)
+
+---
+
+## 🏗️ Infrastructure & Services
+
+This project uses a **serverless-first architecture** designed for deployment on Cloudflare Workers/Pages. All database and caching services use HTTP-based connections (no persistent TCP connections required).
+
+### Neon (PostgreSQL) — Primary Database
+
+**Package:** `@neondatabase/serverless` (v1.0.2)
+
+Neon provides serverless PostgreSQL that works over HTTP/WebSocket, making it compatible with edge runtimes like Cloudflare Workers.
+
+| Feature | Description |
+|---------|-------------|
+| **Connection** | HTTP-based queries via `DATABASE_URL` |
+| **File** | `src/lib/db.ts` |
+| **Schema** | `database/schema.sql` |
+
+**What's stored in PostgreSQL:**
+- **Users & Auth**: Accounts, roles (user/admin), password reset tokens
+- **E-commerce**: Products, courses, events, orders, payments
+- **Content**: Multilingual content (EN/ES), video metadata, curricula
+- **Analytics**: Video views, engagement metrics, user progress
+- **Financial**: Order history, transaction records (Stripe IDs)
+
+**Database Tables:**
+| Table | Purpose |
+|-------|---------|
+| `users` | User accounts with roles |
+| `courses` | Online courses with multilingual content |
+| `digital_products` | Downloadable products (PDF, audio, video) |
+| `events` | In-person or virtual events |
+| `orders` | Purchase records with Stripe integration |
+| `order_items` | Individual items in orders |
+| `bookings` | Event registrations |
+| `cart_items` | Shopping cart storage |
+| `course_enrollments` | User course access |
+| `course_videos` | Video content with Cloudflare Stream |
+| `password_reset_tokens` | Password reset security |
+| `video_analytics` | Video viewing metrics |
+
+---
+
+### Upstash (Redis) — Caching & Sessions
+
+**Package:** `@upstash/redis` (v1.35.8)
+
+Upstash provides serverless Redis via REST API, also compatible with Cloudflare Workers.
+
+| Feature | Description |
+|---------|-------------|
+| **Connection** | REST API via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` |
+| **File** | `src/lib/redis.ts` |
+
+**Redis is used for three main purposes:**
+
+#### 1. Session Management (`src/lib/auth/session.ts`)
+| Key Pattern | TTL | Data |
+|-------------|-----|------|
+| `session:<sessionId>` | 24 hours | userId, email, name, role, timestamps |
+
+#### 2. Rate Limiting (`src/lib/ratelimit.ts`)
+| Key Pattern | Limit | Window |
+|-------------|-------|--------|
+| `rl:auth:<ip>` | 5 requests | 15 minutes |
+| `rl:password:<ip>` | 3 requests | 1 hour |
+| `rl:checkout:<ip>` | 10 requests | 1 minute |
+| `rl:search:<ip>` | 30 requests | 1 minute |
+| `rl:upload:<ip>` | 10 requests | 10 minutes |
+| `rl:admin:<userId>` | 200 requests | 1 minute |
+
+#### 3. Application Caching (`src/lib/caching.ts`)
+| Namespace | TTL | Example Keys |
+|-----------|-----|--------------|
+| `products:*` | 5 min | `products:list:all`, `products:<id>` |
+| `courses:*` | 10 min | `courses:slug:<slug>`, `courses:list:published` |
+| `events:*` | 10 min | `events:list:upcoming` |
+| `cart:*` | 30 min | `cart:<sessionId>` |
+| `user:*` | 15 min | `user:<userId>:enrollments` |
+
+---
+
+### AWS S3 — File Storage
+
+**Package:** `@aws-sdk/client-s3` (v3.922.0)
+
+| Feature | Description |
+|---------|-------------|
+| **Purpose** | Store digital products (PDFs, audio, video files) |
+| **File** | `src/lib/storage.ts` |
+| **Security** | Pre-signed URLs with expiration for secure downloads |
+
+---
+
+### Cloudflare Stream — Video Hosting
+
+| Feature | Description |
+|---------|-------------|
+| **Purpose** | Video hosting with global CDN for course videos |
+| **File** | `src/lib/cloudflare.ts` |
+| **Features** | TUS resumable uploads, HLS/DASH playback, thumbnails |
+
+---
+
+### Stripe — Payment Processing
+
+**Package:** `stripe` (v17.7.0)
+
+| Feature | Description |
+|---------|-------------|
+| **Purpose** | Payment processing with webhook handling |
+| **File** | `src/lib/stripe.ts` |
+| **Integration** | `orders.stripe_payment_intent_id` stores transaction IDs |
+
+---
+
+### Email Services
+
+| Service | Package | Purpose |
+|---------|---------|---------|
+| **Resend** | `resend` (v6.4.0) | Primary transactional emails |
+| **SendGrid** | `@sendgrid/mail` (v8.1.4) | Alternative email provider |
+
+---
+
+### Sentry — Error Tracking
+
+**Package:** `@sentry/astro` (v10.23.0)
+
+| Feature | Description |
+|---------|-------------|
+| **Purpose** | Error tracking and performance monitoring |
+| **File** | `src/lib/sentry.ts` |
+
+---
+
+### Architecture Highlights
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Cloudflare Pages                          │
+│                    (Edge Runtime)                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    │
+│   │   Astro     │    │  Middleware │    │    API      │    │
+│   │    SSR      │───▶│  Auth/CSRF  │───▶│   Routes    │    │
+│   └─────────────┘    │ Rate Limit  │    └──────┬──────┘    │
+│                      └─────────────┘           │            │
+│                                                │            │
+└────────────────────────────────────────────────┼────────────┘
+                                                 │
+                    ┌────────────────────────────┼────────────────────────────┐
+                    │                            │                            │
+                    ▼                            ▼                            ▼
+         ┌─────────────────┐          ┌─────────────────┐          ┌─────────────────┐
+         │  Neon PostgreSQL │          │  Upstash Redis  │          │    AWS S3       │
+         │   (HTTP/WS)      │          │   (REST API)    │          │  (Pre-signed)   │
+         │                  │          │                 │          │                 │
+         │ • Users          │          │ • Sessions      │          │ • Digital       │
+         │ • Orders         │          │ • Rate Limits   │          │   Products      │
+         │ • Products       │          │ • Cache         │          │ • Uploads       │
+         │ • Courses        │          │                 │          │                 │
+         └─────────────────┘          └─────────────────┘          └─────────────────┘
+```
+
+**Key Design Decisions:**
+1. **Serverless-first**: Both Neon and Upstash use HTTP APIs — no persistent connections needed
+2. **Graceful degradation**: App continues if Redis is down (rate limiting fails open)
+3. **Cache-aside pattern**: Check Redis → fetch from PostgreSQL on miss → cache result
+4. **Dual runtime support**: Works in both Node.js (local dev) and Cloudflare Workers (production)
 
 ---
 
@@ -202,11 +374,12 @@ node -e "for(let i=0; i<5; i++) console.log(require('crypto').randomBytes(32).to
 **Update `.env` with your values**:
 
 ```env
-# Database (using Docker defaults)
-DATABASE_URL=postgresql://postgres:your_secure_password@localhost:5432/spirituality_platform
+# Database - Neon PostgreSQL (https://console.neon.tech)
+DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
 
-# Redis (using Docker defaults)
-REDIS_URL=redis://localhost:6379
+# Redis - Upstash (https://console.upstash.com)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_upstash_token
 
 # Application
 NODE_ENV=development
@@ -227,6 +400,19 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 # Email (get from https://resend.com/api-keys)
 RESEND_API_KEY=re_...
 EMAIL_FROM=noreply@yourdomain.com
+
+# AWS S3 (for file storage)
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=your-bucket-name
+
+# Cloudflare Stream (for video hosting)
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+CLOUDFLARE_API_TOKEN=your_api_token
+
+# Sentry (for error tracking - optional)
+SENTRY_DSN=https://xxx@sentry.io/xxx
 ```
 
 **Critical**: Never commit `.env` to version control. It's already in `.gitignore`.
@@ -881,7 +1067,7 @@ Browser → Cloudflare CDN → Astro SSR
 
 **Version**: 1.0.0
 **Status**: Production Ready
-**Last Updated**: 2025-11-05
+**Last Updated**: 2025-12-31
 **Security Audit**: Completed (10.0/10)
 **Test Coverage**: 70%+
 **Maintained By**: Development Team
@@ -914,9 +1100,12 @@ Built with:
 - [TypeScript](https://www.typescriptlang.org) - Type safety
 - [Tailwind CSS](https://tailwindcss.com) - Styling
 - [Stripe](https://stripe.com) - Payments
-- [Cloudflare](https://www.cloudflare.com) - Hosting & CDN
-- [PostgreSQL](https://www.postgresql.org) - Database
-- [Redis](https://redis.io) - Caching
+- [Cloudflare](https://www.cloudflare.com) - Hosting, CDN & Video Streaming
+- [Neon](https://neon.tech) - Serverless PostgreSQL
+- [Upstash](https://upstash.com) - Serverless Redis
+- [AWS S3](https://aws.amazon.com/s3/) - File Storage
+- [Resend](https://resend.com) - Transactional Emails
+- [Sentry](https://sentry.io) - Error Tracking
 
 ---
 
