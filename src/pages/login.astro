@@ -38,7 +38,7 @@ const verify = Astro.url.searchParams.get('verify');
   title="Sign In - Spirituality Platform"
   description="Access your account and continue your spiritual journey"
 >
-  <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-purple-50 to-indigo-50">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-primary/5 to-secondary/5">
     <div class="max-w-md w-full">
       <!-- Header -->
       <div class="text-center mb-8">
@@ -147,7 +147,7 @@ const verify = Astro.url.searchParams.get('verify');
               required
               placeholder="you@example.com"
               autocomplete="email"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
             />
           </div>
 
@@ -163,7 +163,7 @@ const verify = Astro.url.searchParams.get('verify');
               required
               placeholder="Enter your password"
               autocomplete="current-password"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
             />
           </div>
 
@@ -183,7 +183,7 @@ const verify = Astro.url.searchParams.get('verify');
             </label>
             <a
               href="/forgot-password"
-              class="text-sm text-purple-600 hover:text-purple-700"
+              class="text-sm text-primary hover:text-primary-dark"
             >
               Forgot password?
             </a>
@@ -192,7 +192,7 @@ const verify = Astro.url.searchParams.get('verify');
           <!-- Submit Button -->
           <button
             type="submit"
-            class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02]"
+            class="w-full bg-gradient-to-r from-primary to-secondary text-white font-semibold py-3 px-6 rounded-lg hover:from-primary-dark hover:to-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02]"
           >
             Sign In
           </button>
@@ -209,7 +209,7 @@ const verify = Astro.url.searchParams.get('verify');
         <div class="mt-6 text-center">
           <a
             href={`/register?redirect=${encodeURIComponent(redirect)}`}
-            class="text-purple-600 hover:text-purple-700 font-medium text-sm"
+            class="text-primary hover:text-primary-dark font-medium text-sm"
           >
             Create a new account →
           </a>

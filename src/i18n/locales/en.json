@@ -627,5 +627,267 @@
     "productsDescription": "Discover curated spiritual products, healing tools, and digital resources to support your transformation journey.",
     "dashboardTitle": "Your Spiritual Dashboard",
     "dashboardDescription": "Access your courses, track your progress, and manage your spiritual growth journey all in one place."
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "description": "Find answers to common questions about our courses, events, and services",
+    "categories": {
+      "general": "General Questions",
+      "courses": "Courses",
+      "events": "Events",
+      "payments": "Payments & Refunds",
+      "account": "Account & Access"
+    },
+    "questions": {
+      "whatIsMystic": {
+        "q": "What is Mystic International?",
+        "a": "Mystic International is a platform dedicated to spiritual growth and personal transformation. We offer online courses, live events, and digital products designed to help you on your journey to enlightenment."
+      },
+      "howToStart": {
+        "q": "How do I get started?",
+        "a": "Simply create an account, browse our courses and events, and enroll in any program that resonates with you. Many of our introductory courses are free!"
+      },
+      "courseAccess": {
+        "q": "How long do I have access to a course?",
+        "a": "Once you purchase a course, you have lifetime access to all its content. You can revisit the materials as many times as you like."
+      },
+      "eventOnline": {
+        "q": "Are events available online?",
+        "a": "Yes! We offer both in-person and virtual events. Virtual events can be attended from anywhere in the world."
+      },
+      "paymentMethods": {
+        "q": "What payment methods do you accept?",
+        "a": "We accept all major credit cards, debit cards, and various local payment methods through our secure payment processor, Stripe."
+      },
+      "refundPolicy": {
+        "q": "What is your refund policy?",
+        "a": "We offer a 30-day money-back guarantee on all courses. If you're not satisfied with your purchase, contact our support team for a full refund."
+      },
+      "lostAccess": {
+        "q": "I lost access to my account. What should I do?",
+        "a": "Use the 'Forgot Password' link on the login page to reset your password. If you continue to have issues, contact our support team."
+      },
+      "certificates": {
+        "q": "Do you offer certificates?",
+        "a": "Yes, upon completion of certain courses, you will receive a digital certificate that you can download and share."
+      }
+    },
+    "stillNeedHelp": "Still need help?",
+    "contactSupport": "Contact our support team"
+  },
+  "blog": {
+    "title": "Blog",
+    "description": "Insights, tips, and stories on your spiritual journey",
+    "readMore": "Read More",
+    "categories": "Categories",
+    "recentPosts": "Recent Posts",
+    "allPosts": "All Posts",
+    "noPostsFound": "No posts found",
+    "comingSoon": "Coming Soon",
+    "comingSoonMessage": "We're working on bringing you inspiring content about spirituality, personal growth, and transformation. Check back soon!"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Get in touch with our team. We'd love to hear from you!",
+    "formTitle": "Send us a message",
+    "name": "Your Name",
+    "email": "Your Email",
+    "subject": "Subject",
+    "message": "Your Message",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "successMessage": "Thank you for your message! We'll get back to you soon.",
+    "errorMessage": "There was an error sending your message. Please try again.",
+    "contactInfo": "Contact Information",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "addressLabel": "Address",
+    "hoursLabel": "Business Hours",
+    "hours": "Monday - Friday: 9:00 AM - 6:00 PM (EST)",
+    "followUs": "Follow Us"
+  },
+  "support": {
+    "title": "Support Center",
+    "description": "How can we help you today?",
+    "searchPlaceholder": "Search for help articles...",
+    "popularTopics": "Popular Topics",
+    "categories": {
+      "gettingStarted": "Getting Started",
+      "accountHelp": "Account Help",
+      "coursesHelp": "Courses Help",
+      "paymentsHelp": "Payments Help",
+      "technicalHelp": "Technical Support"
+    },
+    "needMoreHelp": "Need more help?",
+    "contactOptions": "Contact Options",
+    "emailSupport": "Email Support",
+    "emailSupportDesc": "Get a response within 24 hours",
+    "liveChat": "Live Chat",
+    "liveChatDesc": "Chat with our team (Coming Soon)",
+    "callUs": "Call Us",
+    "callUsDesc": "Speak with a representative"
+  },
+  "legal": {
+    "lastUpdated": "Last Updated",
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "How we collect, use, and protect your personal information",
+      "introduction": "At Mystic International, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our services.",
+      "sections": {
+        "infoCollect": {
+          "title": "Information We Collect",
+          "content": "We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us. This may include your name, email address, payment information, and any other information you choose to provide."
+        },
+        "howWeUse": {
+          "title": "How We Use Your Information",
+          "content": "We use the information we collect to provide, maintain, and improve our services, process transactions, send you communications, and personalize your experience."
+        },
+        "infoSharing": {
+          "title": "Information Sharing",
+          "content": "We do not sell your personal information. We may share your information with service providers who assist us in operating our platform, processing payments, and delivering services."
+        },
+        "dataSecurity": {
+          "title": "Data Security",
+          "content": "We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction."
+        },
+        "yourRights": {
+          "title": "Your Rights",
+          "content": "You have the right to access, update, or delete your personal information. You may also opt out of receiving marketing communications at any time."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "content": "We use cookies and similar technologies to enhance your experience, analyze usage, and assist in our marketing efforts. See our Cookie Policy for more details."
+        },
+        "changes": {
+          "title": "Changes to This Policy",
+          "content": "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "content": "If you have any questions about this Privacy Policy, please contact us at privacy@mysticinternational.com"
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "description": "Terms and conditions for using our services",
+      "introduction": "Welcome to Mystic International. By accessing or using our website and services, you agree to be bound by these Terms of Service.",
+      "sections": {
+        "acceptance": {
+          "title": "Acceptance of Terms",
+          "content": "By creating an account or using our services, you agree to these Terms of Service and our Privacy Policy. If you do not agree, please do not use our services."
+        },
+        "accountResponsibility": {
+          "title": "Account Responsibility",
+          "content": "You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account."
+        },
+        "contentOwnership": {
+          "title": "Content Ownership",
+          "content": "All content on our platform, including courses, videos, and materials, is owned by Mystic International or its content creators. You may not reproduce, distribute, or create derivative works without permission."
+        },
+        "userConduct": {
+          "title": "User Conduct",
+          "content": "You agree to use our services only for lawful purposes and in accordance with these Terms. You may not share your account access or purchased content with others."
+        },
+        "purchases": {
+          "title": "Purchases and Payments",
+          "content": "All purchases are processed securely through Stripe. Prices are displayed in USD unless otherwise specified. You agree to pay all fees associated with your purchases."
+        },
+        "refunds": {
+          "title": "Refunds",
+          "content": "We offer a 30-day money-back guarantee on most courses. See our Refund Policy for complete details."
+        },
+        "limitation": {
+          "title": "Limitation of Liability",
+          "content": "Mystic International shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services."
+        },
+        "termination": {
+          "title": "Termination",
+          "content": "We reserve the right to suspend or terminate your account if you violate these Terms of Service."
+        },
+        "changes": {
+          "title": "Changes to Terms",
+          "content": "We may modify these Terms at any time. Continued use of our services after changes constitutes acceptance of the new Terms."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "content": "For questions about these Terms, please contact us at legal@mysticinternational.com"
+        }
+      }
+    },
+    "refunds": {
+      "title": "Refund Policy",
+      "description": "Our policies on refunds and cancellations",
+      "introduction": "We want you to be completely satisfied with your purchases. This Refund Policy outlines our procedures for refunds and cancellations.",
+      "sections": {
+        "coursesRefund": {
+          "title": "Course Refunds",
+          "content": "We offer a 30-day money-back guarantee on all course purchases. If you are not satisfied with a course, you may request a full refund within 30 days of purchase, regardless of how much of the course you have completed."
+        },
+        "eventsRefund": {
+          "title": "Event Refunds",
+          "content": "Event tickets may be refunded up to 7 days before the event date. Refunds requested within 7 days of the event are at our discretion. No refunds are available after the event has started."
+        },
+        "digitalProducts": {
+          "title": "Digital Products",
+          "content": "Due to the nature of digital products, all sales are final once the download link has been accessed. However, if you experience technical issues, please contact support."
+        },
+        "howToRequest": {
+          "title": "How to Request a Refund",
+          "content": "To request a refund, please contact our support team at support@mysticinternational.com with your order details. Refunds are typically processed within 5-7 business days."
+        },
+        "processing": {
+          "title": "Refund Processing",
+          "content": "Refunds will be credited to the original payment method used for the purchase. Processing times may vary depending on your bank or payment provider."
+        },
+        "exceptions": {
+          "title": "Exceptions",
+          "content": "We reserve the right to deny refund requests that appear to be made in bad faith or that violate our Terms of Service."
+        }
+      }
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "description": "How we use cookies and similar technologies",
+      "introduction": "This Cookie Policy explains how Mystic International uses cookies and similar technologies when you visit our website.",
+      "sections": {
+        "whatAreCookies": {
+          "title": "What Are Cookies?",
+          "content": "Cookies are small text files that are stored on your device when you visit a website. They help the website remember your preferences and improve your experience."
+        },
+        "typesOfCookies": {
+          "title": "Types of Cookies We Use",
+          "content": "We use essential cookies (required for the website to function), analytics cookies (to understand how visitors use our site), and marketing cookies (to deliver relevant advertisements)."
+        },
+        "essentialCookies": {
+          "title": "Essential Cookies",
+          "content": "These cookies are necessary for the website to function properly. They enable core functionality such as security, network management, and accessibility."
+        },
+        "analyticsCookies": {
+          "title": "Analytics Cookies",
+          "content": "We use analytics cookies to understand how visitors interact with our website, helping us improve our services and user experience."
+        },
+        "marketingCookies": {
+          "title": "Marketing Cookies",
+          "content": "These cookies are used to track visitors across websites to display relevant advertisements and measure their effectiveness."
+        },
+        "manageCookies": {
+          "title": "Managing Cookies",
+          "content": "You can control and manage cookies through your browser settings. Please note that disabling certain cookies may affect the functionality of our website."
+        },
+        "thirdPartyCookies": {
+          "title": "Third-Party Cookies",
+          "content": "Some cookies are placed by third-party services that appear on our pages, such as payment processors, analytics providers, and social media platforms."
+        },
+        "updates": {
+          "title": "Updates to This Policy",
+          "content": "We may update this Cookie Policy from time to time. Any changes will be posted on this page."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "content": "If you have any questions about our use of cookies, please contact us at privacy@mysticinternational.com"
+        }
+      }
+    }
   }
 }

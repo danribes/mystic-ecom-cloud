@@ -30,8 +30,7 @@ Allow: /api/health
 Allow: /api/status
 
 # Sitemap location
-# Update this URL with your actual domain when deploying
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://mystic-international.com/sitemap.xml
 
 # Crawl-delay for specific bots (optional - prevents aggressive crawling)
 # Uncomment if needed:

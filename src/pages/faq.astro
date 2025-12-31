@@ -1,0 +1,154 @@
+---
+/**
+ * FAQ Page
+ *
+ * Displays frequently asked questions organized by category
+ * with expandable answers using an accordion pattern.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import StructuredData from '@/components/StructuredData.astro';
+import { generateFAQPageSchema } from '@/lib/structuredData';
+import { getTranslations } from '../i18n';
+
+const locale = Astro.locals.locale || 'es';
+const t = getTranslations(locale);
+
+// Define FAQ structure with categories
+const faqCategories = [
+  {
+    id: 'general',
+    name: t.faq.categories.general,
+    questions: [
+      { id: 'whatIsMystic', q: t.faq.questions.whatIsMystic.q, a: t.faq.questions.whatIsMystic.a },
+      { id: 'howToStart', q: t.faq.questions.howToStart.q, a: t.faq.questions.howToStart.a },
+    ]
+  },
+  {
+    id: 'courses',
+    name: t.faq.categories.courses,
+    questions: [
+      { id: 'courseAccess', q: t.faq.questions.courseAccess.q, a: t.faq.questions.courseAccess.a },
+      { id: 'certificates', q: t.faq.questions.certificates.q, a: t.faq.questions.certificates.a },
+    ]
+  },
+  {
+    id: 'events',
+    name: t.faq.categories.events,
+    questions: [
+      { id: 'eventOnline', q: t.faq.questions.eventOnline.q, a: t.faq.questions.eventOnline.a },
+    ]
+  },
+  {
+    id: 'payments',
+    name: t.faq.categories.payments,
+    questions: [
+      { id: 'paymentMethods', q: t.faq.questions.paymentMethods.q, a: t.faq.questions.paymentMethods.a },
+      { id: 'refundPolicy', q: t.faq.questions.refundPolicy.q, a: t.faq.questions.refundPolicy.a },
+    ]
+  },
+  {
+    id: 'account',
+    name: t.faq.categories.account,
+    questions: [
+      { id: 'lostAccess', q: t.faq.questions.lostAccess.q, a: t.faq.questions.lostAccess.a },
+    ]
+  },
+];
+
+// Flatten all FAQ questions for structured data
+const allQuestions = faqCategories.flatMap(category =>
+  category.questions.map(faq => ({
+    question: faq.q,
+    answer: faq.a
+  }))
+);
+
+// Generate FAQ structured data for SEO
+const faqSchema = generateFAQPageSchema(allQuestions);
+---
+
+<BaseLayout title={t.faq.title} description={t.faq.description}>
+  <!-- FAQ Page Structured Data -->
+  <StructuredData slot="head" schema={faqSchema} />
+  <div class="container py-2xl">
+    <!-- Header -->
+    <div class="mx-auto mb-2xl max-w-3xl text-center">
+      <h1 class="mb-md text-4xl font-bold text-text">{t.faq.title}</h1>
+      <p class="text-lg text-text-light">{t.faq.description}</p>
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div class="mx-auto max-w-3xl">
+      {faqCategories.map((category, catIndex) => (
+        <div class="mb-xl">
+          <h2 class="mb-md text-xl font-semibold text-primary">{category.name}</h2>
+          <div class="space-y-sm">
+            {category.questions.map((faq, index) => (
+              <div class="faq-item overflow-hidden rounded-lg border border-border bg-surface">
+                <button
+                  type="button"
+                  class="faq-toggle flex w-full items-center justify-between px-lg py-md text-left font-medium text-text hover:bg-surface-hover transition-colors"
+                  aria-expanded="false"
+                  aria-controls={`faq-answer-${category.id}-${index}`}
+                >
+                  <span>{faq.q}</span>
+                  <svg
+                    class="faq-icon h-5 w-5 flex-shrink-0 text-text-light transition-transform duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div
+                  id={`faq-answer-${category.id}-${index}`}
+                  class="faq-content hidden"
+                >
+                  <div class="border-t border-border px-lg py-md text-text-light">
+                    {faq.a}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Contact CTA -->
+    <div class="mx-auto mt-3xl max-w-2xl rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 p-xl text-center">
+      <h3 class="mb-md text-xl font-semibold text-text">{t.faq.stillNeedHelp}</h3>
+      <a
+        href="/support"
+        class="inline-flex items-center gap-sm rounded-lg bg-primary px-lg py-sm font-medium text-white transition-colors hover:bg-primary-hover"
+      >
+        {t.faq.contactSupport}
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggles = document.querySelectorAll('.faq-toggle');
+
+      toggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          const faqItem = toggle.closest('.faq-item');
+          const content = faqItem?.querySelector('.faq-content');
+          const icon = toggle.querySelector('.faq-icon');
+          const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+          // Toggle current item
+          toggle.setAttribute('aria-expanded', (!isExpanded).toString());
+          content?.classList.toggle('hidden');
+          icon?.classList.toggle('rotate-180');
+        });
+      });
+    });
+  </script>
+</BaseLayout>

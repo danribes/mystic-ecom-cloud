@@ -1,0 +1,196 @@
+---
+/**
+ * Cookie Policy Page
+ *
+ * Displays the cookie policy with all sections.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getTranslations } from '../i18n';
+
+const locale = Astro.locals.locale || 'es';
+const t = getTranslations(locale);
+
+const lastUpdated = 'December 1, 2024';
+const sections = [
+  'whatAreCookies',
+  'typesOfCookies',
+  'essentialCookies',
+  'analyticsCookies',
+  'marketingCookies',
+  'manageCookies',
+  'thirdPartyCookies',
+  'updates',
+  'contact'
+] as const;
+
+// Cookie types table data
+const cookieTypes = [
+  {
+    type: locale === 'es' ? 'Esenciales' : 'Essential',
+    purpose: locale === 'es' ? 'Necesarias para el funcionamiento del sitio' : 'Required for the website to function',
+    duration: locale === 'es' ? 'Sesión' : 'Session',
+    required: true
+  },
+  {
+    type: locale === 'es' ? 'Análisis' : 'Analytics',
+    purpose: locale === 'es' ? 'Ayudan a entender cómo se usa el sitio' : 'Help understand how the site is used',
+    duration: locale === 'es' ? '2 años' : '2 years',
+    required: false
+  },
+  {
+    type: locale === 'es' ? 'Marketing' : 'Marketing',
+    purpose: locale === 'es' ? 'Usadas para mostrar anuncios relevantes' : 'Used to display relevant advertisements',
+    duration: locale === 'es' ? '1 año' : '1 year',
+    required: false
+  }
+];
+---
+
+<BaseLayout title={t.legal.cookies.title} description={t.legal.cookies.description}>
+  <div class="container py-2xl">
+    <div class="mx-auto max-w-3xl">
+      <!-- Header -->
+      <div class="mb-2xl">
+        <h1 class="mb-md text-4xl font-bold text-text">{t.legal.cookies.title}</h1>
+        <p class="text-sm text-text-lighter">
+          {t.legal.lastUpdated}: {lastUpdated}
+        </p>
+      </div>
+
+      <!-- Cookie Icon Banner -->
+      <div class="mb-2xl rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-lg">
+        <div class="flex items-center gap-md">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-2xl">
+            🍪
+          </div>
+          <p class="text-amber-800">
+            {locale === 'es'
+              ? 'Usamos cookies para mejorar tu experiencia. Al continuar navegando, aceptas nuestro uso de cookies.'
+              : 'We use cookies to improve your experience. By continuing to browse, you accept our use of cookies.'}
+          </p>
+        </div>
+      </div>
+
+      <!-- Introduction -->
+      <div class="mb-2xl rounded-xl bg-surface-hover/50 p-lg">
+        <p class="text-text-light leading-relaxed">{t.legal.cookies.introduction}</p>
+      </div>
+
+      <!-- Cookie Types Table -->
+      <div class="mb-2xl overflow-hidden rounded-xl border border-border">
+        <table class="w-full">
+          <thead class="bg-surface-hover">
+            <tr>
+              <th class="px-lg py-md text-left text-sm font-semibold text-text">
+                {locale === 'es' ? 'Tipo' : 'Type'}
+              </th>
+              <th class="px-lg py-md text-left text-sm font-semibold text-text">
+                {locale === 'es' ? 'Propósito' : 'Purpose'}
+              </th>
+              <th class="px-lg py-md text-left text-sm font-semibold text-text">
+                {locale === 'es' ? 'Duración' : 'Duration'}
+              </th>
+              <th class="px-lg py-md text-center text-sm font-semibold text-text">
+                {locale === 'es' ? 'Requerida' : 'Required'}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {cookieTypes.map((cookie) => (
+              <tr class="bg-surface">
+                <td class="px-lg py-md text-sm font-medium text-text">{cookie.type}</td>
+                <td class="px-lg py-md text-sm text-text-light">{cookie.purpose}</td>
+                <td class="px-lg py-md text-sm text-text-light">{cookie.duration}</td>
+                <td class="px-lg py-md text-center">
+                  {cookie.required ? (
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-600">
+                      ✓
+                    </span>
+                  ) : (
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                      −
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table of Contents -->
+      <nav class="mb-2xl rounded-xl border border-border bg-surface p-lg">
+        <h2 class="mb-md font-semibold text-text">
+          {locale === 'es' ? 'Tabla de Contenidos' : 'Table of Contents'}
+        </h2>
+        <ol class="list-decimal space-y-sm pl-lg text-sm">
+          {sections.map((section, index) => (
+            <li>
+              <a href={`#section-${index + 1}`} class="text-primary hover:underline">
+                {t.legal.cookies.sections[section].title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <!-- Sections -->
+      <div class="space-y-2xl">
+        {sections.map((section, index) => (
+          <section id={`section-${index + 1}`} class="scroll-mt-24">
+            <h2 class="mb-md text-xl font-semibold text-text">
+              {index + 1}. {t.legal.cookies.sections[section].title}
+            </h2>
+            <p class="text-text-light leading-relaxed">
+              {t.legal.cookies.sections[section].content}
+            </p>
+          </section>
+        ))}
+      </div>
+
+      <!-- Browser Settings Info -->
+      <div class="mt-2xl rounded-xl bg-blue-50 border border-blue-200 p-lg">
+        <h3 class="mb-md font-semibold text-blue-800">
+          {locale === 'es' ? 'Cómo gestionar cookies en tu navegador' : 'How to manage cookies in your browser'}
+        </h3>
+        <p class="mb-md text-sm text-blue-700">
+          {locale === 'es'
+            ? 'Puedes controlar las cookies a través de la configuración de tu navegador:'
+            : 'You can control cookies through your browser settings:'}
+        </p>
+        <ul class="space-y-sm text-sm text-blue-700">
+          <li>• Chrome: {locale === 'es' ? 'Configuración > Privacidad y seguridad > Cookies' : 'Settings > Privacy and security > Cookies'}</li>
+          <li>• Firefox: {locale === 'es' ? 'Opciones > Privacidad y Seguridad' : 'Options > Privacy & Security'}</li>
+          <li>• Safari: {locale === 'es' ? 'Preferencias > Privacidad' : 'Preferences > Privacy'}</li>
+          <li>• Edge: {locale === 'es' ? 'Configuración > Cookies y permisos del sitio' : 'Settings > Cookies and site permissions'}</li>
+        </ul>
+      </div>
+
+      <!-- Back to top -->
+      <div class="mt-3xl text-center">
+        <a href="#" class="inline-flex items-center gap-sm text-primary hover:underline">
+          <svg class="h-5 w-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+          {locale === 'es' ? 'Volver arriba' : 'Back to top'}
+        </a>
+      </div>
+
+      <!-- Related Links -->
+      <div class="mt-2xl rounded-xl border border-border bg-surface p-lg">
+        <h3 class="mb-md font-semibold text-text">
+          {locale === 'es' ? 'Documentos Relacionados' : 'Related Documents'}
+        </h3>
+        <div class="flex flex-wrap gap-md">
+          <a href="/privacy" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.privacy.title}
+          </a>
+          <a href="/terms" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.terms.title}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

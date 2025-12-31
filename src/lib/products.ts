@@ -48,8 +48,6 @@ function timingSafeEqual(a: string, b: string): boolean {
   return result === 0;
 }
 
-const pool = getPool();
-
 export interface DigitalProduct {
   id: string;
   title: string;
@@ -194,6 +192,10 @@ export async function getProducts(options: {
     paramIndex++;
   }
 
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(query, params);
   const products = result.rows;
 
@@ -218,6 +220,10 @@ export async function getProductById(productId: string): Promise<DigitalProduct 
   }
 
   // Cache miss - fetch from database
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(
     'SELECT * FROM digital_products WHERE id = $1 AND is_published = true',
     [productId]
@@ -245,6 +251,10 @@ export async function getProductBySlug(slug: string): Promise<DigitalProduct | n
   }
 
   // Cache miss - fetch from database
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(
     'SELECT * FROM digital_products WHERE slug = $1 AND is_published = true',
     [slug]
@@ -264,6 +274,10 @@ export async function hasUserPurchasedProduct(
   userId: string,
   productId: string
 ): Promise<ProductOrder | null> {
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(
     `SELECT 
       o.id as order_id,
@@ -300,6 +314,10 @@ export async function hasUserPurchasedProduct(
  * Get all products purchased by a user
  */
 export async function getUserPurchasedProducts(userId: string): Promise<Array<DigitalProduct & ProductOrder>> {
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(
     `SELECT 
       dp.*,
@@ -400,6 +418,10 @@ export async function logDownload(
   ipAddress?: string,
   userAgent?: string
 ): Promise<void> {
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   await pool.query(
     `INSERT INTO download_logs (user_id, digital_product_id, order_id, ip_address, user_agent)
      VALUES ($1, $2, $3, $4, $5)`,
@@ -415,6 +437,10 @@ export async function hasExceededDownloadLimit(
   productId: string,
   orderId: string
 ): Promise<boolean> {
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(
     `SELECT 
       COUNT(dl.id) as download_count,
@@ -443,6 +469,10 @@ export async function getDownloadHistory(
   userId: string,
   productId: string
 ): Promise<Array<{ downloaded_at: Date; ip_address?: string }>> {
+  const pool = getPool();
+  if (!pool) {
+    throw new Error('Database not configured');
+  }
   const result = await pool.query(
     `SELECT downloaded_at, ip_address
      FROM download_logs

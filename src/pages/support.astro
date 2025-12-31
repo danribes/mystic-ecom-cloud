@@ -1,0 +1,172 @@
+---
+/**
+ * Support Center Page
+ *
+ * Displays help categories and contact options for customer support.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getTranslations } from '../i18n';
+
+const locale = Astro.locals.locale || 'es';
+const t = getTranslations(locale);
+
+// Support categories with icons
+const supportCategories = [
+  {
+    id: 'gettingStarted',
+    name: t.support.categories.gettingStarted,
+    icon: '🚀',
+    description: locale === 'es'
+      ? 'Aprende cómo crear tu cuenta y comenzar tu viaje espiritual'
+      : 'Learn how to create your account and start your spiritual journey',
+    link: '/faq'
+  },
+  {
+    id: 'accountHelp',
+    name: t.support.categories.accountHelp,
+    icon: '👤',
+    description: locale === 'es'
+      ? 'Gestiona tu perfil, contraseña y configuración de cuenta'
+      : 'Manage your profile, password, and account settings',
+    link: '/faq'
+  },
+  {
+    id: 'coursesHelp',
+    name: t.support.categories.coursesHelp,
+    icon: '📚',
+    description: locale === 'es'
+      ? 'Preguntas sobre cursos, acceso y certificados'
+      : 'Questions about courses, access, and certificates',
+    link: '/faq'
+  },
+  {
+    id: 'paymentsHelp',
+    name: t.support.categories.paymentsHelp,
+    icon: '💳',
+    description: locale === 'es'
+      ? 'Facturación, reembolsos y métodos de pago'
+      : 'Billing, refunds, and payment methods',
+    link: '/refunds'
+  },
+  {
+    id: 'technicalHelp',
+    name: t.support.categories.technicalHelp,
+    icon: '🔧',
+    description: locale === 'es'
+      ? 'Problemas técnicos con videos, descargas o el sitio web'
+      : 'Technical issues with videos, downloads, or the website',
+    link: '/contact'
+  },
+];
+---
+
+<BaseLayout title={t.support.title} description={t.support.description}>
+  <div class="container py-2xl">
+    <!-- Header -->
+    <div class="mx-auto mb-2xl max-w-3xl text-center">
+      <h1 class="mb-md text-4xl font-bold text-text">{t.support.title}</h1>
+      <p class="text-lg text-text-light">{t.support.description}</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mx-auto mb-2xl max-w-2xl">
+      <div class="relative">
+        <input
+          type="text"
+          placeholder={t.support.searchPlaceholder}
+          class="w-full rounded-xl border border-border bg-surface py-lg pl-14 pr-lg text-text placeholder:text-text-lighter focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <svg class="absolute left-lg top-1/2 h-6 w-6 -translate-y-1/2 text-text-lighter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Popular Topics -->
+    <div class="mx-auto max-w-5xl">
+      <h2 class="mb-lg text-xl font-semibold text-text">{t.support.popularTopics}</h2>
+      <div class="grid gap-lg sm:grid-cols-2 lg:grid-cols-3">
+        {supportCategories.map((category) => (
+          <a
+            href={category.link}
+            class="group rounded-xl border border-border bg-surface p-lg transition-all hover:border-primary hover:shadow-lg"
+          >
+            <div class="mb-md flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">
+              {category.icon}
+            </div>
+            <h3 class="mb-sm font-semibold text-text group-hover:text-primary transition-colors">
+              {category.name}
+            </h3>
+            <p class="text-sm text-text-light">{category.description}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Contact Options -->
+    <div class="mx-auto mt-3xl max-w-4xl">
+      <h2 class="mb-lg text-center text-xl font-semibold text-text">{t.support.needMoreHelp}</h2>
+      <div class="grid gap-lg sm:grid-cols-3">
+        <!-- Email Support -->
+        <a href="/contact" class="group rounded-xl border border-border bg-surface p-lg text-center transition-all hover:border-primary hover:shadow-lg">
+          <div class="mx-auto mb-md flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-secondary/20">
+            <svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="mb-sm font-semibold text-text group-hover:text-primary transition-colors">
+            {t.support.emailSupport}
+          </h3>
+          <p class="text-sm text-text-light">{t.support.emailSupportDesc}</p>
+        </a>
+
+        <!-- Live Chat (Coming Soon) -->
+        <div class="relative rounded-xl border border-border bg-surface p-lg text-center opacity-60">
+          <div class="absolute right-md top-md rounded-full bg-accent/20 px-sm py-xs text-xs font-medium text-accent">
+            {locale === 'es' ? 'Próximamente' : 'Coming Soon'}
+          </div>
+          <div class="mx-auto mb-md flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-secondary/20">
+            <svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <h3 class="mb-sm font-semibold text-text">{t.support.liveChat}</h3>
+          <p class="text-sm text-text-light">{t.support.liveChatDesc}</p>
+        </div>
+
+        <!-- Phone Support -->
+        <a href="tel:+15551234567" class="group rounded-xl border border-border bg-surface p-lg text-center transition-all hover:border-primary hover:shadow-lg">
+          <div class="mx-auto mb-md flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-secondary/20">
+            <svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+          </div>
+          <h3 class="mb-sm font-semibold text-text group-hover:text-primary transition-colors">
+            {t.support.callUs}
+          </h3>
+          <p class="text-sm text-text-light">{t.support.callUsDesc}</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- FAQ Link -->
+    <div class="mx-auto mt-3xl max-w-2xl rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 p-xl text-center">
+      <h3 class="mb-md text-xl font-semibold text-text">{t.footer.faq}</h3>
+      <p class="mb-lg text-text-light">
+        {locale === 'es'
+          ? 'Encuentra respuestas rápidas a las preguntas más comunes'
+          : 'Find quick answers to the most common questions'}
+      </p>
+      <a
+        href="/faq"
+        class="inline-flex items-center gap-sm rounded-lg bg-primary px-lg py-sm font-medium text-white transition-colors hover:bg-primary-hover"
+      >
+        {locale === 'es' ? 'Ver Preguntas Frecuentes' : 'View FAQ'}
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</BaseLayout>

@@ -26,13 +26,13 @@ export const siteConfig = {
   /**
    * Site URL (should match astro.config.mjs site)
    */
-  url: 'https://mystic-ecom.pages.dev',
+  url: 'https://mystic-international.com',
 
   /**
    * Organization logo (absolute URL)
    * Should be a high-quality square image (recommended: 512x512px or larger)
    */
-  logo: 'https://mystic-ecom.pages.dev/logo.png',
+  logo: 'https://mystic-international.com/logo.png',
 
   /**
    * Contact email
@@ -80,8 +80,8 @@ export const siteConfig = {
   defaultSeo: {
     title: 'Mystic Ecommerce - Spiritual Growth & Wellness',
     description: 'Your premier destination for spiritual growth, mindfulness, and holistic wellness. Discover transformative courses, events, and products.',
-    keywords: 'spirituality, meditation, mindfulness, wellness, courses, events, spiritual growth',
-    ogImage: 'https://mystic-ecom.pages.dev/og-image.jpg',
+    keywords: 'spirituality, meditation, mindfulness, wellness, courses, events, spiritual growth, yoga, holistic health, spiritual awakening',
+    ogImage: 'https://mystic-international.com/images/og-default.svg',
   },
 } as const;
 

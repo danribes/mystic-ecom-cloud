@@ -121,10 +121,10 @@ export async function getOrderById(orderId: string, userId: string): Promise<Ord
   const pool = getPool();
 
   const result = await pool.query(
-    `SELECT 
-      o.id, o.user_id, o.status, o.subtotal, o.tax, o.total,
-      o.payment_intent_id, o.payment_method,
-      o.created_at, o.updated_at, o.completed_at,
+    `SELECT
+      o.id, o.user_id, o.status, o.total_amount,
+      o.stripe_payment_intent_id,
+      o.created_at, o.updated_at,
       u.email as user_email, u.name as user_name
      FROM orders o
      JOIN users u ON o.user_id = u.id
@@ -152,12 +152,18 @@ export async function getOrderById(orderId: string, userId: string): Promise<Ord
 
   // Get order items
   const itemsResult = await pool.query(
-    `SELECT id, item_type, item_id, item_title, item_slug, price, quantity
+    `SELECT id, item_type, course_id as item_id, title as item_title, price, quantity
      FROM order_items
      WHERE order_id = $1
      ORDER BY id`,
     [orderId]
   );
+
+  // Calculate totals from total_amount (stored as decimal, convert to cents)
+  const totalInCents = Math.round(parseFloat(orderRow.total_amount) * 100);
+  const taxRate = 0.08; // 8% tax
+  const subtotal = Math.round(totalInCents / (1 + taxRate));
+  const tax = totalInCents - subtotal;
 
   const order: Order = {
     id: orderRow.id,
@@ -165,15 +171,25 @@ export async function getOrderById(orderId: string, userId: string): Promise<Ord
     userEmail: orderRow.user_email,
     userName: orderRow.user_name,
     status: orderRow.status,
-    subtotal: orderRow.subtotal,
-    tax: orderRow.tax,
-    total: orderRow.total,
-    paymentIntentId: orderRow.payment_intent_id,
-    paymentMethod: orderRow.payment_method,
-    items: itemsResult.rows,
+    subtotal: subtotal,
+    tax: tax,
+    total: totalInCents,
+    paymentIntentId: orderRow.stripe_payment_intent_id,
+    items: itemsResult.rows.map((item: any) => {
+      const itemPrice = Math.round(parseFloat(item.price) * 100);
+      return {
+        id: item.id,
+        orderId: orderRow.id,
+        itemType: item.item_type,
+        itemId: item.item_id,
+        itemTitle: item.item_title,
+        price: itemPrice,
+        quantity: item.quantity,
+        subtotal: itemPrice * item.quantity,
+      };
+    }),
     createdAt: orderRow.created_at,
     updatedAt: orderRow.updated_at,
-    completedAt: orderRow.completed_at,
   };
 
   return order;

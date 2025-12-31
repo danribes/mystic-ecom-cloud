@@ -1,0 +1,137 @@
+---
+/**
+ * Refund Policy Page
+ *
+ * Displays the refund policy with all sections.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getTranslations } from '../i18n';
+
+const locale = Astro.locals.locale || 'es';
+const t = getTranslations(locale);
+
+const lastUpdated = 'December 1, 2024';
+const sections = [
+  'coursesRefund',
+  'eventsRefund',
+  'digitalProducts',
+  'howToRequest',
+  'processing',
+  'exceptions'
+] as const;
+---
+
+<BaseLayout title={t.legal.refunds.title} description={t.legal.refunds.description}>
+  <div class="container py-2xl">
+    <div class="mx-auto max-w-3xl">
+      <!-- Header -->
+      <div class="mb-2xl">
+        <h1 class="mb-md text-4xl font-bold text-text">{t.legal.refunds.title}</h1>
+        <p class="text-sm text-text-lighter">
+          {t.legal.lastUpdated}: {lastUpdated}
+        </p>
+      </div>
+
+      <!-- Highlight Box -->
+      <div class="mb-2xl rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-lg">
+        <div class="flex items-start gap-md">
+          <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-xl">
+            ✅
+          </div>
+          <div>
+            <h3 class="font-semibold text-green-800">
+              {locale === 'es' ? 'Garantía de 30 Días' : '30-Day Money-Back Guarantee'}
+            </h3>
+            <p class="text-sm text-green-700">
+              {locale === 'es'
+                ? 'Ofrecemos una garantía de devolución de dinero de 30 días en todos los cursos. Tu satisfacción es nuestra prioridad.'
+                : 'We offer a 30-day money-back guarantee on all courses. Your satisfaction is our priority.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Introduction -->
+      <div class="mb-2xl rounded-xl bg-surface-hover/50 p-lg">
+        <p class="text-text-light leading-relaxed">{t.legal.refunds.introduction}</p>
+      </div>
+
+      <!-- Table of Contents -->
+      <nav class="mb-2xl rounded-xl border border-border bg-surface p-lg">
+        <h2 class="mb-md font-semibold text-text">
+          {locale === 'es' ? 'Tabla de Contenidos' : 'Table of Contents'}
+        </h2>
+        <ol class="list-decimal space-y-sm pl-lg text-sm">
+          {sections.map((section, index) => (
+            <li>
+              <a href={`#section-${index + 1}`} class="text-primary hover:underline">
+                {t.legal.refunds.sections[section].title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <!-- Sections -->
+      <div class="space-y-2xl">
+        {sections.map((section, index) => (
+          <section id={`section-${index + 1}`} class="scroll-mt-24">
+            <h2 class="mb-md text-xl font-semibold text-text">
+              {index + 1}. {t.legal.refunds.sections[section].title}
+            </h2>
+            <p class="text-text-light leading-relaxed">
+              {t.legal.refunds.sections[section].content}
+            </p>
+          </section>
+        ))}
+      </div>
+
+      <!-- Contact CTA -->
+      <div class="mt-3xl rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 p-xl text-center">
+        <h3 class="mb-md text-xl font-semibold text-text">
+          {locale === 'es' ? '¿Necesitas solicitar un reembolso?' : 'Need to request a refund?'}
+        </h3>
+        <p class="mb-lg text-text-light">
+          {locale === 'es'
+            ? 'Nuestro equipo de soporte está aquí para ayudarte.'
+            : 'Our support team is here to help you.'}
+        </p>
+        <a
+          href="/contact"
+          class="inline-flex items-center gap-sm rounded-lg bg-primary px-lg py-sm font-medium text-white transition-colors hover:bg-primary-hover"
+        >
+          {t.contact.title}
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Back to top -->
+      <div class="mt-2xl text-center">
+        <a href="#" class="inline-flex items-center gap-sm text-primary hover:underline">
+          <svg class="h-5 w-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+          {locale === 'es' ? 'Volver arriba' : 'Back to top'}
+        </a>
+      </div>
+
+      <!-- Related Links -->
+      <div class="mt-2xl rounded-xl border border-border bg-surface p-lg">
+        <h3 class="mb-md font-semibold text-text">
+          {locale === 'es' ? 'Documentos Relacionados' : 'Related Documents'}
+        </h3>
+        <div class="flex flex-wrap gap-md">
+          <a href="/terms" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.terms.title}
+          </a>
+          <a href="/privacy" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.privacy.title}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

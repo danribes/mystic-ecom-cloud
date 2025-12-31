@@ -1,0 +1,104 @@
+---
+/**
+ * Terms of Service Page
+ *
+ * Displays the terms of service with all sections.
+ */
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getTranslations } from '../i18n';
+
+const locale = Astro.locals.locale || 'es';
+const t = getTranslations(locale);
+
+const lastUpdated = 'December 1, 2024';
+const sections = [
+  'acceptance',
+  'accountResponsibility',
+  'contentOwnership',
+  'userConduct',
+  'purchases',
+  'refunds',
+  'limitation',
+  'termination',
+  'changes',
+  'contact'
+] as const;
+---
+
+<BaseLayout title={t.legal.terms.title} description={t.legal.terms.description}>
+  <div class="container py-2xl">
+    <div class="mx-auto max-w-3xl">
+      <!-- Header -->
+      <div class="mb-2xl">
+        <h1 class="mb-md text-4xl font-bold text-text">{t.legal.terms.title}</h1>
+        <p class="text-sm text-text-lighter">
+          {t.legal.lastUpdated}: {lastUpdated}
+        </p>
+      </div>
+
+      <!-- Introduction -->
+      <div class="mb-2xl rounded-xl bg-surface-hover/50 p-lg">
+        <p class="text-text-light leading-relaxed">{t.legal.terms.introduction}</p>
+      </div>
+
+      <!-- Table of Contents -->
+      <nav class="mb-2xl rounded-xl border border-border bg-surface p-lg">
+        <h2 class="mb-md font-semibold text-text">
+          {locale === 'es' ? 'Tabla de Contenidos' : 'Table of Contents'}
+        </h2>
+        <ol class="list-decimal space-y-sm pl-lg text-sm">
+          {sections.map((section, index) => (
+            <li>
+              <a href={`#section-${index + 1}`} class="text-primary hover:underline">
+                {t.legal.terms.sections[section].title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <!-- Sections -->
+      <div class="space-y-2xl">
+        {sections.map((section, index) => (
+          <section id={`section-${index + 1}`} class="scroll-mt-24">
+            <h2 class="mb-md text-xl font-semibold text-text">
+              {index + 1}. {t.legal.terms.sections[section].title}
+            </h2>
+            <p class="text-text-light leading-relaxed">
+              {t.legal.terms.sections[section].content}
+            </p>
+          </section>
+        ))}
+      </div>
+
+      <!-- Back to top -->
+      <div class="mt-3xl text-center">
+        <a href="#" class="inline-flex items-center gap-sm text-primary hover:underline">
+          <svg class="h-5 w-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+          {locale === 'es' ? 'Volver arriba' : 'Back to top'}
+        </a>
+      </div>
+
+      <!-- Related Links -->
+      <div class="mt-2xl rounded-xl border border-border bg-surface p-lg">
+        <h3 class="mb-md font-semibold text-text">
+          {locale === 'es' ? 'Documentos Relacionados' : 'Related Documents'}
+        </h3>
+        <div class="flex flex-wrap gap-md">
+          <a href="/privacy" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.privacy.title}
+          </a>
+          <a href="/cookies" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.cookies.title}
+          </a>
+          <a href="/refunds" class="rounded-lg bg-primary/10 px-md py-sm text-sm text-primary hover:bg-primary/20 transition-colors">
+            {t.legal.refunds.title}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
