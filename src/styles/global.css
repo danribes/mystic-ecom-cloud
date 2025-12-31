@@ -527,35 +527,6 @@ select[required] + label::after {
   }
 }
 
-/* Dark Theme Background Overrides
-   Override bg-white and bg-gray-* to use dark theme colors
-   while preserving text-white and text-gray-* for proper contrast */
-@layer utilities {
-  .bg-white {
-    background-color: var(--color-surface) !important;
-  }
-  .bg-gray-50 {
-    background-color: var(--color-surface) !important;
-  }
-  .bg-gray-100 {
-    background-color: var(--color-surface) !important;
-  }
-  .bg-gray-200 {
-    background-color: var(--color-surface-dark) !important;
-  }
-  .bg-gray-300 {
-    background-color: var(--color-border) !important;
-  }
-  .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-    border-color: var(--color-border) !important;
-  }
-  .border-gray-200 {
-    border-color: var(--color-border) !important;
-  }
-  .border-gray-300 {
-    border-color: var(--color-border) !important;
-  }
-}
 
 /* Print Accessibility */
 @media print {
@@ -634,4 +605,40 @@ select[required] + label::after {
     min-width: 48px;
     min-height: 48px;
   }
+}
+
+/* ===========================================
+   Dark Theme Background Overrides
+   Must be at the end to override Tailwind utilities.
+   Only affects background colors, not text colors.
+   =========================================== */
+.bg-white {
+  background-color: var(--color-surface) !important;
+}
+.bg-gray-50 {
+  background-color: var(--color-surface) !important;
+}
+.bg-gray-100 {
+  background-color: var(--color-surface) !important;
+}
+.bg-gray-200 {
+  background-color: var(--color-surface-dark) !important;
+}
+.bg-gray-300 {
+  background-color: var(--color-border) !important;
+}
+.divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--color-border) !important;
+}
+.border-gray-200 {
+  border-color: var(--color-border) !important;
+}
+.border-gray-300 {
+  border-color: var(--color-border) !important;
+}
+.hover\:bg-gray-50:hover {
+  background-color: var(--color-surface-dark) !important;
+}
+.hover\:bg-gray-100:hover {
+  background-color: var(--color-surface-dark) !important;
 }
