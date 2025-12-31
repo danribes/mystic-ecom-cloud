@@ -27,7 +27,7 @@ export const siteConfig = {
    * Site URL (should match astro.config.mjs site)
    * Uses environment variable or defaults to Cloudflare Pages URL
    */
-  url: import.meta.env.PUBLIC_SITE_URL || 'https://mystic-ecom-cloud.pages.dev',
+  url: import.meta.env.PUBLIC_SITE_URL || 'https://mystic-ecom.pages.dev',
 
   /**
    * Organization logo (relative path - will be combined with site URL)
