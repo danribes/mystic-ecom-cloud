@@ -614,6 +614,10 @@ select[required] + label::after {
   color: transparent;
 }
 
+.cta-gradient {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   :root {
