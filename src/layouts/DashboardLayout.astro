@@ -54,9 +54,9 @@ const navItems = [
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-background">
     <!-- Mobile header -->
-    <div class="lg:hidden bg-white border-b border-gray-200">
+    <div class="lg:hidden bg-surface border-b border-border">
       <div class="flex items-center justify-between px-4 py-3">
         <a href="/" class="flex items-center gap-2 text-xl font-semibold text-primary">
           <img src="/images/logo.png" alt="Mystic International" width="29" height="32" class="h-8 w-auto object-contain" style="height: 32px; width: auto;" />
@@ -65,7 +65,7 @@ const navItems = [
         <button
           id="mobile-menu-toggle"
           type="button"
-          class="p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+          class="p-2 text-text-light hover:text-text focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
           aria-label="Toggle menu"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@ const navItems = [
     <!-- Mobile sidebar overlay -->
     <div
       id="mobile-sidebar-overlay"
-      class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 hidden lg:hidden"
+      class="fixed inset-0 bg-black bg-opacity-75 z-40 hidden lg:hidden"
       aria-hidden="true"
     ></div>
 
@@ -86,10 +86,10 @@ const navItems = [
       <!-- Sidebar -->
       <aside
         id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-surface border-r border-border transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static"
       >
         <!-- Logo -->
-        <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div class="flex items-center justify-between h-16 px-6 border-b border-border">
           <a href="/" class="flex items-center gap-2 text-xl font-semibold text-primary">
             <img src="/images/logo.png" alt="Mystic International" width="29" height="32" class="h-8 w-auto object-contain" style="height: 32px; width: auto;" />
             <span class="hidden xl:inline">Mystic International</span>
@@ -97,7 +97,7 @@ const navItems = [
           <button
             id="mobile-menu-close"
             type="button"
-            class="lg:hidden p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+            class="lg:hidden p-2 text-text-light hover:text-text focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
             aria-label="Close menu"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@ const navItems = [
         </div>
 
         <!-- User profile section -->
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-6 py-4 border-b border-border">
           <div class="flex items-center space-x-3">
             <div class="flex-shrink-0">
               {user.avatar ? (
@@ -121,8 +121,8 @@ const navItems = [
               )}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-              <p class="text-xs text-gray-500 truncate">{user.email}</p>
+              <p class="text-sm font-medium text-text truncate">{user.name}</p>
+              <p class="text-xs text-text-light truncate">{user.email}</p>
             </div>
           </div>
         </div>
@@ -137,8 +137,8 @@ const navItems = [
                 href={item.href}
                 class={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-primary/5 text-primary'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-text-light hover:bg-surface-dark hover:text-text'
                 }`}
               >
                 {/* Icon placeholders - replace with actual icons in production */}
@@ -157,12 +157,12 @@ const navItems = [
         </nav>
 
         <!-- Bottom actions -->
-        <div class="px-4 py-4 border-t border-gray-200 space-y-1">
+        <div class="px-4 py-4 border-t border-border space-y-1">
           {/* Admin Panel link - only visible to admin users */}
           {user.role === 'admin' && (
             <a
               href="/admin"
-              class="flex items-center px-3 py-2 text-sm font-medium text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors border border-primary/20"
+              class="flex items-center px-3 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors border border-primary/20"
             >
               <span class="mr-3 text-lg">🔧</span>
               Admin Panel
@@ -171,21 +171,21 @@ const navItems = [
           )}
           <a
             href="/courses"
-            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            class="flex items-center px-3 py-2 text-sm font-medium text-text-light rounded-lg hover:bg-surface-dark hover:text-text transition-colors"
           >
             <span class="mr-3 text-lg">🔍</span>
             Browse Courses
           </a>
           <a
             href="/support"
-            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            class="flex items-center px-3 py-2 text-sm font-medium text-text-light rounded-lg hover:bg-surface-dark hover:text-text transition-colors"
           >
             <span class="mr-3 text-lg">💬</span>
             Support
           </a>
           <a
             href="/login?force=true"
-            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            class="flex items-center px-3 py-2 text-sm font-medium text-text-light rounded-lg hover:bg-surface-dark hover:text-text transition-colors"
           >
             <span class="mr-3 text-lg">🔄</span>
             Switch Account
@@ -193,7 +193,7 @@ const navItems = [
           <form method="POST" action="/api/auth/logout">
             <button
               type="submit"
-              class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+              class="flex items-center w-full px-3 py-2 text-sm font-medium text-error rounded-lg hover:bg-error-light transition-colors"
             >
               <span class="mr-3 text-lg">🚪</span>
               Logout
@@ -205,11 +205,11 @@ const navItems = [
       <!-- Main content -->
       <main class="flex-1 lg:ml-0">
         <!-- Page header -->
-        <div class="bg-white border-b border-gray-200">
+        <div class="bg-surface border-b border-border">
           <div class="px-4 sm:px-6 lg:px-8 py-6">
-            <h1 class="text-2xl font-bold text-gray-900">{title}</h1>
+            <h1 class="text-2xl font-bold text-text">{title}</h1>
             {description && (
-              <p class="mt-1 text-sm text-gray-600">{description}</p>
+              <p class="mt-1 text-sm text-text-light">{description}</p>
             )}
           </div>
         </div>

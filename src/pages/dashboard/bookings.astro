@@ -1,0 +1,212 @@
+---
+/**
+ * User Dashboard - My Bookings Page
+ *
+ * Displays user's event bookings with status and details
+ */
+
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { getPool } from '@/lib/db';
+import { getSessionFromRequest } from '@/lib/auth/session';
+
+export const prerender = false;
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/login?redirect=/dashboard/bookings');
+}
+
+const userId = session.userId;
+const pool = getPool();
+
+// Fetch user's bookings
+let bookings = [];
+try {
+  const result = await pool.query(
+    `SELECT b.id, b.status, b.num_attendees, b.total_amount, b.created_at,
+            e.id as event_id, e.title as event_title, e.slug as event_slug,
+            e.event_date, e.start_time, e.end_time, e.location, e.thumbnail_url
+     FROM bookings b
+     JOIN events e ON b.event_id = e.id
+     WHERE b.user_id = $1
+     ORDER BY e.event_date DESC`,
+    [userId]
+  );
+  bookings = result.rows;
+} catch (error) {
+  console.error('[BOOKINGS] Error fetching bookings:', error);
+}
+
+// Separate upcoming and past bookings
+const now = new Date();
+const upcomingBookings = bookings.filter(b => new Date(b.event_date) >= now);
+const pastBookings = bookings.filter(b => new Date(b.event_date) < now);
+
+// Helper functions
+function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function formatTime(time: string): string {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'confirmed':
+      return 'bg-success-light text-success';
+    case 'pending':
+      return 'bg-warning-light text-warning';
+    case 'cancelled':
+      return 'bg-error-light text-error';
+    default:
+      return 'bg-surface-dark text-text-light';
+  }
+}
+---
+
+<DashboardLayout
+  title="My Bookings"
+  description="View your event bookings and reservations"
+>
+  {bookings.length === 0 ? (
+    <div class="bg-surface rounded-lg shadow p-12 text-center">
+      <div class="text-6xl mb-4">📅</div>
+      <h3 class="text-xl font-semibold text-text mb-2">No bookings yet</h3>
+      <p class="text-text-light mb-6">
+        You haven't booked any events yet. Explore our upcoming events and workshops!
+      </p>
+      <a
+        href="/events"
+        class="inline-flex items-center px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
+      >
+        Browse Events
+      </a>
+    </div>
+  ) : (
+    <div class="space-y-8">
+      <!-- Upcoming bookings -->
+      {upcomingBookings.length > 0 && (
+        <div>
+          <h2 class="text-xl font-bold text-text mb-4 flex items-center gap-2">
+            <span>📅</span> Upcoming Events
+          </h2>
+          <div class="space-y-4">
+            {upcomingBookings.map((booking) => (
+              <div class="bg-surface rounded-lg shadow overflow-hidden">
+                <div class="flex flex-col md:flex-row">
+                  <!-- Event thumbnail -->
+                  {booking.thumbnail_url && (
+                    <div class="md:w-48 h-32 md:h-auto flex-shrink-0">
+                      <img
+                        src={booking.thumbnail_url}
+                        alt={booking.event_title}
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <!-- Booking details -->
+                  <div class="flex-1 p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
+                      <div>
+                        <h3 class="text-lg font-semibold text-text">
+                          <a href={`/events/${booking.event_slug}`} class="hover:text-primary transition-colors">
+                            {booking.event_title}
+                          </a>
+                        </h3>
+                        <p class="text-sm text-text-light">Booking #{booking.id}</p>
+                      </div>
+                      <span class={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(booking.status)}`}>
+                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                      </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p class="text-text-lighter">Date</p>
+                        <p class="font-medium text-text">{formatDate(booking.event_date)}</p>
+                      </div>
+                      {booking.start_time && (
+                        <div>
+                          <p class="text-text-lighter">Time</p>
+                          <p class="font-medium text-text">
+                            {formatTime(booking.start_time)}
+                            {booking.end_time && ` - ${formatTime(booking.end_time)}`}
+                          </p>
+                        </div>
+                      )}
+                      {booking.location && (
+                        <div>
+                          <p class="text-text-lighter">Location</p>
+                          <p class="font-medium text-text">{booking.location}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p class="text-text-lighter">Attendees</p>
+                        <p class="font-medium text-text">{booking.num_attendees}</p>
+                      </div>
+                    </div>
+
+                    {booking.total_amount > 0 && (
+                      <div class="mt-4 pt-4 border-t border-border">
+                        <span class="text-lg font-bold text-text">{formatCurrency(booking.total_amount)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Past bookings -->
+      {pastBookings.length > 0 && (
+        <div>
+          <h2 class="text-xl font-bold text-text-light mb-4 flex items-center gap-2">
+            <span>📜</span> Past Events
+          </h2>
+          <div class="space-y-4 opacity-75">
+            {pastBookings.map((booking) => (
+              <div class="bg-surface rounded-lg shadow p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 class="font-semibold text-text">{booking.event_title}</h3>
+                    <p class="text-sm text-text-light">{formatDate(booking.event_date)}</p>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <span class={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(booking.status)}`}>
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    </span>
+                    {booking.total_amount > 0 && (
+                      <span class="font-bold text-text">{formatCurrency(booking.total_amount)}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+</DashboardLayout>

@@ -115,9 +115,9 @@ function getCourseStatus(course: any): string {
 
 // Helper function to get status color
 function getStatusColor(course: any): string {
-  if (course.completed) return 'text-green-600 bg-green-100';
-  if ((course.progress || 0) > 0) return 'text-blue-600 bg-blue-100';
-  return 'text-gray-600 bg-gray-100';
+  if (course.completed) return 'text-success bg-success-light';
+  if ((course.progress || 0) > 0) return 'text-info bg-info-light';
+  return 'text-text-light bg-surface-dark';
 }
 ---
 
@@ -127,26 +127,26 @@ function getStatusColor(course: any): string {
 >
   <!-- Stats overview -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-lg shadow p-4">
-      <p class="text-sm font-medium text-gray-600">Total Courses</p>
-      <p class="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+    <div class="bg-surface rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-text-light">Total Courses</p>
+      <p class="text-2xl font-bold text-text mt-1">{stats.total}</p>
     </div>
-    <div class="bg-white rounded-lg shadow p-4">
-      <p class="text-sm font-medium text-gray-600">In Progress</p>
-      <p class="text-2xl font-bold text-blue-600 mt-1">{stats.inProgress}</p>
+    <div class="bg-surface rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-text-light">In Progress</p>
+      <p class="text-2xl font-bold text-info mt-1">{stats.inProgress}</p>
     </div>
-    <div class="bg-white rounded-lg shadow p-4">
-      <p class="text-sm font-medium text-gray-600">Completed</p>
-      <p class="text-2xl font-bold text-green-600 mt-1">{stats.completed}</p>
+    <div class="bg-surface rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-text-light">Completed</p>
+      <p class="text-2xl font-bold text-success mt-1">{stats.completed}</p>
     </div>
-    <div class="bg-white rounded-lg shadow p-4">
-      <p class="text-sm font-medium text-gray-600">Not Started</p>
-      <p class="text-2xl font-bold text-gray-600 mt-1">{stats.notStarted}</p>
+    <div class="bg-surface rounded-lg shadow p-4">
+      <p class="text-sm font-medium text-text-light">Not Started</p>
+      <p class="text-2xl font-bold text-text-light mt-1">{stats.notStarted}</p>
     </div>
   </div>
 
   <!-- Filters and sorting -->
-  <div class="bg-white rounded-lg shadow p-4 mb-6">
+  <div class="bg-surface rounded-lg shadow p-4 mb-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <!-- Filter by status -->
       <div class="flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ function getStatusColor(course: any): string {
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'all'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-surface-dark text-text-light hover:bg-border'
           }`}
         >
           All Courses
@@ -165,7 +165,7 @@ function getStatusColor(course: any): string {
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'in-progress'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-surface-dark text-text-light hover:bg-border'
           }`}
         >
           In Progress
@@ -175,7 +175,7 @@ function getStatusColor(course: any): string {
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'completed'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-surface-dark text-text-light hover:bg-border'
           }`}
         >
           Completed
@@ -185,7 +185,7 @@ function getStatusColor(course: any): string {
           class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === 'not-started'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-surface-dark text-text-light hover:bg-border'
           }`}
         >
           Not Started
@@ -194,13 +194,13 @@ function getStatusColor(course: any): string {
 
       <!-- Sort options -->
       <div class="flex items-center gap-2">
-        <label for="sort" class="text-sm font-medium text-gray-700 whitespace-nowrap">
+        <label for="sort" class="text-sm font-medium text-text-light whitespace-nowrap">
           Sort by:
         </label>
         <select
           id="sort"
           name="sort"
-          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+          class="px-3 py-2 border border-border rounded-lg text-sm bg-surface-dark text-text focus:ring-2 focus:ring-primary focus:border-primary"
           onchange="window.location.href = `/dashboard/courses?status=${filterStatus}&sort=${this.value}`"
         >
           <option value="recent" selected={sortBy === 'recent'}>Recently Enrolled</option>
@@ -215,7 +215,7 @@ function getStatusColor(course: any): string {
   {courses.length > 0 ? (
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {courses.map((course) => (
-        <div class="bg-white rounded-lg shadow hover:shadow-xl transition-all overflow-hidden group">
+        <div class="bg-surface rounded-lg shadow hover:shadow-xl transition-all overflow-hidden group">
           {/* Course thumbnail */}
           <div class="relative">
             {course.thumbnail_url ? (
@@ -229,7 +229,7 @@ function getStatusColor(course: any): string {
                 <span class="text-6xl">🧘</span>
               </div>
             )}
-            
+
             {/* Status badge */}
             <div class="absolute top-4 right-4">
               <span class={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(course)}`}>
@@ -248,19 +248,19 @@ function getStatusColor(course: any): string {
             )}
 
             {/* Title */}
-            <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 class="text-lg font-bold text-text mb-2 line-clamp-2 group-hover:text-primary transition-colors">
               {course.title}
             </h3>
 
             {/* Description */}
             {course.description && (
-              <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+              <p class="text-sm text-text-light mb-4 line-clamp-2">
                 {course.description}
               </p>
             )}
 
             {/* Course meta */}
-            <div class="flex items-center gap-4 text-xs text-gray-500 mb-4">
+            <div class="flex items-center gap-4 text-xs text-text-light mb-4">
               {course.lesson_count && (
                 <div class="flex items-center gap-1">
                   <span>📹</span>
@@ -277,11 +277,11 @@ function getStatusColor(course: any): string {
 
             {/* Progress bar */}
             <div class="mb-4">
-              <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+              <div class="flex items-center justify-between text-xs text-text-light mb-2">
                 <span class="font-medium">Progress</span>
                 <span class="font-semibold">{Math.round(course.progress || 0)}%</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div class="w-full bg-surface-dark rounded-full h-2 overflow-hidden">
                 <div
                   class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all duration-500"
                   style={`width: ${course.progress || 0}%`}
@@ -290,7 +290,7 @@ function getStatusColor(course: any): string {
             </div>
 
             {/* Enrollment date */}
-            <p class="text-xs text-gray-500 mb-4">
+            <p class="text-xs text-text-light mb-4">
               Enrolled on {formatDate(course.enrolled_at)}
               {course.last_accessed_at && (
                 <span> • Last accessed {formatDate(course.last_accessed_at)}</span>
@@ -307,7 +307,7 @@ function getStatusColor(course: any): string {
               </a>
               <a
                 href={`/courses/${course.slug}`}
-                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                class="px-4 py-2 border border-border text-text-light rounded-lg hover:bg-surface-dark transition-colors text-sm font-medium"
                 title="View course details"
               >
                 ℹ️
@@ -319,7 +319,7 @@ function getStatusColor(course: any): string {
     </div>
   ) : (
     <!-- Empty state -->
-    <div class="bg-white rounded-lg shadow p-12 text-center">
+    <div class="bg-surface rounded-lg shadow p-12 text-center">
       <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
         <span class="text-4xl">
           {filterStatus === 'completed' ? '🎉' :
@@ -327,14 +327,14 @@ function getStatusColor(course: any): string {
            filterStatus === 'not-started' ? '🆕' : '📚'}
         </span>
       </div>
-      <h3 class="text-xl font-semibold text-gray-900 mb-2">
+      <h3 class="text-xl font-semibold text-text mb-2">
         {filterStatus === 'completed' ? 'No Completed Courses' :
          filterStatus === 'in-progress' ? 'No Courses In Progress' :
          filterStatus === 'not-started' ? 'All Courses Started!' :
          'No Courses Yet'}
       </h3>
-      <p class="text-gray-600 mb-6 max-w-md mx-auto">
-        {filterStatus === 'completed' 
+      <p class="text-text-light mb-6 max-w-md mx-auto">
+        {filterStatus === 'completed'
           ? 'Complete your enrolled courses to see them here'
           : filterStatus === 'in-progress'
           ? 'Start learning to see courses in progress'
@@ -365,10 +365,10 @@ function getStatusColor(course: any): string {
     <div class="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-primary/10">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h4 class="text-lg font-semibold text-gray-900 mb-1">
+          <h4 class="text-lg font-semibold text-text mb-1">
             Ready to Learn More?
           </h4>
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-text-light">
             Explore our full catalog of spiritual courses and continue your journey
           </p>
         </div>

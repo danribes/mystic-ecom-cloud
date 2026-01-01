@@ -1,0 +1,152 @@
+---
+/**
+ * User Dashboard - Order History Page
+ *
+ * Displays user's order history with status and details
+ */
+
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { getPool } from '@/lib/db';
+import { getSessionFromRequest } from '@/lib/auth/session';
+
+export const prerender = false;
+
+// Check authentication
+const session = await getSessionFromRequest(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/login?redirect=/dashboard/orders');
+}
+
+const userId = session.userId;
+const pool = getPool();
+
+// Fetch user's orders
+let orders = [];
+try {
+  const result = await pool.query(
+    `SELECT o.id, o.total_amount, o.status, o.created_at, o.updated_at,
+            COUNT(oi.id) as item_count,
+            json_agg(json_build_object(
+              'id', oi.id,
+              'product_type', oi.product_type,
+              'product_id', oi.product_id,
+              'product_name', oi.product_name,
+              'quantity', oi.quantity,
+              'unit_price', oi.unit_price
+            )) as items
+     FROM orders o
+     LEFT JOIN order_items oi ON o.id = oi.order_id
+     WHERE o.user_id = $1
+     GROUP BY o.id
+     ORDER BY o.created_at DESC`,
+    [userId]
+  );
+  orders = result.rows;
+} catch (error) {
+  console.error('[ORDERS] Error fetching orders:', error);
+}
+
+// Helper functions
+function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'completed':
+      return 'bg-success-light text-success';
+    case 'pending':
+      return 'bg-warning-light text-warning';
+    case 'payment_failed':
+      return 'bg-error-light text-error';
+    case 'refunded':
+      return 'bg-surface-dark text-text-light';
+    default:
+      return 'bg-surface-dark text-text-light';
+  }
+}
+---
+
+<DashboardLayout
+  title="Order History"
+  description="View your past purchases and order status"
+>
+  {orders.length === 0 ? (
+    <div class="bg-surface rounded-lg shadow p-12 text-center">
+      <div class="text-6xl mb-4">🧾</div>
+      <h3 class="text-xl font-semibold text-text mb-2">No orders yet</h3>
+      <p class="text-text-light mb-6">
+        You haven't made any purchases yet. Start exploring our courses and products!
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a
+          href="/courses"
+          class="inline-flex items-center px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
+        >
+          Browse Courses
+        </a>
+        <a
+          href="/products"
+          class="inline-flex items-center px-6 py-3 border-2 border-primary text-primary font-semibold rounded-lg hover:bg-primary/10 transition-colors"
+        >
+          View Products
+        </a>
+      </div>
+    </div>
+  ) : (
+    <div class="space-y-6">
+      {orders.map((order) => (
+        <div class="bg-surface rounded-lg shadow overflow-hidden">
+          <!-- Order header -->
+          <div class="px-6 py-4 border-b border-border flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-text-light">Order #{order.id}</p>
+              <p class="text-xs text-text-lighter">{formatDate(order.created_at)}</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(order.status)}`}>
+                {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+              </span>
+              <span class="text-lg font-bold text-text">{formatCurrency(order.total_amount)}</span>
+            </div>
+          </div>
+
+          <!-- Order items -->
+          <div class="px-6 py-4">
+            <div class="space-y-3">
+              {order.items && order.items[0] && order.items.map((item: any) => (
+                <div class="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">
+                      {item.product_type === 'course' ? '📚' :
+                       item.product_type === 'event' ? '🎟️' : '📦'}
+                    </span>
+                    <div>
+                      <p class="font-medium text-text">{item.product_name}</p>
+                      <p class="text-sm text-text-light">
+                        {item.product_type.charAt(0).toUpperCase() + item.product_type.slice(1)}
+                        {item.quantity > 1 && ` × ${item.quantity}`}
+                      </p>
+                    </div>
+                  </div>
+                  <span class="font-medium text-text">{formatCurrency(item.unit_price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</DashboardLayout>
