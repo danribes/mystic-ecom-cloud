@@ -91,9 +91,9 @@ function getGrowthIcon(growth: number): string {
 }
 
 function getGrowthClass(growth: number): string {
-  if (growth > 0) return 'text-green-600';
-  if (growth < 0) return 'text-red-600';
-  return 'text-gray-600';
+  if (growth > 0) return 'text-success';
+  if (growth < 0) return 'text-error';
+  return 'text-text-light';
 }
 ---
 
@@ -103,57 +103,57 @@ function getGrowthClass(growth: number): string {
 >
   <!-- Error Banner -->
   {error && (
-    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4" data-testid="error-banner">
+    <div class="mb-6 bg-error-light border border-error/30 rounded-lg p-4" data-testid="error-banner">
       <div class="flex items-center">
-        <span class="text-red-500 text-lg mr-2">⚠️</span>
+        <span class="text-error text-lg mr-2">⚠️</span>
         <div>
-          <h3 class="text-sm font-medium text-red-800">Error Loading Statistics</h3>
-          <p class="text-sm text-red-600 mt-1">{error}</p>
-          <p class="text-xs text-red-500 mt-2">Showing fallback data. Please check database connection.</p>
+          <h3 class="text-sm font-medium text-error">Error Loading Statistics</h3>
+          <p class="text-sm text-error/80 mt-1">{error}</p>
+          <p class="text-xs text-error/60 mt-2">Showing fallback data. Please check database connection.</p>
         </div>
       </div>
     </div>
   )}
 
   <!-- Quick Actions Bar -->
-  <div class="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+  <div class="mb-8 bg-surface rounded-lg shadow-sm border border-border p-4">
+    <h2 class="text-lg font-semibold text-text mb-4">Quick Actions</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <a 
-        href="/admin/courses/new" 
-        class="flex items-center justify-center p-4 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors group"
+      <a
+        href="/admin/courses/new"
+        class="flex items-center justify-center p-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors group"
         data-testid="quick-action-new-course"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">➕</span>
         <span class="font-medium">New Course</span>
       </a>
-      
-      <a 
-        href="/admin/orders?status=pending" 
-        class="flex items-center justify-center p-4 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors group"
+
+      <a
+        href="/admin/orders?status=pending"
+        class="flex items-center justify-center p-4 bg-warning/10 text-warning rounded-lg hover:bg-warning/20 transition-colors group"
         data-testid="quick-action-pending-orders"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">📋</span>
         <span class="font-medium">Pending Orders</span>
         {stats.overview.pendingOrders > 0 && (
-          <span class="ml-2 bg-orange-200 text-orange-800 text-xs font-bold px-2 py-1 rounded-full">
+          <span class="ml-2 bg-warning/20 text-warning text-xs font-bold px-2 py-1 rounded-full">
             {stats.overview.pendingOrders}
           </span>
         )}
       </a>
-      
-      <a 
-        href="/admin/analytics" 
-        class="flex items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors group"
+
+      <a
+        href="/admin/analytics"
+        class="flex items-center justify-center p-4 bg-info/10 text-info rounded-lg hover:bg-info/20 transition-colors group"
         data-testid="quick-action-analytics"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">📊</span>
         <span class="font-medium">Analytics</span>
       </a>
-      
+
       <a
         href="/admin/users"
-        class="flex items-center justify-center p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors group"
+        class="flex items-center justify-center p-4 bg-success/10 text-success rounded-lg hover:bg-success/20 transition-colors group"
         data-testid="quick-action-users"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">👥</span>
@@ -163,7 +163,7 @@ function getGrowthClass(growth: number): string {
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
       <a
         href="/admin/events"
-        class="flex items-center justify-center p-4 bg-pink-50 text-pink-700 rounded-lg hover:bg-pink-100 transition-colors group"
+        class="flex items-center justify-center p-4 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors group"
         data-testid="quick-action-events"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">📅</span>
@@ -172,7 +172,7 @@ function getGrowthClass(growth: number): string {
 
       <a
         href="/admin/products"
-        class="flex items-center justify-center p-4 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors group"
+        class="flex items-center justify-center p-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors group"
         data-testid="quick-action-products"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">🛍️</span>
@@ -181,7 +181,7 @@ function getGrowthClass(growth: number): string {
 
       <a
         href="/admin/orders"
-        class="flex items-center justify-center p-4 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors group"
+        class="flex items-center justify-center p-4 bg-warning/10 text-warning rounded-lg hover:bg-warning/20 transition-colors group"
         data-testid="quick-action-orders"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">📦</span>
@@ -190,7 +190,7 @@ function getGrowthClass(growth: number): string {
 
       <a
         href="/courses"
-        class="flex items-center justify-center p-4 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
+        class="flex items-center justify-center p-4 bg-surface-dark text-text-light rounded-lg hover:bg-border transition-colors group"
         data-testid="quick-action-view-site"
       >
         <span class="text-2xl mr-2 group-hover:scale-110 transition-transform">🌐</span>
@@ -202,12 +202,12 @@ function getGrowthClass(growth: number): string {
   <!-- Overview Stats Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Courses -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="stat-total-courses">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6" data-testid="stat-total-courses">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600">Total Courses</p>
-          <p class="text-3xl font-bold text-gray-900">{stats.overview.totalCourses}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-sm font-medium text-text-light">Total Courses</p>
+          <p class="text-3xl font-bold text-text">{stats.overview.totalCourses}</p>
+          <p class="text-sm text-text-light mt-1">
             {stats.overview.publishedCourses} published
           </p>
         </div>
@@ -215,19 +215,19 @@ function getGrowthClass(growth: number): string {
       </div>
       {stats.trends.newCoursesThisMonth > 0 && (
         <div class="mt-4 flex items-center text-sm">
-          <span class="text-green-600">+{stats.trends.newCoursesThisMonth}</span>
-          <span class="text-gray-500 ml-1">this month</span>
+          <span class="text-success">+{stats.trends.newCoursesThisMonth}</span>
+          <span class="text-text-light ml-1">this month</span>
         </div>
       )}
     </div>
 
     <!-- Total Users -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="stat-total-users">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6" data-testid="stat-total-users">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600">Total Users</p>
-          <p class="text-3xl font-bold text-gray-900">{stats.overview.totalUsers}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-sm font-medium text-text-light">Total Users</p>
+          <p class="text-3xl font-bold text-text">{stats.overview.totalUsers}</p>
+          <p class="text-sm text-text-light mt-1">
             Registered learners
           </p>
         </div>
@@ -239,7 +239,7 @@ function getGrowthClass(growth: number): string {
             {getGrowthIcon(stats.trends.growthMetrics.userGrowth)}
             +{stats.trends.newUsersThisMonth}
           </span>
-          <span class="text-gray-500 ml-1">this month</span>
+          <span class="text-text-light ml-1">this month</span>
           {stats.trends.growthMetrics.userGrowth !== 0 && (
             <span class={`ml-2 text-xs ${getGrowthClass(stats.trends.growthMetrics.userGrowth)}`}>
               ({stats.trends.growthMetrics.userGrowth > 0 ? '+' : ''}{stats.trends.growthMetrics.userGrowth.toFixed(1)}%)
@@ -250,12 +250,12 @@ function getGrowthClass(growth: number): string {
     </div>
 
     <!-- Total Orders -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="stat-total-orders">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6" data-testid="stat-total-orders">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600">Total Orders</p>
-          <p class="text-3xl font-bold text-gray-900">{stats.overview.totalOrders}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-sm font-medium text-text-light">Total Orders</p>
+          <p class="text-3xl font-bold text-text">{stats.overview.totalOrders}</p>
+          <p class="text-sm text-text-light mt-1">
             {stats.overview.pendingOrders} pending
           </p>
         </div>
@@ -263,19 +263,19 @@ function getGrowthClass(growth: number): string {
       </div>
       {stats.trends.ordersThisMonth > 0 && (
         <div class="mt-4 flex items-center text-sm">
-          <span class="text-blue-600">+{stats.trends.ordersThisMonth}</span>
-          <span class="text-gray-500 ml-1">this month</span>
+          <span class="text-info">+{stats.trends.ordersThisMonth}</span>
+          <span class="text-text-light ml-1">this month</span>
         </div>
       )}
     </div>
 
     <!-- Total Revenue -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="stat-total-revenue">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6" data-testid="stat-total-revenue">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-          <p class="text-3xl font-bold text-gray-900">{formatCurrency(stats.overview.totalRevenue)}</p>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-sm font-medium text-text-light">Total Revenue</p>
+          <p class="text-3xl font-bold text-text">{formatCurrency(stats.overview.totalRevenue)}</p>
+          <p class="text-sm text-text-light mt-1">
             All time earnings
           </p>
         </div>
@@ -287,7 +287,7 @@ function getGrowthClass(growth: number): string {
             {getGrowthIcon(stats.trends.growthMetrics.revenueGrowth)}
             {formatCurrency(stats.trends.revenueThisMonth)}
           </span>
-          <span class="text-gray-500 ml-1">this month</span>
+          <span class="text-text-light ml-1">this month</span>
           {stats.trends.growthMetrics.revenueGrowth !== 0 && (
             <span class={`ml-2 text-xs ${getGrowthClass(stats.trends.growthMetrics.revenueGrowth)}`}>
               ({stats.trends.growthMetrics.revenueGrowth > 0 ? '+' : ''}{stats.trends.growthMetrics.revenueGrowth.toFixed(1)}%)
@@ -301,45 +301,45 @@ function getGrowthClass(growth: number): string {
   <!-- Content Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Recent Orders -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Recent Orders</h3>
-        <a 
-          href="/admin/orders" 
+        <h3 class="text-lg font-semibold text-text">Recent Orders</h3>
+        <a
+          href="/admin/orders"
           class="text-sm text-primary hover:text-primary-dark font-medium"
           data-testid="view-all-orders"
         >
           View all →
         </a>
       </div>
-      
+
       {stats.recentActivity.recentOrders.length > 0 ? (
         <div class="space-y-3" data-testid="recent-orders-list">
           {stats.recentActivity.recentOrders.map((order) => (
-            <div key={order.id} class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div key={order.id} class="flex items-center justify-between p-3 bg-surface-dark rounded-lg">
               <div class="flex-1">
                 <div class="flex items-center space-x-2">
-                  <span class="font-medium text-gray-900">{order.userEmail}</span>
+                  <span class="font-medium text-text">{order.userEmail}</span>
                   <span class={`px-2 py-1 text-xs font-medium rounded-full ${
-                    order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
+                    order.status === 'completed' ? 'bg-success-light text-success' :
+                    order.status === 'pending' ? 'bg-warning-light text-warning' :
+                    'bg-surface-dark text-text-light'
                   }`}>
                     {order.status}
                   </span>
                 </div>
-                <div class="text-sm text-gray-500 mt-1">
+                <div class="text-sm text-text-light mt-1">
                   {order.itemCount} item{order.itemCount !== 1 ? 's' : ''} • {formatDate(order.createdAt)}
                 </div>
               </div>
               <div class="text-right">
-                <div class="font-semibold text-gray-900">{formatCurrency(order.totalAmount)}</div>
+                <div class="font-semibold text-text">{formatCurrency(order.totalAmount)}</div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div class="text-center py-8 text-gray-500" data-testid="no-recent-orders">
+        <div class="text-center py-8 text-text-light" data-testid="no-recent-orders">
           <span class="text-4xl">📋</span>
           <p class="mt-2">No recent orders</p>
         </div>
@@ -347,39 +347,39 @@ function getGrowthClass(growth: number): string {
     </div>
 
     <!-- Recent Users -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Recent Users</h3>
-        <a 
-          href="/admin/users" 
+        <h3 class="text-lg font-semibold text-text">Recent Users</h3>
+        <a
+          href="/admin/users"
           class="text-sm text-primary hover:text-primary-dark font-medium"
           data-testid="view-all-users"
         >
           View all →
         </a>
       </div>
-      
+
       {stats.recentActivity.recentUsers.length > 0 ? (
         <div class="space-y-3" data-testid="recent-users-list">
           {stats.recentActivity.recentUsers.map((user) => (
-            <div key={user.id} class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <div key={user.id} class="flex items-center space-x-3 p-3 bg-surface-dark rounded-lg">
               <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <span class="text-primary font-semibold text-sm">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div class="flex-1">
-                <div class="font-medium text-gray-900">{user.name}</div>
-                <div class="text-sm text-gray-500">{user.email}</div>
+                <div class="font-medium text-text">{user.name}</div>
+                <div class="text-sm text-text-light">{user.email}</div>
               </div>
-              <div class="text-xs text-gray-400">
+              <div class="text-xs text-text-light">
                 {formatDate(user.createdAt)}
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div class="text-center py-8 text-gray-500" data-testid="no-recent-users">
+        <div class="text-center py-8 text-text-light" data-testid="no-recent-users">
           <span class="text-4xl">👥</span>
           <p class="mt-2">No recent users</p>
         </div>
@@ -387,41 +387,41 @@ function getGrowthClass(growth: number): string {
     </div>
 
     <!-- Top Courses -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Top Courses</h3>
-        <a 
-          href="/admin/courses" 
+        <h3 class="text-lg font-semibold text-text">Top Courses</h3>
+        <a
+          href="/admin/courses"
           class="text-sm text-primary hover:text-primary-dark font-medium"
           data-testid="view-all-courses"
         >
           Manage →
         </a>
       </div>
-      
+
       {stats.courseStats.topCourses.length > 0 ? (
         <div class="space-y-3" data-testid="top-courses-list">
           {stats.courseStats.topCourses.map((course, index) => (
-            <div key={course.id} class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div key={course.id} class="flex items-center justify-between p-3 bg-surface-dark rounded-lg">
               <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
                   {index + 1}
                 </div>
                 <div>
-                  <div class="font-medium text-gray-900">{course.title}</div>
-                  <div class="text-sm text-gray-500">
+                  <div class="font-medium text-text">{course.title}</div>
+                  <div class="text-sm text-text-light">
                     {course.enrollments} enrollment{course.enrollments !== 1 ? 's' : ''}
                   </div>
                 </div>
               </div>
               <div class="text-right">
-                <div class="font-semibold text-gray-900">{formatCurrency(course.revenue)}</div>
+                <div class="font-semibold text-text">{formatCurrency(course.revenue)}</div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div class="text-center py-8 text-gray-500" data-testid="no-courses">
+        <div class="text-center py-8 text-text-light" data-testid="no-courses">
           <span class="text-4xl">📚</span>
           <p class="mt-2">No courses yet</p>
           <a href="/admin/courses/new" class="mt-2 text-sm text-primary hover:text-primary-dark">
@@ -432,22 +432,22 @@ function getGrowthClass(growth: number): string {
     </div>
 
     <!-- Course Categories -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">Course Categories</h3>
-      
+    <div class="bg-surface rounded-lg shadow-sm border border-border p-6">
+      <h3 class="text-lg font-semibold text-text mb-4">Course Categories</h3>
+
       {stats.courseStats.coursesByCategory.length > 0 ? (
         <div class="space-y-3" data-testid="course-categories-list">
           {stats.courseStats.coursesByCategory.map((category) => (
             <div key={category.category} class="flex items-center justify-between">
-              <span class="text-gray-700 capitalize">{category.category}</span>
-              <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+              <span class="text-text capitalize">{category.category}</span>
+              <span class="bg-surface-dark text-text-light px-3 py-1 rounded-full text-sm font-medium">
                 {category.count}
               </span>
             </div>
           ))}
         </div>
       ) : (
-        <div class="text-center py-8 text-gray-500" data-testid="no-categories">
+        <div class="text-center py-8 text-text-light" data-testid="no-categories">
           <span class="text-4xl">🏷️</span>
           <p class="mt-2">No categories yet</p>
         </div>
@@ -459,19 +459,19 @@ function getGrowthClass(growth: number): string {
   <div class="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-primary/20">
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">Admin Tools</h3>
-        <p class="text-sm text-gray-600 mt-1">Manage your platform and content</p>
+        <h3 class="text-lg font-semibold text-text">Admin Tools</h3>
+        <p class="text-sm text-text-light mt-1">Manage your platform and content</p>
       </div>
       <div class="flex space-x-3">
-        <a 
-          href="/admin/settings" 
-          class="bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium"
+        <a
+          href="/admin/settings"
+          class="bg-surface text-text-light px-4 py-2 rounded-lg border border-border hover:bg-surface-dark transition-colors text-sm font-medium"
           data-testid="admin-settings"
         >
           ⚙️ Settings
         </a>
-        <a 
-          href="/admin/analytics" 
+        <a
+          href="/admin/analytics"
           class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
           data-testid="admin-analytics"
         >
@@ -504,7 +504,7 @@ function getGrowthClass(growth: number): string {
       if (!document.hidden && document.hasFocus()) {
         // Subtle indication of refresh (optional)
         const refreshIndicator = document.createElement('div');
-        refreshIndicator.className = 'fixed top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs z-50';
+        refreshIndicator.className = 'fixed top-4 right-4 bg-success text-white px-3 py-1 rounded-full text-xs z-50';
         refreshIndicator.textContent = '📊 Updated';
         document.body.appendChild(refreshIndicator);
         

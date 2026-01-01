@@ -104,20 +104,20 @@ const quickActions = [
     <!-- Admin-specific styles -->
     <style>
       .admin-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--color-background);
       }
-      
+
       .admin-card {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--color-surface);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid var(--color-border);
       }
-      
+
       .admin-nav-item:hover {
         transform: translateX(4px);
         transition: all 0.2s ease;
       }
-      
+
       .admin-badge {
         background: linear-gradient(45deg, #ff6b6b, #ee5a24);
         color: white;
@@ -130,9 +130,9 @@ const quickActions = [
       }
     </style>
   </head>
-  <body class="bg-gray-100 admin-gradient">
+  <body class="bg-background admin-gradient">
     <!-- Mobile header -->
-    <div class="lg:hidden bg-white/90 backdrop-blur-md border-b border-white/20 shadow-lg">
+    <div class="lg:hidden bg-surface border-b border-border shadow-lg">
       <div class="flex items-center justify-between px-4 py-3">
         <div class="flex items-center space-x-3">
           <a href="/admin" class="flex items-center gap-2 text-xl font-bold text-primary">
@@ -165,10 +165,10 @@ const quickActions = [
       <!-- Admin Sidebar -->
       <aside
         id="admin-sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-72 admin-card border-r border-white/30 transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static shadow-2xl"
+        class="fixed inset-y-0 left-0 z-50 w-72 admin-card border-r border-border transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static shadow-2xl"
       >
         <!-- Admin Logo & Brand -->
-        <div class="flex items-center justify-between h-16 px-6 border-b border-white/20 admin-gradient">
+        <div class="flex items-center justify-between h-16 px-6 border-b border-border bg-primary">
           <div class="flex items-center space-x-3">
             <a href="/admin" class="text-xl font-bold text-white flex items-center space-x-2">
               <img src="/images/logo.png" alt="Mystic International" width="29" height="32" class="h-8 w-auto object-contain" style="height: 32px; width: auto;" />
@@ -178,7 +178,7 @@ const quickActions = [
           <button
             id="mobile-menu-close"
             type="button"
-            class="lg:hidden p-2 text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-lg transition-colors"
+            class="lg:hidden p-2 text-white hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-lg transition-colors"
             aria-label="Close admin menu"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +188,7 @@ const quickActions = [
         </div>
 
         <!-- Admin User Profile Section -->
-        <div class="px-6 py-4 border-b border-white/20">
+        <div class="px-6 py-4 border-b border-border">
           <div class="flex items-center space-x-3">
             <div class="flex-shrink-0">
               {user.avatar ? (
@@ -203,17 +203,17 @@ const quickActions = [
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-2">
-                <p class="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+                <p class="text-sm font-semibold text-text truncate">{user.name}</p>
                 <span class="admin-badge">ADMIN</span>
               </div>
-              <p class="text-xs text-gray-600 truncate">{user.email}</p>
+              <p class="text-xs text-text-light truncate">{user.email}</p>
             </div>
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="px-6 py-3 border-b border-white/20">
-          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Quick Actions</h3>
+        <div class="px-6 py-3 border-b border-border">
+          <h3 class="text-xs font-semibold text-text-light uppercase tracking-wider mb-2">Quick Actions</h3>
           <div class="flex flex-wrap gap-2">
             {quickActions.map((action) => (
               <a
@@ -230,19 +230,19 @@ const quickActions = [
 
         <!-- Admin Navigation -->
         <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+          <h3 class="text-xs font-semibold text-text-light uppercase tracking-wider mb-3 px-3">
             Administration
           </h3>
           {adminNavItems.map((item) => {
-            const isActive = currentPath === item.href || 
+            const isActive = currentPath === item.href ||
                            (item.href !== '/admin' && currentPath.startsWith(item.href));
             return (
               <a
                 href={item.href}
                 class={`admin-nav-item flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-primary/10 text-primary-dark shadow-md border border-primary/20'
-                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900 hover:shadow-sm'
+                    ? 'bg-primary/10 text-primary shadow-md border border-primary/20'
+                    : 'text-text-light hover:bg-surface-dark hover:text-text hover:shadow-sm'
                 }`}
                 data-testid={`admin-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
               >
@@ -258,7 +258,7 @@ const quickActions = [
                 }</span>
                 <div class="flex-1">
                   <div class="font-medium">{item.label}</div>
-                  <div class="text-xs text-gray-500 group-hover:text-gray-600">
+                  <div class="text-xs text-text-lighter group-hover:text-text-light">
                     {item.description}
                   </div>
                 </div>
@@ -271,48 +271,48 @@ const quickActions = [
         </nav>
 
         <!-- Bottom Admin Actions -->
-        <div class="px-4 py-4 border-t border-white/20 space-y-1">
+        <div class="px-4 py-4 border-t border-border space-y-1">
           <a
             href="/dashboard"
-            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-white/80 hover:text-gray-900 transition-colors"
+            class="flex items-center px-3 py-2 text-sm font-medium text-text-light rounded-lg hover:bg-surface-dark hover:text-text transition-colors"
             data-testid="admin-user-dashboard"
           >
             <span class="mr-3 text-lg">👤</span>
             <div>
               <div>User Dashboard</div>
-              <div class="text-xs text-gray-500">Switch to User View</div>
+              <div class="text-xs text-text-lighter">Switch to User View</div>
             </div>
           </a>
           <a
             href="/support"
-            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-white/80 hover:text-gray-900 transition-colors"
+            class="flex items-center px-3 py-2 text-sm font-medium text-text-light rounded-lg hover:bg-surface-dark hover:text-text transition-colors"
           >
             <span class="mr-3 text-lg">💬</span>
             <div>
               <div>Support</div>
-              <div class="text-xs text-gray-500">Get Help</div>
+              <div class="text-xs text-text-lighter">Get Help</div>
             </div>
           </a>
           <a
             href="/login?force=true"
-            class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-white/80 hover:text-gray-900 transition-colors"
+            class="flex items-center px-3 py-2 text-sm font-medium text-text-light rounded-lg hover:bg-surface-dark hover:text-text transition-colors"
           >
             <span class="mr-3 text-lg">🔄</span>
             <div>
               <div>Switch Account</div>
-              <div class="text-xs text-gray-500">Login as Different User</div>
+              <div class="text-xs text-text-lighter">Login as Different User</div>
             </div>
           </a>
           <form method="POST" action="/api/auth/logout">
             <button
               type="submit"
-              class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+              class="flex items-center w-full px-3 py-2 text-sm font-medium text-error rounded-lg hover:bg-error-light transition-colors"
               data-testid="admin-logout"
             >
               <span class="mr-3 text-lg">🚪</span>
               <div class="text-left">
                 <div>Logout</div>
-                <div class="text-xs text-red-400">End Admin Session</div>
+                <div class="text-xs text-error/70">End Admin Session</div>
               </div>
             </button>
           </form>
@@ -322,34 +322,34 @@ const quickActions = [
       <!-- Main Admin Content -->
       <main class="flex-1 lg:ml-0">
         <!-- Admin Page Header -->
-        <div class="bg-white/90 backdrop-blur-md border-b border-white/20 shadow-sm">
+        <div class="bg-surface border-b border-border shadow-sm">
           <div class="px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex items-center justify-between">
               <div>
                 <div class="flex items-center space-x-3">
-                  <h1 class="text-2xl font-bold text-gray-900" data-testid="admin-page-title">
+                  <h1 class="text-2xl font-bold text-text" data-testid="admin-page-title">
                     {title}
                   </h1>
                   <span class="admin-badge">ADMIN</span>
                 </div>
                 {description && (
-                  <p class="mt-1 text-sm text-gray-600">{description}</p>
+                  <p class="mt-1 text-sm text-text-light">{description}</p>
                 )}
               </div>
-              
+
               <!-- Admin header actions -->
               <div class="flex items-center space-x-3">
                 <a
                   href="/courses"
-                  class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm"
+                  class="inline-flex items-center px-3 py-2 text-sm font-medium text-text-light bg-surface-dark rounded-lg border border-border hover:bg-border transition-colors shadow-sm"
                   title="View public site"
                 >
                   <span class="mr-2">🌐</span>
                   View Site
                 </a>
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-text-light">
                   <span>Admin Mode</span>
-                  <div class="text-xs">Logged in as {user.name}</div>
+                  <div class="text-xs text-text-lighter">Logged in as {user.name}</div>
                 </div>
               </div>
             </div>
