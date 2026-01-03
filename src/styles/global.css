@@ -567,7 +567,27 @@ select[required] + label::after {
 
 /* Hero Section Styles */
 .hero-gradient {
-  background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
+  background-image: url('/images/hero-background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(15, 15, 26, 0.3) 0%, rgba(15, 15, 26, 0.5) 100%);
+  pointer-events: none;
+}
+
+.hero-gradient > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-subtitle {
