@@ -11,6 +11,7 @@
  */
 
 import type { Locale } from '@/i18n';
+import { t } from '@/i18n';
 
 interface Props {
   title: string;
@@ -31,6 +32,9 @@ const {
   ogType = 'website',
   noindex = false
 } = Astro.props;
+
+// Get localized site name
+const siteName = t(locale, 'seo.siteName');
 
 // Get base URL from environment or default
 const baseUrl = import.meta.env.PUBLIC_SITE_URL || 'https://quantumhealingportal.com';
@@ -75,7 +79,7 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}
 <meta property="og:image" content={fullOgImage} />
 <meta property="og:locale" content={ogLocale} />
 <meta property="og:locale:alternate" content={ogLocaleAlternate} />
-<meta property="og:site_name" content="Quantum Healing Portal" />
+<meta property="og:site_name" content={siteName} />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
